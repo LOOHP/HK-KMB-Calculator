@@ -1033,8 +1033,9 @@
                 icon = redIcon;
             } else if (stopType == 2) {
                 if (routes.length == 1) {
-                    let changeTo = rowsData[stopMarker[4] + 1][0];
-                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo + "</p><p style=\"text-align: center;\">(" + (language == "en" ? "Walk to " : "步行至 ") + rowsData[stopMarker[4] + 1][1] + ")";
+                    let nextEntry = rowsData[stopMarker[4] + 1];
+                    let changeTo = nextEntry[0];
+                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo + "</p><p style=\"text-align: center;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
                 } else {
                     let changeTo = routes[1];
                     desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo;
