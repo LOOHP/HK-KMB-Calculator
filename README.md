@@ -3,7 +3,7 @@ Web app to calculate bus interchange routes and fares on Hong Kong [Kowloon Moto
 
 ## Language
 This web app is in the native language of Hong Kong: **Traditional Chinese**.<br>
-***English** might be added in the future.*
+In addition, it also supports **English**.
 
 ## Live Demonstration
 This web app is hosted on my web server: **https://loohpjames.com/hkkmbcal/**
