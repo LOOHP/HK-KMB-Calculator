@@ -2,7 +2,8 @@
 Web app to calculate bus interchange routes and fares on Hong Kong [Kowloon Motor Bus](https://www.kmb.hk/) routes.
 
 ## Language
-This web app is in the native language of Hong Kong: **Traditional Chinese**.
+This web app is in the native language of Hong Kong: **Traditional Chinese**.<br>
+***English** might be added in the future.*
 
 ## Live Demonstration
 This web app is hosted on my web server: **https://loohpjames.com/hkkmbcal/**
