@@ -1514,7 +1514,7 @@
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
         if (mapElement.style.display === "none") {
-            mapElement.style.display = "block";
+            mapElement.style.display = "";
         } else {
             mapElement.style.display = "none";
         }
@@ -1523,7 +1523,7 @@
         let timetableElement = document.getElementById('time-table');
         if (timetableElement.innerHTML != "") {
             if (timetableElement.style.display === "none") {
-                timetableElement.style.display = "block";
+                timetableElement.style.display = "";
             } else {
                 timetableElement.style.display = "none";
             }
@@ -1533,7 +1533,7 @@
         let etaElement = document.getElementById('eta-table');
         if (etaElement.innerHTML != "") {
             if (etaElement.style.display === "none") {
-                etaElement.style.display = "block";
+                etaElement.style.display = "";
             } else {
                 etaElement.style.display = "none";
             }
