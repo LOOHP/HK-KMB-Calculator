@@ -121,8 +121,8 @@
                         <table class="table" id="fare-final-table">
                             <tbody>
                                 <tr>
-                                    <th id="total-fare-label">合計車費</th>
-                                    <th style="text-align: right;" id="total-fare">$0.0 (半價 $0.0)</th>
+                                    <th id="total-fare-label" style="font-size: 20px;">合計車費</th>
+                                    <th style="text-align: right; font-size: 20px;" id="total-fare">$0.0 (半價 $0.0)</th>
                                 </tr>
                             </tbody>
                         </table>
@@ -1299,7 +1299,7 @@
                         "<table class=\"table\" style=\"word-break: keep-all;\">" +
                             "<tbody>" +
                                 "<tr>" +
-                                    "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
+                                    "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                 "</tr>" + 
                                 "<tr>" +
                                     "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1\"></th>" +
@@ -1331,7 +1331,7 @@
                             "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                 "<tbody>" +
                                     "<tr>" +
-                                        "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
+                                        "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
                                         "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1\"></th>" +
