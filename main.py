@@ -41,6 +41,7 @@ def resolve_bbi_data(data):
     for route_number, route_data in data.items():
         route_result = []
         bbi_routes = route_data["Records"]
+        bbi_direction = route_data["bus_arr"][0]["dest"]
         for bbi_route in bbi_routes:
             bbi_route_number = bbi_route["sec_routeno"]
             destination = bbi_route["sec_dest"]
@@ -79,6 +80,7 @@ def resolve_bbi_data(data):
             else:
                 print(discount_raw)
             bbi_route_result = {
+                "bbi_direction": bbi_direction,
                 "bbi_route_number": bbi_route_number,
                 "destination": destination,
                 "max_change": max_change,
@@ -228,10 +230,10 @@ def write_dict_to_file(file, dictionary, indent=4):
 
 
 if __name__ == '__main__':
-    #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
-    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
-    #bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
-    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_b1.json", resolve_bbi_data(bbi_data_b1))
+    bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
+    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
+    bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
+    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_b1.json", resolve_bbi_data(bbi_data_b1))
 
     #print(get_text("https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=1686913282.html"))
 
@@ -240,11 +242,11 @@ if __name__ == '__main__':
 
     paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
-        route_numbers = get_all_routes()
-        route_data = get_all_routes_data()
-        for route_number in route_numbers:
-            futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
-        for future in concurrent.futures.as_completed(futures):
-            pass
+    #with concurrent.futures.ThreadPoolExecutor() as executor:
+    #    futures = []
+    #    route_numbers = get_all_routes()
+    #    route_data = get_all_routes_data()
+    #    for route_number in route_numbers:
+    #        futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
+    #    for future in concurrent.futures.as_completed(futures):
+    #        pass

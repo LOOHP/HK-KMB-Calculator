@@ -93,9 +93,12 @@
                     <div class="box has-background-white-ter" style="width: 100%;">
                         <div id="route-input"></div><br>
                         <div class="box">
-                            <button class="button is-success" id="route-add">➕</button>
+                            <button class="button is-success" id="route-add" disabled>➕</button>
                             <button class="button is-danger" id="route-remove">➖</button>
-                            <button class="button is-info" id="toggle-map">🗺️</button><br><br>
+                            <button class="button is-info" id="toggle-eta">⏳</button>
+                            <button class="button is-info" id="toggle-timetable">🕒</button>
+                            <button class="button is-info" id="toggle-map">🗺️</button>
+                            <br><br>
                             <button class="button is-dark" id="calculate">計算轉乘車費</button>
                         </div>
                         <div style="overflow: auto; width: 100%;">
@@ -123,7 +126,9 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;">test</div>
+                        <div class="box" id="eta-table" style="display: none;"></div>
+                        <div class="box" id="time-table" style="display: none;"></div>
+                        <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
                         <div id="map" style="color: black; height: 50%; aspect-ratio: 4/3;"></div>
                         <br>
                         <h5 class="title is-5" style="color: #111770; font-size: 15px;"><a id="data-label">數據來源</a>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
@@ -330,6 +335,8 @@
         }
     });
 
+    let busRouteList = [];
+    let busRouteListOptions = "";
     let dataSheet = null;
     const dataSheetUrl = "https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json";
     getJSON(dataSheetUrl, (err, data) => {
@@ -337,6 +344,9 @@
             dataSheet = data;
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
+                if (busRouteList.indexOf(data["route"]) < 0) {
+                    busRouteList.push(data["route"]);
+                }
                 if (data["fares"] == null && data["bound"].hasOwnProperty("kmb")) {
                     for (let key0 in dataSheet["routeList"]) {
                         let data0 = dataSheet["routeList"][key0];
@@ -346,6 +356,9 @@
                     }
                 }
             }
+            busRouteListOptions = "<option value=" + busRouteList.join("><option value=") + ">";
+            routeAdd();
+            document.getElementById("route-add").disabled = false;
         } else {
             alert("Unable to get response from " + dataSheetUrl + ". (Is it down?)");
         }
@@ -383,6 +396,100 @@
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
+    let kmbTimeTableUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getschedule&route={route}&bound={bound}";
+    let kmbRouteDataUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getstops&route={route}&bound={bound}&serviceType={type}";
+    let kmbStopEtaUrl = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/{stop}";
+
+    const updateEta = () => {
+        let collection = document.getElementsByClassName("eta-update");
+        
+        let stops = {};
+        for (let i = 0; i < collection.length; i++) {
+            let element = collection[i];
+            let tag = element.id.substring(element.id.lastIndexOf("_") + 1);
+            let matches = tag.split(",");
+            let stopId = matches[0];
+            let routeNumber = matches[1];
+            let bound = matches[2];
+            let seq = matches[3];
+            if (stops.hasOwnProperty(stopId)) {
+                stops[stopId].push([element, stopId, routeNumber, bound, seq]);
+            } else {
+                stops[stopId] = [[element, stopId, routeNumber, bound, seq]];
+            }
+        }
+
+        for (let stopId in stops) {
+            let list = stops[stopId];
+            let resolvedStopEtaUrl = kmbStopEtaUrl.replace("{stop}", stopId);
+            getJSON(resolvedStopEtaUrl, (err, data) => {
+                if (err == null) {
+                    let buses = data["data"];
+                    for (let u = 0; u < buses.length; u++) {
+                        let bus = buses[u];
+                        if (bus["co"] == "KMB") {
+                            let routeNumber = bus["route"];
+                            let bound = bus["dir"];
+                            let type = bus["service_type"];
+                            let seq = bus["eta_seq"];
+                            let eta = bus["eta"];
+
+                            let mins = eta == null ? -999 : Math.round((new Date(eta) - new Date()) / 1000 / 60);
+                            let message = "";
+                            if (language == "en") {
+                                if (mins > -60) {
+                                    message = "<b style=\"font-size: 25px;\">" + mins + "</b> Min.";
+                                } else if (mins == 0) {
+                                    message = "<b style=\"font-size: 25px;\">-</b> Min.";
+                                }
+                                if (bus["rmk_en"] != "") {
+                                    message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
+                                }
+                            } else {
+                                if (mins > 0) {
+                                    message = "<b style=\"font-size: 25px;\">" + mins + "</b> 分鐘";
+                                } else if (mins > -60) {
+                                    message = "<b style=\"font-size: 25px;\">-</b> 分鐘";
+                                }
+                                if (bus["rmk_tc"] != "") {
+                                    message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
+                                }
+                            }
+                            message = message.replaceAll("原定", "預定");
+                            
+                            for (let m = 0; m < list.length; m++) {
+                                let entry = list[m];
+                                let elementRouteNumber = entry[2];
+                                let elementBound = entry[3];
+                                let elementSeq = entry[4];
+                                if (elementRouteNumber == routeNumber && elementBound == bound) {
+                                    if (message == "") {
+                                        if (elementSeq == 1) {
+                                            if (language == "en") {
+                                                entry[0].innerHTML = "No scheduled departures at this moment";
+                                            } else {
+                                                entry[0].innerHTML = "暫時沒有預定班次";
+                                            }
+                                        } else {
+                                            entry[0].innerHTML = "-";
+                                        }
+                                    } else if (elementSeq == seq) {
+                                        entry[0].innerHTML = message;
+                                    } else if (elementSeq > seq) {
+                                        entry[0].innerHTML = "-";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                }
+            });
+        }
+    };
+
+    setInterval(updateEta, 15000);
 
     const kmbRouteExists = (route) => {
         for (let i = 0; i < kmbRouteList.length; i++) {
@@ -402,7 +509,7 @@
                 return i;
             } else {
                 let normalizedStop = stop.toUpperCase().replaceAll("轉車站", "").replaceAll(/\(.*\)/ig, "");
-                let normalizedName = name.toUpperCase().replaceAll("輕鐵", "").replaceAll("邨", "").replaceAll(/\(.*\)/ig, "");
+                let normalizedName = name.toUpperCase().replaceAll("輕鐵", "").replaceAll("邨", "").replaceAll("落馬洲", "新田運輸交匯處").replaceAll(/\(.*\)/ig, "");
                 let area = regionalTwoWaySectionFare["area"];
                 for (let u = 0; u < area.length; u++) {
                     normalizedName = normalizedName.replaceAll(area[u], "");
@@ -519,6 +626,14 @@
         }
         return false;
     };
+    const hasStartWith = (list, str) => {
+        for (let u = 0; u < list.length; u++) {
+            if (list[u].startsWith(str)) {
+                return true;
+            }
+        }
+        return false;
+    };
 
     const updateRoutes = () => {
         let collection = document.getElementsByClassName("route-input-element");
@@ -529,6 +644,10 @@
             let leg = i + 1;
             let routeNumber = document.getElementById('route-' + leg).value.toUpperCase();
             document.getElementById('route-' + leg).value = routeNumber;
+            while (!hasStartWith(busRouteList, routeNumber)) {
+                routeNumber = routeNumber.substring(0, routeNumber.length - 1);
+                document.getElementById('route-' + leg).value = routeNumber;
+            }
             let routes = [];
 
             for (let key in dataSheet["routeList"]) {
@@ -643,416 +762,621 @@
         if (collection.length == 0) {
             return;
         }
-        deleteRows(document.getElementById('fare-table'), 1);
-        let rowsData = [];
+        document.getElementById('calculate').disabled = true;
 
-        let consecutiveInterchanges = 1;
-        let lastRouteNumber = -1;
-        let lastFare = 0;
-        let lastBound = null;
-        for (let i = 0; i < collection.length; i++) {
-            let leg = i + 1;
-            let key = document.getElementById('route-' + leg + '-type').value;
-            if (key == "-1" || key == "") {
-                let routeNumber = document.getElementById('route-' + leg).value.toUpperCase();
-                let routeValid = false;
+        try {
+            for (let i = 0; i < collection.length; i++) {
+                let leg = i + 1;
+                let key = document.getElementById('route-' + leg + '-type').value;
+                if (key == "-1" || key == "") {
+                    let routeNumber = document.getElementById('route-' + leg).value.toUpperCase();
+                    let routeValid = false;
 
-                for (let key in dataSheet["routeList"]) {
-                    let data = dataSheet["routeList"][key];
-                    if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb")) {
-                        routeValid = true;
-                        break;
-                    }
-                }
-                if (routeValid) {
-                    document.getElementById('route-' + leg + '-type').focus();
-                } else {
-                    document.getElementById('route-' + leg).focus();
-                }
-                break;
-            }
-            let routeKey = key.substring(0, key.indexOf("_"));
-            let route = dataSheet["routeList"][routeKey];
-            let routeNumber = route["route"];
-            let stops = route["stops"]["kmb"];
-            let displayStopNames = stopIdsToNames(stops, language);
-            let stopNames = stopIdsToNames(stops);
-            let stopDetails = stopIdsToDetails(stops);
-            let startingStopIndex = Number(document.getElementById('route-' + leg + '-start').value);
-            let endingStopIndex = Number(document.getElementById('route-' + leg + '-end').value);
-            if (startingStopIndex == -1) {
-                document.getElementById('route-' + leg + '-start').focus();
-                break;
-            }
-            if (endingStopIndex == -1) {
-                document.getElementById('route-' + leg + '-end').focus();
-                break;
-            }
-            if (i == 0) {
-                let startingStopId = stops[startingStopIndex];
-                let startingStop = dataSheet["stopList"][startingStopId];
-                let startingName = startingStop["name"]["zh"];
-
-                let endingStopId = stops[endingStopIndex];
-                let endingStop = dataSheet["stopList"][endingStopId];
-                let endingName = endingStop["name"]["zh"];
-
-                let note = "-";
-                let twoWaySectionFare = checkTwoWaySectionFare(routeNumber, stopNames, startingName, endingName);
-                let fare = 0;
-                if (twoWaySectionFare == null) {
-                    fare = Number(route["fares"][startingStopIndex]);
-                } else {
-                    fare = twoWaySectionFare[2];
-                    if (language == "en") {
-                        note = "Octopus Two-way Section Fare - " + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
-                    } else {
-                        note = "八達通雙向分段收費 - " + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
-                    }
-                }
-
-                rowsData.push([routeNumber, startingName, endingName, null, null, null, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
-
-                lastFare = fare;
-                lastRouteNumber = routeNumber;
-                consecutiveInterchanges = 1;
-                lastBound = route["bound"]["kmb"];
-                lastStopDetails = stopDetails.slice(startingStopIndex + 1, endingStopIndex + 1);
-            } else {
-                let endingStopId = stops[endingStopIndex];
-                let endingStop = dataSheet["stopList"][endingStopId];
-                let endingName = endingStop["name"]["zh"];
-
-                let interchangeStopResult = findInterchangeStop(lastStopDetails, stopDetails.slice(startingStopIndex, endingStopIndex + 1));
-
-                let interchangeStopId1 = interchangeStopResult[0];
-                let interchangeStop1 = dataSheet["stopList"][interchangeStopId1];
-                let interchangeName1 = interchangeStop1["name"]["zh"];
-
-                let interchangeStopId2 = interchangeStopResult[1];
-                let interchangeStop2 = dataSheet["stopList"][interchangeStopId2];
-                let interchangeName2 = interchangeStop2["name"]["zh"];
-
-                let note = "-";
-                let twoWaySectionFare = checkTwoWaySectionFare(routeNumber, stopNames, interchangeName2, endingName);
-                let fare = 0;
-                if (twoWaySectionFare == null) {
-                    fare = Number(route["fares"][startingStopIndex]);
-                } else {
-                    fare = twoWaySectionFare[2];
-                    if (language == "en") {
-                        note = "Octopus Two-way Section Fare - " + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
-                    } else {
-                        note = "八達通雙向分段收費 - " + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
-                    }
-                }
-
-                let bbiDataSheet = lastBound == "O" ? bbiF1 : bbiB1;
-                let hasBbi = false;
-                if (bbiDataSheet[lastRouteNumber] != undefined) {
-                    let bbiData = bbiDataSheet[lastRouteNumber];
-                    for (let k = 0; k < bbiData.length; k++) {
-                        let bbiRoute = bbiData[k];
-                        let routeDest = null;
-                        let type = route["stops"]["kmb"];
-                        let bound = route["bound"]["kmb"];
-                        if (type == 1) {
-                            routeDest = route["dest"]["zh"];
-                        } else {
-                            for (let key in dataSheet["routeList"]) {
-                                let data = dataSheet["routeList"][key];
-                                if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb") && data["bound"]["kmb"] == bound && data["serviceType"] == 1) {
-                                    routeDest = data["dest"]["zh"];
-                                    break;
-                                }
-                            }
-                        }
-                        if (bbiRoute["bbi_route_number"] == routeNumber && bbiRoute["destination"] == routeDest.replace("(循環線)", "")) {
-                            let maxChanges = bbiRoute["max_change"];
-                            if (maxChanges >= consecutiveInterchanges++) {
-                                hasBbi = true;
-                                let timeLimit = bbiRoute["time_limit"];
-                                let recommendedBbi = bbiRoute["recommended_bbi"];
-
-                                if (recommendedBbi != "任何能接駁第二程路線的巴士站") {
-                                    let recommendedBbiIndex = stopNamesIndexOf(recommendedBbi, stopNames);
-                                    if (recommendedBbiIndex >= startingStopIndex && recommendedBbiIndex <= endingStopIndex) {
-                                        let interchangeStopClosestResult = findCloestStop(stopDetails[recommendedBbiIndex], rowsData[i - 1][10]);
-                                        let interchangeStopIndex = rowsData[i - 1][11].indexOf(interchangeStopClosestResult[0]);
-                                        if (interchangeStopIndex >= rowsData[i - 1][12] && interchangeStopIndex <= rowsData[i - 1][13]) {
-                                            interchangeName2 = bbiRoute["recommended_bbi"];
-                                            startingStopIndex = recommendedBbiIndex;
-                                            interchangeStop1 = dataSheet["stopList"][interchangeStopClosestResult[0]];
-                                            interchangeName1 = interchangeStop1["name"]["zh"];
-                                        }
-                                    }
-                                }
-
-                                if (rowsData[i - 1][2] != interchangeName1) {
-                                    rowsData[i - 1][2] = interchangeName1;
-                                    let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
-                                    rowsData[i - 1][13] = newEndingStopIndex;
-                                    let twoWaySectionFare0 = checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1);
-                                    let fare0 = 0;
-                                    let note0 = "-";
-                                    if (twoWaySectionFare0 == null) {
-                                        fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
-                                    } else {
-                                        fare0 = twoWaySectionFare0[2];
-                                        if (language == "en") {
-                                            note = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
-                                        } else {
-                                            note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
-                                        }
-                                    }
-                                    lastFare = fare0;
-                                    lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
-
-                                    rowsData[i - 1][6] = note0;
-                                    rowsData[i - 1][7] = fare0;
-                                }
-
-                                let discountType = bbiRoute["discount_type"];
-                                let discount = bbiRoute["discount"];
-                                if (discountType == "free") {
-                                    fare = 0;
-                                } else if (discountType == "discount") {
-                                    fare -= discount;
-                                } else if (discountType == "combined_fare") {
-                                    fare = discount - lastFare;
-                                } else if (discountType == "fixed_fare") {
-                                    fare = discount;
-                                } else if (discountType == "return") {
-                                    fare = -discount;
-                                }
-                                fare = roundTo1Decimal(fare);
-
-                                let discount_message = bbiRoute["discount_raw"];
-                                if (language == "en") {
-                                    discount_message = discount_message
-                                            .replace("減", "Discount")
-                                            .replace("兩程合共", "Combined Fare")
-                                            .replace("免費", "Free")
-                                            .replace("付", "Pay")
-                                            .replace("回贈", "Rebate");
-
-                                }
-                                rowsData.push([routeNumber, interchangeName2, endingName, discount_message, maxChanges, timeLimit, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
-                            }
+                    for (let key in dataSheet["routeList"]) {
+                        let data = dataSheet["routeList"][key];
+                        if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb")) {
+                            routeValid = true;
                             break;
                         }
                     }
+                    if (routeValid) {
+                        document.getElementById('route-' + leg + '-type').focus();
+                    } else {
+                        document.getElementById('route-' + leg).focus();
+                    }
+                    return;
                 }
-
-                if (!hasBbi) {
-                    if (rowsData[i - 1][2] != interchangeName1) {
-                        rowsData[i - 1][2] = interchangeName1;
-
-                        let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
-                        rowsData[i - 1][13] = newEndingStopIndex;
-                        let twoWaySectionFare0 = checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1);
-                        let fare0 = 0;
-                        let note0 = "-";
-                        if (twoWaySectionFare0 == null) {
-                            fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
-                        } else {
-                            fare0 = twoWaySectionFare0[2];
-                            if (language == "en") {
-                                note = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
-                            } else {
-                                note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                let routeKey = key.substring(0, key.indexOf("_"));
+                let route = dataSheet["routeList"][routeKey];
+                if (route["fares"] == null) {
+                    let resolvedRouteDataUrl = kmbRouteDataUrl.replace("{route}", route["route"]).replace("{bound}", route["bound"]["kmb"] == "O" ? 1 : 2).replace("{type}", route["serviceType"])
+                    getJSON(resolvedRouteDataUrl, (err, data) => {
+                        if (err == null) {
+                            let faresArray = [];
+                            let routeStops = data["data"]["routeStops"]
+                            for (let u = 0; u < routeStops.length; u++) {
+                                let routeStop = routeStops[u];
+                                faresArray.push(routeStop["AirFare"]);
                             }
+                            route["fares"] = faresArray;
+                            calculate();
+                        } else {
+                            alert("Unable to get response from " + resolvedRouteDataUrl + ". (Is it down?)");
                         }
-                        lastFare = fare0;
-                        lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
+                    });
+                    return;
+                }
+            }
 
-                        rowsData[i - 1][6] = note0;
-                        rowsData[i - 1][7] = fare0;
+            deleteRows(document.getElementById('fare-table'), 1);
+
+            let rowsData = [];
+
+            let consecutiveInterchanges = 1;
+            let lastRouteNumber = -1;
+            let lastFare = 0;
+            let lastBound = null;
+            for (let i = 0; i < collection.length; i++) {
+                let leg = i + 1;
+                let key = document.getElementById('route-' + leg + '-type').value;
+                let routeKey = key.substring(0, key.indexOf("_"));
+                let route = dataSheet["routeList"][routeKey];
+                let routeNumber = route["route"];
+                let stops = route["stops"]["kmb"];
+                let displayStopNames = stopIdsToNames(stops, language);
+                let stopNames = stopIdsToNames(stops);
+                let stopDetails = stopIdsToDetails(stops);
+                let startingStopIndex = Number(document.getElementById('route-' + leg + '-start').value);
+                let endingStopIndex = Number(document.getElementById('route-' + leg + '-end').value);
+                if (startingStopIndex == -1) {
+                    document.getElementById('route-' + leg + '-start').focus();
+                    break;
+                }
+                if (endingStopIndex == -1) {
+                    document.getElementById('route-' + leg + '-end').focus();
+                    break;
+                }
+                if (i == 0) {
+                    let startingStopId = stops[startingStopIndex];
+                    let startingStop = dataSheet["stopList"][startingStopId];
+                    let startingName = startingStop["name"]["zh"];
+
+                    let endingStopId = stops[endingStopIndex];
+                    let endingStop = dataSheet["stopList"][endingStopId];
+                    let endingName = endingStop["name"]["zh"];
+
+                    let note = "-";
+                    let twoWaySectionFare = checkTwoWaySectionFare(routeNumber, stopNames, startingName, endingName);
+                    let fare = 0;
+                    if (twoWaySectionFare == null) {
+                        fare = Number(route["fares"][startingStopIndex]);
+                    } else {
+                        fare = twoWaySectionFare[2];
+                        if (language == "en") {
+                            note = "Octopus Two-way Section Fare - " + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
+                        } else {
+                            note = "八達通雙向分段收費 - " + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
+                        }
                     }
 
-                    startingStopIndex = stops.indexOf(interchangeStopId2);
+                    rowsData.push([routeNumber, startingName, endingName, null, null, null, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
 
-                    rowsData.push([routeNumber, interchangeName2, endingName, null, null, null, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
+                    lastFare = fare;
+                    lastRouteNumber = routeNumber;
                     consecutiveInterchanges = 1;
-                }
-                lastRouteNumber = routeNumber;
-                lastFare = fare;
-                lastBound = route["bound"]["kmb"];
-                lastStopDetails = stopDetails.slice(startingStopIndex + 1, endingStopIndex + 1);
-            }
-        }
+                    lastBound = route["bound"]["kmb"];
+                    lastStopDetails = stopDetails.slice(startingStopIndex + 1, endingStopIndex + 1);
+                } else {
+                    let endingStopId = stops[endingStopIndex];
+                    let endingStop = dataSheet["stopList"][endingStopId];
+                    let endingName = endingStop["name"]["zh"];
 
-        markers.clearLayers();
-        document.getElementById('special-announcements').innerHTML = "";
-        document.getElementById('special-announcements').style.display = "none";
+                    let interchangeStopResult = findInterchangeStop(lastStopDetails, stopDetails.slice(startingStopIndex, endingStopIndex + 1));
 
-        let stopMarkerData = {};
+                    let interchangeStopId1 = interchangeStopResult[0];
+                    let interchangeStop1 = dataSheet["stopList"][interchangeStopId1];
+                    let interchangeName1 = interchangeStop1["name"]["zh"];
 
-        let totalFare = 0;
-        for (let i = 0; i < rowsData.length; i++) {
-            let entry = rowsData[i];
-            addRows(document.getElementById('fare-table'), 
-                entry[0], 
-                entry[14][entry[12]], 
-                entry[14][entry[13]], 
-                entry[3] == null ? "-" : entry[3], 
-                entry[4] == null ? "-" : entry[4], 
-                entry[5] == null ? "-" : entry[5] + (language == "en" ? " Min." : "分鐘"), 
-                entry[6], 
-                "$" + entry[7].toFixed(1));
-            totalFare += entry[7];
+                    let interchangeStopId2 = interchangeStopResult[1];
+                    let interchangeStop2 = dataSheet["stopList"][interchangeStopId2];
+                    let interchangeName2 = interchangeStop2["name"]["zh"];
 
-            let route = entry[8];
-
-            let resolvedSpecialUrl = kmbSpecialAnnouncementsUrl.replace("{route}", route["route"]).replace("{bound}", route["bound"]["kmb"] == "O" ? 1 : 2);
-            getJSON(resolvedSpecialUrl, (err, data) => {
-                if (err == null) {
-                    let entries = data["data"];
-                    let messages = [];
-                    for (let i = 0; i < entries.length; i++) {
-                        let entry = entries[i];
-                        let title = entry[language == "en" ? "kpi_title" : "kpi_title_chi"];
-                        let resolvedAnnouncementPictureUrl = kmbAnnouncementPictureUrl + entry["kpi_noticeimageurl"];
-                        messages.push("<a href=\"" + resolvedAnnouncementPictureUrl + "\" target=\"_blank\">" + title + "</a>");
-                    }
-                    if (messages.length > 0) {
-                        let html;
+                    let note = "-";
+                    let twoWaySectionFare = checkTwoWaySectionFare(routeNumber, stopNames, interchangeName2, endingName);
+                    let fare = 0;
+                    if (twoWaySectionFare == null) {
+                        fare = Number(route["fares"][startingStopIndex]);
+                    } else {
+                        fare = twoWaySectionFare[2];
                         if (language == "en") {
-                            html = "[Route " + route["route"] + " Announcements]<br> " + messages.join("<br>");
+                            note = "Octopus Two-way Section Fare - " + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
                         } else {
-                            html = "[路線" + route["route"] + "特別公告]<br> " + messages.join("<br>");
-                        }
-                        if (document.getElementById('special-announcements').innerHTML == "") {
-                            document.getElementById('special-announcements').style.display = "";
-                            document.getElementById('special-announcements').innerHTML = html;
-                        } else {
-                            document.getElementById('special-announcements').innerHTML += "<br><br>" + html
+                            note = "八達通雙向分段收費 - " + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
                         }
                     }
-                } else {
-                    alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
-                }
-            });
 
-            let stopNames = entry[9];
-            let stopDetails = entry[10];
-            for (let u = 0; u < stopNames.length; u++) {
-                let stopName = stopNames[u];
-                let stopPosition = stopDetails[u][1]["location"];
-                let desc = (u + 1) + ". " + entry[14][u];
-                let positionArray = [stopPosition["lat"], stopPosition["lng"]];
-                let stopMarker;
-                if (u < entry[12] || u > entry[13]) {
-                    stopMarker = [[route["route"]], 4, desc, positionArray, i];
-                } else if (u == entry[12]) {
-                    stopMarker = [[route["route"]], 0, desc, positionArray, i];
-                } else if (u == entry[13]) {
-                    stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i];
-                } else {
-                    stopMarker = [[route["route"]], 3, desc, positionArray, i];
-                }
-                if (stopMarkerData.hasOwnProperty(stopDetails[u][0])) {
-                    stopMarkerData[stopDetails[u][0]][0].push(stopMarker[0][0]);
-                    stopMarkerData[stopDetails[u][0]][2] = stopMarker[2];
-                } else {
-                    stopMarkerData[stopDetails[u][0]] = stopMarker;
-                }
-            }
-
-            getJSON("./route_paths/" + route["route"] + ".json", (err, data) => {
-                if (err == null) {                
-                    let sections = data[route["bound"]["kmb"]][route["serviceType"]];
-                    if (sections == undefined) {
-                        return;
-                    }
-                    for (let i = 0; i < sections.length; i++) {
-                        let path = sections[i];
-                        let pointListBefore = [];
-                        let pointListRoute = [];
-                        let pointListAfter = [];
-                        for (let u = 0; u < path.length; u++) {
-                            let position = path[u];
-                            if (i < entry[12]) {
-                                pointListBefore.push(new L.LatLng(position[0], position[1]));
-                            } else if (i > entry[13] - 1) {
-                                pointListAfter.push(new L.LatLng(position[0], position[1]));
-                            } else {
-                                pointListRoute.push(new L.LatLng(position[0], position[1]));
+                    let bbiDataSheet = lastBound == "O" ? bbiF1 : bbiB1;
+                    if (bbiDataSheet[lastRouteNumber] != undefined) {
+                        let bbiData = bbiDataSheet[lastRouteNumber];
+                        if (bbiData.length > 0) {
+                            if (bbiData[0]["bbi_direction"] != rowsData[i - 1][8]["dest"]["zh"] && rowsData[i - 1][8]["dest"]["zh"].indexOf("循環線") < 0) {
+                                bbiDataSheet = lastBound == "O" ? bbiB1 : bbiF1;
                             }
                         }
-                        let desc;
-                        if (language == "en") {
-                            desc = route["route"] + " - To " + capitalize(route["dest"]["en"]);
-                        } else {
-                            desc = route["route"] + " - 往" + route["dest"]["zh"];
-                        }
-                        if (pointListBefore.length > 0) {
-                            new L.Polyline(pointListBefore, {
-                                color: '#141414',
-                                weight: 3,
-                                opacity: 0.5,
-                                smoothFactor: 1
-                            }).addTo(markers).bindPopup(desc);
-                        }
-                        new L.Polyline(pointListRoute, {
-                            color: 'red',
-                            weight: 4,
-                            opacity: 1,
-                            smoothFactor: 1
-                        }).addTo(markers).bindPopup(desc);
-                        if (pointListAfter.length > 0) {
-                            new L.Polyline(pointListAfter, {
-                                color: '#141414',
-                                weight: 3,
-                                opacity: 0.5,
-                                smoothFactor: 1
-                            }).addTo(markers).bindPopup(desc);
+                    }
+                    let hasBbi = false;
+                    if (bbiDataSheet[lastRouteNumber] != undefined) {
+                        let bbiData = bbiDataSheet[lastRouteNumber];
+                        for (let k = 0; k < bbiData.length; k++) {
+                            let bbiRoute = bbiData[k];
+                            let routeDest = null;
+                            let type = route["stops"]["kmb"];
+                            let bound = route["bound"]["kmb"];
+                            if (type == 1) {
+                                routeDest = route["dest"]["zh"];
+                            } else {
+                                for (let key in dataSheet["routeList"]) {
+                                    let data = dataSheet["routeList"][key];
+                                    if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb") && data["bound"]["kmb"] == bound && data["serviceType"] == 1) {
+                                        routeDest = data["dest"]["zh"];
+                                        break;
+                                    }
+                                }
+                            }
+                            if (bbiRoute["bbi_route_number"] == routeNumber && bbiRoute["destination"] == routeDest.replace("(循環線)", "")) {
+                                let maxChanges = bbiRoute["max_change"];
+                                if (maxChanges >= consecutiveInterchanges++) {
+                                    hasBbi = true;
+                                    let timeLimit = bbiRoute["time_limit"];
+                                    let recommendedBbi = bbiRoute["recommended_bbi"];
+
+                                    if (recommendedBbi != "任何能接駁第二程路線的巴士站") {
+                                        let recommendedBbiIndex = stopNamesIndexOf(recommendedBbi, stopNames);
+                                        if (recommendedBbiIndex >= startingStopIndex && recommendedBbiIndex <= endingStopIndex) {
+                                            let interchangeStopClosestResult = findCloestStop(stopDetails[recommendedBbiIndex], rowsData[i - 1][10]);
+                                            let interchangeStopIndex = rowsData[i - 1][11].indexOf(interchangeStopClosestResult[0]);
+                                            if (interchangeStopIndex >= rowsData[i - 1][12] && interchangeStopIndex <= rowsData[i - 1][13]) {
+                                                interchangeName2 = bbiRoute["recommended_bbi"];
+                                                startingStopIndex = recommendedBbiIndex;
+                                                interchangeStop1 = dataSheet["stopList"][interchangeStopClosestResult[0]];
+                                                interchangeName1 = interchangeStop1["name"]["zh"];
+                                            }
+                                        }
+                                    }
+
+                                    if (rowsData[i - 1][2] != interchangeName1) {
+                                        rowsData[i - 1][2] = interchangeName1;
+                                        let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
+                                        rowsData[i - 1][13] = newEndingStopIndex;
+                                        let twoWaySectionFare0 = checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1);
+                                        let fare0 = 0;
+                                        let note0 = "-";
+                                        if (twoWaySectionFare0 == null) {
+                                            fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                        } else {
+                                            fare0 = twoWaySectionFare0[2];
+                                            if (language == "en") {
+                                                note = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
+                                            } else {
+                                                note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                                            }
+                                        }
+                                        lastFare = fare0;
+                                        lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
+
+                                        rowsData[i - 1][6] = note0;
+                                        rowsData[i - 1][7] = fare0;
+                                    }
+
+                                    let discountType = bbiRoute["discount_type"];
+                                    let discount = bbiRoute["discount"];
+                                    if (discountType == "free") {
+                                        fare = 0;
+                                    } else if (discountType == "discount") {
+                                        fare -= discount;
+                                    } else if (discountType == "combined_fare") {
+                                        fare = discount - lastFare;
+                                    } else if (discountType == "fixed_fare") {
+                                        fare = discount;
+                                    } else if (discountType == "return") {
+                                        fare = -discount;
+                                    }
+                                    fare = roundTo1Decimal(fare);
+
+                                    let discount_message = bbiRoute["discount_raw"];
+                                    if (language == "en") {
+                                        discount_message = discount_message
+                                                .replace("減", "Discount")
+                                                .replace("兩程合共", "Combined Fare")
+                                                .replace("免費", "Free")
+                                                .replace("付", "Pay")
+                                                .replace("回贈", "Rebate");
+
+                                    }
+                                    rowsData.push([routeNumber, interchangeName2, endingName, discount_message, maxChanges, timeLimit, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
+                                }
+                                break;
+                            }
                         }
                     }
-                } else {
-                    alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
+
+                    if (!hasBbi) {
+                        if (rowsData[i - 1][2] != interchangeName1) {
+                            rowsData[i - 1][2] = interchangeName1;
+
+                            let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
+                            rowsData[i - 1][13] = newEndingStopIndex;
+                            let twoWaySectionFare0 = checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1);
+                            let fare0 = 0;
+                            let note0 = "-";
+                            if (twoWaySectionFare0 == null) {
+                                fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                            } else {
+                                fare0 = twoWaySectionFare0[2];
+                                if (language == "en") {
+                                    note = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
+                                } else {
+                                    note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                                }
+                            }
+                            lastFare = fare0;
+                            lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
+
+                            rowsData[i - 1][6] = note0;
+                            rowsData[i - 1][7] = fare0;
+                        }
+
+                        startingStopIndex = stops.indexOf(interchangeStopId2);
+
+                        rowsData.push([routeNumber, interchangeName2, endingName, null, null, null, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
+                        consecutiveInterchanges = 1;
+                    }
+                    lastRouteNumber = routeNumber;
+                    lastFare = fare;
+                    lastBound = route["bound"]["kmb"];
+                    lastStopDetails = stopDetails.slice(startingStopIndex + 1, endingStopIndex + 1);
                 }
-            });
-        }
-
-        for (let key in stopMarkerData) {
-            let stopMarker = stopMarkerData[key];
-            let routes = stopMarker[0];
-            let stopType = stopMarker[1];
-            let desc = stopMarker[2];
-            if (rowsData.length > 1) {
-                desc = "[" + routes.join("/") + "] " + desc;
             }
-            desc = "<p style=\"text-align: center;\">" + desc + "</p>"
-            let icon;
-            if (stopType == 0) {
-                desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
-                icon = redIcon;
-            } else if (stopType == 1) {
-                desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please alight at this stop" : "請在此站落車") + "</p>"
-                icon = redIcon;
-            } else if (stopType == 2) {
-                if (routes.length == 1) {
-                    let nextEntry = rowsData[stopMarker[4] + 1];
-                    let changeTo = nextEntry[0];
-                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo + "</p><p style=\"text-align: center;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
-                } else {
-                    let changeTo = routes[1];
-                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo;
+
+            markers.clearLayers();
+            document.getElementById('special-announcements').innerHTML = "";
+            document.getElementById('special-announcements').style.display = "none";
+
+            document.getElementById('time-table').innerHTML = "";
+            document.getElementById('time-table').style.display = "none";
+
+            document.getElementById('eta-table').innerHTML = "";
+            document.getElementById('eta-table').style.display = "none";
+
+            let stopMarkerData = {};
+
+            let totalFare = 0;
+            for (let i = 0; i < rowsData.length; i++) {
+                let entry = rowsData[i];
+                addRows(document.getElementById('fare-table'), 
+                    entry[0], 
+                    entry[14][entry[12]], 
+                    entry[14][entry[13]], 
+                    entry[3] == null ? "-" : entry[3], 
+                    entry[4] == null ? "-" : entry[4], 
+                    entry[5] == null ? "-" : entry[5] + (language == "en" ? " Min." : "分鐘"), 
+                    entry[6], 
+                    "$" + entry[7].toFixed(1));
+                totalFare += entry[7];
+
+                let route = entry[8];
+
+                let resolvedSpecialUrl = kmbSpecialAnnouncementsUrl.replace("{route}", route["route"]).replace("{bound}", route["bound"]["kmb"] == "O" ? 1 : 2);
+                getJSON(resolvedSpecialUrl, (err, data) => {
+                    if (err == null) {
+                        let entries = data["data"];
+                        let messages = [];
+                        for (let i = 0; i < entries.length; i++) {
+                            let entry = entries[i];
+                            let title = entry[language == "en" ? "kpi_title" : "kpi_title_chi"];
+                            let resolvedAnnouncementPictureUrl = kmbAnnouncementPictureUrl + entry["kpi_noticeimageurl"];
+                            messages.push("<a href=\"" + resolvedAnnouncementPictureUrl + "\" target=\"_blank\">" + title + "</a>");
+                        }
+                        if (messages.length > 0) {
+                            let html;
+                            if (language == "en") {
+                                html = "[Route " + route["route"] + " Announcements]<br> " + messages.join("<br>");
+                            } else {
+                                html = "[路線" + route["route"] + "特別公告]<br> " + messages.join("<br>");
+                            }
+                            if (document.getElementById('special-announcements').innerHTML == "") {
+                                document.getElementById('special-announcements').style.display = "";
+                                document.getElementById('special-announcements').innerHTML = html;
+                            } else {
+                                document.getElementById('special-announcements').innerHTML += "<br><br>" + html
+                            }
+                        }
+                    } else {
+                        alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
+                    }
+                });
+
+                let boundNumber = route["bound"]["kmb"] == "O" ? 1 : 2;
+                let resolvedTimeTableUrl = kmbTimeTableUrl.replace("{route}", route["route"]).replace("{bound}", boundNumber);
+                getJSON(resolvedTimeTableUrl, (err, data) => {
+                    if (err == null) {
+                        let timeTableData = data["data"];
+                        let times = {};
+                        for (let key in timeTableData) {
+                            let serviceType = Number(key.trim());
+                            let list = timeTableData[key];
+                            if (serviceType == route["serviceType"]) {
+                                for (let u = 0; u < list.length; u++) {
+                                    let entry = list[u];
+                                    let dayType = entry["DayType"].trim();
+
+                                    let time = entry["BoundText" + boundNumber].trim();
+                                    let frequency = entry["BoundTime" + boundNumber].trim();
+                                    if (time == "") {
+                                        continue;
+                                    }
+
+                                    let dayTypeName;
+                                    let daysOfWeek;
+                                    if (dayType == "MF") {
+                                        dayTypeName = language == "en" ? "Monday to Friday" : "星期一至五";
+                                        daysOfWeek = [1, 2, 3, 4, 5];
+                                    } else if (dayType == "S") {
+                                        dayTypeName = language == "en" ? "Saturday" : "星期六";
+                                        daysOfWeek = [6];
+                                    } else if (dayType == "H") {
+                                        dayTypeName = language == "en" ? "Sunday & Public Holidays" : "星期日及公眾假期";
+                                        daysOfWeek = [7]; 
+                                    } else if (dayType == "D") {
+                                        dayTypeName = language == "en" ? "Daily" : "每天";
+                                        if (time == "於指定日期服務" || time == "On specific day only") {
+                                            daysOfWeek = [];
+                                        } else {
+                                            daysOfWeek = [1, 2, 3, 4, 5, 6, 7];
+                                        }
+                                    }
+
+                                    if (!times.hasOwnProperty(dayTypeName)) {
+                                        times[dayTypeName] = [];
+                                    }
+                                    times[dayTypeName].push([time, frequency, daysOfWeek]);
+                                }
+                            }
+                        }
+
+                        let tables = [];
+                        for (let dayTypeName in times) {
+                            let entries = times[dayTypeName];
+                            let rows = [];
+                            for (let u = 0; u < entries.length; u++) {
+                                let entry = entries[u];
+                                let daysOfWeek = entry[2];
+                                if (daysOfWeek.length == 0) {
+                                    rows.push(
+                                        "<tr>" +
+                                            "<th style=\"font-weight: normal;\">" + entry[0] + "</th>" +
+                                            "<th style=\"font-weight: normal; text-align: right;\">-</th>" +
+                                        "</tr>"
+                                    );
+                                } else {
+                                    rows.push(
+                                        "<tr>" +
+                                            "<th style=\"font-weight: normal;\">" + entry[0] + "</th>" +
+                                            "<th style=\"font-weight: normal; text-align: right;\">" + entry[1] + "</th>" +
+                                        "</tr>"
+                                    );
+                                }
+                            }
+                            let table = 
+                                "<table class=\"table\" style=\"word-break: keep-all;\">" +
+                                    "<tbody>" +
+                                        "<tr>" +
+                                            "<th>" + dayTypeName + "</th>" +
+                                            "<th>" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
+                                        "</tr>" + 
+                                        rows.join("") +
+                                    "</tbody>" +
+                                "</table>";
+
+                            tables.push(table);
+                        }
+
+                        let tableTableTitle = language == "en" ? ("Route " + route["route"] + " Timetable") : ("路線" + route["route"] + "時間表");
+                        let append = 
+                            "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
+                            "<div class=\"columns\">" +
+                                "<div class=\"column\">" +
+                                    tables.join("</div><div class=\"column\">") +
+                                "</div>" +
+                            "</div>";
+
+                        if (document.getElementById('time-table').innerHTML == "") {
+                            document.getElementById('time-table').style.display = "";
+                        }
+                        document.getElementById("time-table").innerHTML += append;
+                    } else {
+                        alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                    }
+                });
+
+                let stopNames = entry[9];
+                let stopDetails = entry[10];
+                for (let u = 0; u < stopNames.length; u++) {
+                    let stopName = stopNames[u];
+                    let stopPosition = stopDetails[u][1]["location"];
+                    let desc = (u + 1) + ". " + entry[14][u];
+                    let positionArray = [stopPosition["lat"], stopPosition["lng"]];
+                    let stopMarker;
+                    if (u < entry[12] || u > entry[13]) {
+                        stopMarker = [[route["route"]], 4, desc, positionArray, i];
+                    } else if (u == entry[12]) {
+                        stopMarker = [[route["route"]], 0, desc, positionArray, i];
+                    } else if (u == entry[13]) {
+                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i];
+                    } else {
+                        stopMarker = [[route["route"]], 3, desc, positionArray, i];
+                    }
+                    if (stopMarkerData.hasOwnProperty(stopDetails[u][0])) {
+                        stopMarkerData[stopDetails[u][0]][0].push(stopMarker[0][0]);
+                        stopMarkerData[stopDetails[u][0]][2] = stopMarker[2];
+                    } else {
+                        stopMarkerData[stopDetails[u][0]] = stopMarker;
+                    }
                 }
-                desc += "</p>"
-                icon = redIcon;
-            } else if (stopType == 3) {
-                icon = goldIcon;
-            } else {
-                icon = greyIcon;
+
+                getJSON("./route_paths/" + route["route"] + ".json", (err, data) => {
+                    if (err == null) {                
+                        let sections = data[route["bound"]["kmb"]][route["serviceType"]];
+                        if (sections == undefined) {
+                            return;
+                        }
+                        for (let i = 0; i < sections.length; i++) {
+                            let path = sections[i];
+                            let pointListBefore = [];
+                            let pointListRoute = [];
+                            let pointListAfter = [];
+                            for (let u = 0; u < path.length; u++) {
+                                let position = path[u];
+                                if (i < entry[12]) {
+                                    pointListBefore.push(new L.LatLng(position[0], position[1]));
+                                } else if (i > entry[13] - 1) {
+                                    pointListAfter.push(new L.LatLng(position[0], position[1]));
+                                } else {
+                                    pointListRoute.push(new L.LatLng(position[0], position[1]));
+                                }
+                            }
+                            let desc;
+                            if (language == "en") {
+                                desc = route["route"] + " - To " + capitalize(route["dest"]["en"]);
+                            } else {
+                                desc = route["route"] + " - 往" + route["dest"]["zh"];
+                            }
+                            if (pointListBefore.length > 0) {
+                                new L.Polyline(pointListBefore, {
+                                    color: '#141414',
+                                    weight: 3,
+                                    opacity: 0.5,
+                                    smoothFactor: 1
+                                }).addTo(markers).bindPopup(desc);
+                            }
+                            new L.Polyline(pointListRoute, {
+                                color: 'red',
+                                weight: 4,
+                                opacity: 1,
+                                smoothFactor: 1
+                            }).addTo(markers).bindPopup(desc);
+                            if (pointListAfter.length > 0) {
+                                new L.Polyline(pointListAfter, {
+                                    color: '#141414',
+                                    weight: 3,
+                                    opacity: 0.5,
+                                    smoothFactor: 1
+                                }).addTo(markers).bindPopup(desc);
+                            }
+                        }
+                    } else {
+                        alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
+                    }
+                });
             }
-            L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc);
+
+            let etaTables = [];
+            for (let key in stopMarkerData) {
+                let stopMarker = stopMarkerData[key];
+                let routes = stopMarker[0];
+                let stopType = stopMarker[1];
+                let desc = stopMarker[2];
+                if (rowsData.length > 1) {
+                    desc = "[" + routes.join("/") + "] " + desc;
+                }
+                desc = "<p style=\"text-align: center;\">" + desc + "</p>"
+                let icon;
+                if (stopType == 0) {
+                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
+                    icon = redIcon;
+                    let table = 
+                        "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + "</h5>" + 
+                        "<table class=\"table\" style=\"word-break: keep-all;\">" +
+                            "<tbody>" +
+                                "<tr>" +
+                                    "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
+                                "</tr>" + 
+                                "<tr>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1\"></th>" +
+                                "</tr>" + 
+                                "<tr>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2\"></th>" +
+                                "</tr>" + 
+                                "<tr>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3\"></th>" +
+                                "</tr>" + 
+                            "</tbody>" +
+                        "</table>";
+
+                    etaTables.push(table);
+                } else if (stopType == 1) {
+                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please alight at this stop" : "請在此站落車") + "</p>"
+                    icon = redIcon;
+                } else if (stopType == 2) {
+                    if (routes.length == 1) {
+                        let nextEntry = rowsData[stopMarker[4] + 1];
+                        let changeTo = nextEntry[0];
+                        desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo + "</p><p style=\"text-align: center;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
+                    } else {
+                        let changeTo = routes[1];
+                        desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo;
+
+                        let table = 
+                            "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + "</h5>" + 
+                            "<table class=\"table\" style=\"word-break: keep-all;\">" +
+                                "<tbody>" +
+                                    "<tr>" +
+                                        "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
+                                    "</tr>" + 
+                                    "<tr>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1\"></th>" +
+                                    "</tr>" + 
+                                    "<tr>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2\"></th>" +
+                                    "</tr>" + 
+                                    "<tr>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3\"></th>" +
+                                    "</tr>" + 
+                                "</tbody>" +
+                            "</table>";
+
+                        etaTables.push(table);
+                    }
+                    desc += "</p>"
+                    icon = redIcon;
+                } else if (stopType == 3) {
+                    icon = goldIcon;
+                } else {
+                    icon = greyIcon;
+                }
+                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc);
+            }
+
+            let append = 
+                "<div class=\"columns\">" +
+                    "<div class=\"column\">" +
+                        etaTables.join("</div><div class=\"column\">") +
+                    "</div>" +
+                "</div>";
+
+            document.getElementById("eta-table").innerHTML += append;
+
+            map.flyToBounds(markers.getBounds());
+
+            document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + ")";
+
+            updateEta();
+
+            document.getElementById('eta-table').style.display = "";
+            document.getElementById('calculate').disabled = false;
+        } finally {
+            document.getElementById('calculate').disabled = false;
         }
-
-        map.flyToBounds(markers.getBounds());
-
-        document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + ")";
     };
 
     let routeInputHtml = 
@@ -1060,7 +1384,8 @@
             "<div class=\"columns\">" + 
                 "<div class=\"column\">" + 
                     "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">第%c程路線</h5>" + 
-                    "<input class=\"input\" type=\"text\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes();\">" + 
+                    "<input list=\"bus-routes\" class=\"input\" type=\"text\" autocomplete=\"off\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes();\">" + 
+                    "<datalist id=\"bus-routes\">{BusRouteOptions}</datalist>" +
                 "</div>" + 
                 "<div class=\"column\">" + 
                     "<h5 class=\"title is-5 has-text-black\">路線類型</h5>" + 
@@ -1104,7 +1429,7 @@
         let div = document.getElementById('route-input');
         let collection = document.getElementsByClassName("route-input-element");
         let index = collection.length + 1;
-        let append = routeInputHtml.replaceAll("%s", "" + index).replaceAll("%c", toChineseNumber(index));
+        let append = routeInputHtml.replaceAll("%s", "" + index).replaceAll("%c", toChineseNumber(index)).replaceAll("{BusRouteOptions}", busRouteListOptions);
         if (index == 1) {
             div.innerHTML = append;
         } else {
@@ -1125,15 +1450,35 @@
             mapElement.style.display = "none";
         }
     };
+    const toggleTimetable = () => {
+        let timetableElement = document.getElementById('time-table');
+        if (timetableElement.innerHTML != "") {
+            if (timetableElement.style.display === "none") {
+                timetableElement.style.display = "block";
+            } else {
+                timetableElement.style.display = "none";
+            }
+        }
+    };
+    const toggleEta = () => {
+        let etaElement = document.getElementById('eta-table');
+        if (etaElement.innerHTML != "") {
+            if (etaElement.style.display === "none") {
+                etaElement.style.display = "block";
+            } else {
+                etaElement.style.display = "none";
+            }
+        }
+    };
 
     document.getElementById('route-add').addEventListener("click", routeAdd, false);
     document.getElementById('route-remove').addEventListener("click", routeRemove, false);
 
+    document.getElementById('toggle-timetable').addEventListener("click", toggleTimetable, false);
+    document.getElementById('toggle-eta').addEventListener("click", toggleEta, false);
     document.getElementById('toggle-map').addEventListener("click", toggleMap, false);
 
     document.getElementById('calculate').addEventListener("click", calculate, false);
-
-    routeAdd();
 </script>
 
 </html>
