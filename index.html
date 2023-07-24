@@ -1356,10 +1356,10 @@
                     if (routes.length == 1) {
                         let nextEntry = rowsData[stopMarker[4] + 1];
                         let changeTo = nextEntry[0];
-                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo + "</p><p style=\"text-align: center; font-size: 15px;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
+                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo + "</p><p style=\"text-align: center; font-size: 15px;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
                     } else {
                         let changeTo = routes[1];
-                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo;
+                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo;
 
                         let table = 
                             "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + "</h5>" + 
