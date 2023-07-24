@@ -627,9 +627,7 @@
                 let stop2Location = stops2[u][1]["location"];
                 let distance = findDistance(stop1Location, stop2Location);
                 //console.log(stops1[i][1]["name"]["zh"] + " " + stops2[u][1]["name"]["zh"] + " " + distance);
-                if (distance <= 0.2) {
-                    return [stops1[i][0], stops2[u][0], distance];
-                } else if (result == null || result[2] > distance) {
+                if (result == null || result[2] > distance) {
                     result = [stops1[i][0], stops2[u][0], distance];
                 }
             }
@@ -968,6 +966,7 @@
                                             let interchangeStopIndex = rowsData[i - 1][11].indexOf(interchangeStopClosestResult[0]);
                                             if (interchangeStopIndex >= rowsData[i - 1][12] && interchangeStopIndex <= rowsData[i - 1][13]) {
                                                 interchangeName2 = bbiRoute["recommended_bbi"];
+                                                interchangeStopId2 = stops[recommendedBbiIndex];
                                                 startingStopIndex = recommendedBbiIndex;
                                                 interchangeStop1 = dataSheet["stopList"][interchangeStopClosestResult[0]];
                                                 interchangeName1 = interchangeStop1["name"]["zh"];
