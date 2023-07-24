@@ -98,6 +98,7 @@
                             <button class="button is-info" id="toggle-eta">⏳</button>
                             <button class="button is-info" id="toggle-timetable">🕒</button>
                             <button class="button is-info" id="toggle-map">🗺️</button>
+                            <button class="button is-info" id="toggle-gps">🧭</button>
                             <br><br>
                             <button class="button is-dark" id="calculate">計算轉乘車費</button>
                         </div>
@@ -146,6 +147,24 @@
     }).addTo(map);
     let markers = new L.FeatureGroup();
     map.addLayer(markers);
+
+    let gps = new L.FeatureGroup();
+    map.addLayer(gps);
+
+    let gpsMarker = null;
+    let gpsWatchID = null;
+    const getLocation = () => {
+        if (navigator.geolocation) {
+            gpsWatchID = navigator.geolocation.watchPosition(updatePosition);
+        }
+    }
+    const updatePosition = (position) => {
+        console.log(position);
+        if (gpsMarker == null) {
+            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude]).addTo(gps).bindPopup(language == "en" ? "Your Location" : "你的位置");
+        }
+        gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
+    }
 
     let redIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -1354,7 +1373,10 @@
                 } else {
                     icon = greyIcon;
                 }
-                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc);
+
+                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc).on('click', (e) => {
+                    map.flyTo([e.latlng.lat, e.latlng.lng], 17, {"duration": 1.5});
+                });
             }
 
             let append = 
@@ -1470,6 +1492,16 @@
             }
         }
     };
+    const toggleGps = () => {
+        if (gpsWatchID == null) {
+            getLocation();
+        } else {
+            navigator.geolocation.clearWatch(gpsWatchID);
+            gpsWatchID = null;
+            gpsMarker = null;
+            gps.clearLayers();
+        }
+    };
 
     document.getElementById('route-add').addEventListener("click", routeAdd, false);
     document.getElementById('route-remove').addEventListener("click", routeRemove, false);
@@ -1477,6 +1509,7 @@
     document.getElementById('toggle-timetable').addEventListener("click", toggleTimetable, false);
     document.getElementById('toggle-eta').addEventListener("click", toggleEta, false);
     document.getElementById('toggle-map').addEventListener("click", toggleMap, false);
+    document.getElementById('toggle-gps').addEventListener("click", toggleGps, false);
 
     document.getElementById('calculate').addEventListener("click", calculate, false);
 </script>
