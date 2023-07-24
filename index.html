@@ -95,6 +95,7 @@
                         <div class="box">
                             <button class="button is-success" id="route-add" disabled>➕</button>
                             <button class="button is-danger" id="route-remove">➖</button>
+                            <br><br>
                             <button class="button is-info" id="toggle-eta">⏳</button>
                             <button class="button is-info" id="toggle-timetable">🕒</button>
                             <button class="button is-info" id="toggle-map">🗺️</button>
@@ -130,7 +131,7 @@
                         <div class="box" id="eta-table" style="display: none;"></div>
                         <div class="box" id="time-table" style="display: none;"></div>
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
-                        <div id="map" style="color: black; height: 50%; aspect-ratio: 4/3;"></div>
+                        <div id="map" style="color: black; height: 50%; aspect-ratio: 7/6;"></div>
                         <br>
                         <h5 class="title is-5" style="color: #111770; font-size: 15px;"><a id="data-label">數據來源</a>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
                     </div>
@@ -431,10 +432,11 @@
             let routeNumber = matches[1];
             let bound = matches[2];
             let seq = matches[3];
+            let fontSize = matches[4];
             if (stops.hasOwnProperty(stopId)) {
-                stops[stopId].push([element, stopId, routeNumber, bound, seq]);
+                stops[stopId].push([element, stopId, routeNumber, bound, seq, fontSize]);
             } else {
-                stops[stopId] = [[element, stopId, routeNumber, bound, seq]];
+                stops[stopId] = [[element, stopId, routeNumber, bound, seq, fontSize]];
             }
         }
 
@@ -454,34 +456,37 @@
                             let eta = bus["eta"];
 
                             let mins = eta == null ? -999 : Math.round((new Date(eta) - new Date()) / 1000 / 60);
-                            let message = "";
-                            if (language == "en") {
-                                if (mins > -60) {
-                                    message = "<b style=\"font-size: 25px;\">" + mins + "</b> Min.";
-                                } else if (mins == 0) {
-                                    message = "<b style=\"font-size: 25px;\">-</b> Min.";
-                                }
-                                if (bus["rmk_en"] != "") {
-                                    message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
-                                }
-                            } else {
-                                if (mins > 0) {
-                                    message = "<b style=\"font-size: 25px;\">" + mins + "</b> 分鐘";
-                                } else if (mins > -60) {
-                                    message = "<b style=\"font-size: 25px;\">-</b> 分鐘";
-                                }
-                                if (bus["rmk_tc"] != "") {
-                                    message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
-                                }
-                            }
-                            message = message.replaceAll("原定", "預定");
                             
                             for (let m = 0; m < list.length; m++) {
                                 let entry = list[m];
                                 let elementRouteNumber = entry[2];
                                 let elementBound = entry[3];
                                 let elementSeq = entry[4];
+                                let elementFontSize = entry[5];
+
                                 if (elementRouteNumber == routeNumber && elementBound == bound) {
+                                    let message = "";
+                                    if (language == "en") {
+                                        if (mins > -60) {
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b> Min.";
+                                        } else if (mins == 0) {
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> Min.";
+                                        }
+                                        if (bus["rmk_en"] != "") {
+                                            message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
+                                        }
+                                    } else {
+                                        if (mins > 0) {
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b> 分鐘";
+                                        } else if (mins > -60) {
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> 分鐘";
+                                        }
+                                        if (bus["rmk_tc"] != "") {
+                                            message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
+                                        }
+                                    }
+                                    message = message.replaceAll("原定", "預定").replaceAll("最後班次", "尾班車");
+
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
@@ -1191,7 +1196,7 @@
                                     "<tbody>" +
                                         "<tr>" +
                                             "<th>" + dayTypeName + "</th>" +
-                                            "<th>" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
+                                            "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
                                         "</tr>" + 
                                         rows.join("") +
                                     "</tbody>" +
@@ -1227,13 +1232,13 @@
                     let positionArray = [stopPosition["lat"], stopPosition["lng"]];
                     let stopMarker;
                     if (u < entry[12] || u > entry[13]) {
-                        stopMarker = [[route["route"]], 4, desc, positionArray, i];
+                        stopMarker = [[route["route"]], 4, desc, positionArray, i, u];
                     } else if (u == entry[12]) {
-                        stopMarker = [[route["route"]], 0, desc, positionArray, i];
+                        stopMarker = [[route["route"]], 0, desc, positionArray, i, u];
                     } else if (u == entry[13]) {
-                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i];
+                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u];
                     } else {
-                        stopMarker = [[route["route"]], 3, desc, positionArray, i];
+                        stopMarker = [[route["route"]], 3, desc, positionArray, i, u];
                     }
                     if (stopMarkerData.hasOwnProperty(stopDetails[u][0])) {
                         stopMarkerData[stopDetails[u][0]][0].push(stopMarker[0][0]);
@@ -1311,7 +1316,7 @@
                 desc = "<p style=\"text-align: center;\">" + desc + "</p>"
                 let icon;
                 if (stopType == 0) {
-                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
+                    desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
                     icon = redIcon;
                     let table = 
                         "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + "</h5>" + 
@@ -1321,29 +1326,29 @@
                                     "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25\"></th>" +
                                 "</tr>" + 
                             "</tbody>" +
                         "</table>";
 
                     etaTables.push(table);
                 } else if (stopType == 1) {
-                    desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please alight at this stop" : "請在此站落車") + "</p>"
+                    desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please alight at this stop" : "請在此站落車") + "</p>"
                     icon = redIcon;
                 } else if (stopType == 2) {
                     if (routes.length == 1) {
                         let nextEntry = rowsData[stopMarker[4] + 1];
                         let changeTo = nextEntry[0];
-                        desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo + "</p><p style=\"text-align: center;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
+                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo + "</p><p style=\"text-align: center; font-size: 15px;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
                     } else {
                         let changeTo = routes[1];
-                        desc += "<p style=\"text-align: center;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo;
+                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " -> " + changeTo;
 
                         let table = 
                             "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + "</h5>" + 
@@ -1353,13 +1358,13 @@
                                         "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25\"></th>" +
                                     "</tr>" + 
                                 "</tbody>" +
                             "</table>";
@@ -1374,8 +1379,40 @@
                     icon = greyIcon;
                 }
 
-                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc).on('click', (e) => {
-                    map.flyTo([e.latlng.lat, e.latlng.lng], 17, {"duration": 1.5});
+                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup("<b style=\"font-size: 15px\">" + desc + "</b>").on('click', (e) => {
+                    map.flyTo([e.latlng.lat + 0.0012, e.latlng.lng], 17, {"duration": 1});
+                }).on('popupopen', (e) => {
+                    let content = e.popup.getContent();
+                    if (content.indexOf("<a class=\"map-eta\">") < 0) {
+                        if (stopType == 2 && routes.length > 1) {
+                            let nextEntry = rowsData[stopMarker[4] + 1];
+                            content += "<a class=\"map-eta\">"
+                                + "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[0] + "</b><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15\"></a><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15\"></a><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15\"></a><br><br>"
+
+                                + "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[1] + "</b><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",1,15\"></a><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",2,15\"></a><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",3,15\"></a><br></a>"
+                        } else {
+                            content += "<a class=\"map-eta\">"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15\"></a><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15\"></a><br>"
+                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15\"></a><br></a>";
+                        }
+                        e.popup.setContent(content);
+                    }
+                    updateEta();
+                }).on('popupclose', (e) => {
+                    setTimeout(() => {
+                        let content = e.popup.getContent();
+                        content = content.substring(0, content.indexOf("<a class=\"map-eta\">"));
+                        if (!e.popup.isOpen()) {
+                            e.popup.setContent(content);
+                        }
+                    }, 1000);
                 });
             }
 
