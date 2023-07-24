@@ -152,21 +152,6 @@
     let gps = new L.FeatureGroup();
     map.addLayer(gps);
 
-    let gpsMarker = null;
-    let gpsWatchID = null;
-    const getLocation = () => {
-        if (navigator.geolocation) {
-            gpsWatchID = navigator.geolocation.watchPosition(updatePosition);
-        }
-    }
-    const updatePosition = (position) => {
-        console.log(position);
-        if (gpsMarker == null) {
-            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude]).addTo(gps).bindPopup(language == "en" ? "Your Location" : "你的位置");
-        }
-        gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
-    }
-
     let redIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -191,6 +176,28 @@
         popupAnchor: [1, -17],
         shadowSize: [20, 20]
     });
+    let blueIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [13, 20],
+        iconAnchor: [6, 20],
+        popupAnchor: [1, -17],
+        shadowSize: [20, 20]
+    });
+
+    let gpsMarker = null;
+    let gpsWatchID = null;
+    const getLocation = () => {
+        if (navigator.geolocation) {
+            gpsWatchID = navigator.geolocation.watchPosition(updatePosition);
+        }
+    }
+    const updatePosition = (position) => {
+        if (gpsMarker == null) {
+            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "Your Location" : "你的位置");
+        }
+        gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
+    }
 
     const capitalize = (str, lower = true) => {
         return (lower ? str.toLowerCase() : str).replace(/(?:^|\s|["'([{])+\S/g, match => match.toUpperCase());
@@ -1080,6 +1087,7 @@
             let totalFare = 0;
             for (let i = 0; i < rowsData.length; i++) {
                 let entry = rowsData[i];
+
                 addRows(document.getElementById('fare-table'), 
                     entry[0], 
                     entry[14][entry[12]], 
