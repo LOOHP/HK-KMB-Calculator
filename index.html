@@ -112,11 +112,13 @@
                         <div class="box">
                             <button class="button is-success" id="route-add" disabled>➕</button>
                             <button class="button is-danger" id="route-remove">➖</button>
+                            <button class="button" id="route-clear" style="background-color: #ad0e0e;">🗑️</button>
                             <br><br>
                             <button class="button is-info" id="toggle-eta">⏳</button>
                             <button class="button is-info" id="toggle-timetable">🕒</button>
                             <button class="button is-info" id="toggle-map">🗺️</button>
                             <button class="button is-dark" id="toggle-gps">🧭</button>
+                            <button class="button is-link" id="share-link">🔗</button>
                         </div>
                         <div style="overflow: auto; width: 100%;" class="desk">
                             <table class="table" id="fare-table" style="word-break: keep-all; display: none;">
@@ -423,7 +425,6 @@
                 }
             }
             busRouteListOptions = "<option value=" + busRouteList.join("><option value=") + ">";
-            routeAdd();
             document.getElementById("route-add").disabled = false;
         } else {
             alert("Unable to get response from " + dataSheetUrl + ". (Is it down?)");
@@ -459,6 +460,17 @@
             alert("Unable to get response from " + regionalTwoWaySectionFareUrl + ". (Is it down?)");
         }
     });
+
+    const waitLoadParameters = (condition) => {
+        if (condition() === false) {
+            window.setTimeout(() => waitLoadParameters(condition), 100); /* this checks the flag every 100 milliseconds*/
+        } else {
+            if (!loadUrlParameters()) {
+                routeAdd();
+            }
+        }
+    }
+    waitLoadParameters(() => kmbRouteList != null && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
@@ -921,7 +933,7 @@
                     }
                 }
 
-                addOptions(document.getElementById('route-' + leg + '-type'), name, "route-%s-type-" + bound + type, routes[u][0] + "_" + type);
+                addOptions(document.getElementById('route-' + leg + '-type'), name, "route-" + leg + "-type-" + bound + type, routes[u][0] + "_" + type);
             }
 
             document.getElementById('route-' + leg + '-type').selectedIndex = Math.max(lastSelected, 1) < document.getElementById('route-' + leg + '-type').options.length ? lastSelected : 0;
@@ -950,7 +962,7 @@
                 let stopId = stops[k];
                 let stop = dataSheet["stopList"][stopId];
                 let name = language == "en" ? capitalize(stop["name"]["en"]) : stop["name"]["zh"];
-                addOptions(document.getElementById('route-' + leg + '-start'), name, "route-%s-start-" + k, k);
+                addOptions(document.getElementById('route-' + leg + '-start'), name, "route-" + leg + "-start-" + k, k);
             }
 
             document.getElementById('route-' + leg + '-start').value = Math.max(lastSelected, 0) < document.getElementById('route-' + leg + '-start').options.length ? lastSelected : -1;
@@ -979,7 +991,7 @@
                 let stopId = stops[k];
                 let stop = dataSheet["stopList"][stopId];
                 let name = language == "en" ? capitalize(stop["name"]["en"]) : stop["name"]["zh"];
-                addOptions(document.getElementById('route-' + leg + '-end'), name, "route-%s-end-" + k, k);
+                addOptions(document.getElementById('route-' + leg + '-end'), name, "route-" + leg + "-end-" + k, k);
             }
             document.getElementById('route-' + leg + '-end').value = valueExists(lastSelected, document.getElementById('route-' + leg + '-end')) ? lastSelected : -1;
         }
@@ -987,7 +999,7 @@
 
     const checkFlag = (condition, task) => {
         if (condition() === false) {
-            window.setTimeout(() => checkFlag(task), 100);
+            window.setTimeout(() => checkFlag(condition, task), 100);
         } else {
             task();
         }
@@ -1004,6 +1016,7 @@
         return result;
     }
 
+    let currentShareParameters = "";
     let calculateTasks = [];
     const calculate = () => {
         let collection = document.getElementsByClassName("route-input-element");
@@ -1017,6 +1030,7 @@
 
         let taskId = makeId(10);
         calculateTasks.push(taskId);
+        let shareParameters = [];
         try {
             for (let i = 0; i < collection.length; i++) {
                 let leg = i + 1;
@@ -1167,7 +1181,7 @@
                                     }
                                 }
                             }
-                            if (bbiRoute["bbi_route_number"] == routeNumber && bbiRoute["destination"] == routeDest.replace("(循環線)", "")) {
+                            if (bbiRoute["bbi_route_number"] == routeNumber && (bbiRoute["destination"] == routeDest.replace("(循環線)", "") || routeDest.indexOf("循環線") >= 0)) {
                                 let maxChanges = bbiRoute["max_change"];
                                 if (maxChanges >= consecutiveInterchanges++) {
                                     hasBbi = true;
@@ -1284,7 +1298,10 @@
                     lastBound = route["bound"]["kmb"];
                     lastStopDetails = stopDetails.slice(startingStopIndex + 1, endingStopIndex + 1);
                 }
+                shareParameters.push("r" + leg + "=" + routeNumber + "," + route["bound"]["kmb"] + "," + route["serviceType"] + "," + stops[startingStopIndex] + "," + stops[endingStopIndex]);
             }
+
+            currentShareParameters = "?" + shareParameters.join("&");
 
             markers.clearLayers();
             document.getElementById('special-announcements').innerHTML = "";
@@ -1420,6 +1437,9 @@
                                     if (dayType == "MF") {
                                         dayTypeName = language == "en" ? "Monday to Friday" : "星期一至五";
                                         daysOfWeek = [1, 2, 3, 4, 5];
+                                    } else if (dayType == "MS") {
+                                        dayTypeName = language == "en" ? "Monday to Saturday" : "星期一至六";
+                                        daysOfWeek = [1, 2, 3, 4, 5, 6];
                                     } else if (dayType == "S") {
                                         dayTypeName = language == "en" ? "Saturday" : "星期六";
                                         daysOfWeek = [6];
@@ -1714,6 +1734,9 @@
             document.getElementById('fare-table').style.display = "";
         } finally {
             calculateTasks.splice(calculateTasks.indexOf(taskId), 1);
+            let shareLink = getShareLink();
+            window.history.replaceState(null, null, shareLink);
+            document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
         }
     };
 
@@ -1782,6 +1805,9 @@
             calculate();
         }
     };
+    const routeClear = () => {
+        window.location.href = getCurrentLinkWithoutParameters();
+    };
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
         document.getElementById('toggle-map').classList.remove("is-info");
@@ -1840,13 +1866,86 @@
         }
     };
 
+    const loadUrlParameters = () => {
+        let flag = false;
+        let parameters = [null];
+        for (let i = 1; true; i++) {
+            let parameter = getUrlParameter("r" + i);
+            if (parameter == null) {
+                break;
+            }
+            parameters.push(parameter);
+        }
+        for (let i = 1; i < parameters.length; i++) {
+            let parameter = parameters[i];
+            let parts = parameter.split(",");
+            let routeNumber = parts[0];
+            let bound = parts[1];
+            let type = parts[2];
+            let startingStop = parts[3];
+            let endingStop = parts[4];
+
+            if (busRouteList.indexOf(routeNumber) < 0) {
+                break;
+            }
+
+            let routeKey = null;
+            let route = null;
+            for (let key in dataSheet["routeList"]) {
+                let data = dataSheet["routeList"][key];
+                if (data["bound"].hasOwnProperty("kmb") && data["route"] == routeNumber && data["bound"]["kmb"] == bound && data["serviceType"] == type) {
+                    routeKey = key + "_" + type;
+                    route = data;
+                    break;
+                }
+            }
+            if (route == null) {
+                break;
+            }
+
+            let startingStopIndex = route["stops"]["kmb"].indexOf(startingStop);
+            let endingStopIndex = route["stops"]["kmb"].lastIndexOf(endingStop);
+
+            if (startingStopIndex < 0 || endingStopIndex < 0 || startingStopIndex >= endingStopIndex) {
+                break;
+            }
+
+            routeAdd();
+
+            document.getElementById("route-" + i).value = routeNumber;
+            updateRoutes();
+            document.getElementById("route-" + i + "-type").value = routeKey;
+            updateStartingStops();
+            document.getElementById("route-" + i + "-start").value = startingStopIndex;
+            updateDestinationStops();
+            document.getElementById("route-" + i + "-end").value = endingStopIndex;
+
+            flag = true;
+        }
+        if (flag) {
+            calculate();
+        }
+        return flag;
+    };
+    const getCurrentLinkWithoutParameters = () => {
+        return location.protocol + '//' + location.host + location.pathname;
+    }
+    const getShareLink = () => {
+        return getCurrentLinkWithoutParameters() + currentShareParameters;
+    };
+    const copyShareLink = () => {
+        navigator.clipboard.writeText(getShareLink());
+    };
+
     document.getElementById('route-add').addEventListener("click", routeAdd, false);
     document.getElementById('route-remove').addEventListener("click", routeRemove, false);
+    document.getElementById('route-clear').addEventListener("click", routeClear, false);
 
     document.getElementById('toggle-timetable').addEventListener("click", toggleTimetable, false);
     document.getElementById('toggle-eta').addEventListener("click", toggleEta, false);
     document.getElementById('toggle-map').addEventListener("click", toggleMap, false);
     document.getElementById('toggle-gps').addEventListener("click", toggleGps, false);
+    document.getElementById('share-link').addEventListener("click", copyShareLink, false);
 </script>
 
 </html>
