@@ -524,6 +524,10 @@
         let table = 
             "<table class=\"table has-background-grey-lighter is-hoverable\" id=\"fare-table\" style=\"height: 100px;\">" +
             "<tbody>" +
+                "<colgroup>" +
+                    "<col span=\"1\" style=\"width: 62%;\">" +
+                    "<col span=\"1\" style=\"width: 38%;\">" +
+                "</colgroup>" +
                 "<tr>" +
                     "<th>" + (language == "en" ? "Route" : "路線") + "</th>" +
                     "<th style=\"text-align: right;\">" + (language == "en" ? "Min." : "分鐘") + "</th>" +
@@ -607,7 +611,7 @@
 
             table += 
                 "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                    "<th style=\"font-size: 20px;\">" + routeNumber + " <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>" + destName + "<br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
+                    "<th style=\"font-size: 20px;\">" + routeNumber + " <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span><span style=\"word-break: keep-all;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
                     "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + stopId + "," + routeNumber + "," + bound + ",1,25,true\"></span></th>" +
                 "</tr>";
         }
@@ -651,6 +655,10 @@
                 droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
                 map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
                 updateNearestRoutes(position.lat, position.lng);
+
+                let shareLink = getShareLink();
+                window.history.replaceState(null, null, shareLink);
+                document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
             });
         } else {
             droppedPin.setLatLng(e.latlng, {draggable:'true'});
@@ -728,9 +736,9 @@
                                         }
                                     } else {
                                         if (mins > 0) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b> 分鐘";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b> <span style=\"word-break: keep-all;\">分鐘</span>";
                                         } else if (mins > -60) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> 分鐘";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> <span style=\"word-break: keep-all;\">分鐘</span>";
                                         }
                                         if (bus["rmk_tc"] != "") {
                                             if (elementScheduledType) {
@@ -1930,6 +1938,10 @@
                         droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
                         map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
                         updateNearestRoutes(position.lat, position.lng);
+
+                        let shareLink = getShareLink();
+                        window.history.replaceState(null, null, shareLink);
+                        document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
                     });
                 } else {
                     droppedPin.setLatLng(latlng, {draggable:'true'});
