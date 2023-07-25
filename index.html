@@ -117,7 +117,7 @@
                             <button class="button is-info" id="toggle-eta">⏳</button>
                             <button class="button is-info" id="toggle-timetable">🕒</button>
                             <button class="button is-info" id="toggle-map">🗺️</button>
-                            <button class="button is-dark" id="toggle-gps">🧭</button>
+                            <button class="button is-dark" id="toggle-gps" disabled>🧭</button>
                             <button class="button is-link" id="share-link">🔗</button>
                         </div>
                         <div style="overflow: auto; width: 100%;" class="desk">
@@ -225,6 +225,10 @@
             pin.clearLayers();
             map.flyTo(new L.LatLng(position.coords.latitude, position.coords.longitude), 17, {"duration": 1});
             updateNearestRoutes(position.coords.latitude, position.coords.longitude);
+
+            let shareLink = getShareLink();
+            window.history.replaceState(null, null, shareLink);
+            document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
         }
         gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
     };
@@ -468,6 +472,7 @@
             if (!loadUrlParameters()) {
                 routeAdd();
             }
+            document.getElementById("toggle-gps").disabled = false;
         }
     }
     waitLoadParameters(() => kmbRouteList != null && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
@@ -517,7 +522,7 @@
         document.getElementById("nearby-routes-prompt").innerHTML = "";
 
         let table = 
-            "<table class=\"table has-background-grey-lighter\" id=\"fare-table\" style=\"height: 100px;\">" +
+            "<table class=\"table has-background-grey-lighter is-hoverable\" id=\"fare-table\" style=\"height: 100px;\">" +
             "<tbody>" +
                 "<tr>" +
                     "<th>" + (language == "en" ? "Route" : "路線") + "</th>" +
@@ -587,8 +592,21 @@
                 destName = capitalize(destName);
             }
 
+            let allStops = route["stops"]["kmb"];
+            let index = 1;
+            let shareLink = getShareLink();
+            for (let i = 1; true; i++) {
+                if (shareLink.indexOf("r" + i + "=") >= 0) {
+                    index = i + 1;
+                } else {
+                    break;
+                }
+            }
+
+            let params = "'" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+
             table += 
-                "<tr>" +
+                "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
                     "<th style=\"font-size: 20px;\">" + routeNumber + " <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>" + destName + "<br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
                     "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + stopId + "," + routeNumber + "," + bound + ",1,25,true\"></span></th>" +
                 "</tr>";
@@ -601,6 +619,21 @@
 
         updateEta();
     };
+    const handleNearbyRouteClick = (routeNumber, bound, type, startingStop, endingStop) => {
+        let index = 1;
+        let shareLink = getShareLink();
+        for (let i = 1; true; i++) {
+            if (shareLink.indexOf("r" + i + "=") >= 0) {
+                index = i + 1;
+            } else {
+                break;
+            }
+        }
+
+        let link = shareLink + "&r" + index + "=" + routeNumber + "," + bound + "," + type + "," + startingStop + "," + endingStop;
+        window.location.href = link;
+    };
+
     let droppedPin = null;
     const onMapClick = (e) => {
         if (dataSheet == null) {
@@ -625,6 +658,10 @@
             map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
         }
         updateNearestRoutes(e.latlng.lat, e.latlng.lng);
+
+        let shareLink = getShareLink();
+        window.history.replaceState(null, null, shareLink);
+        document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
     };
     map.on('click', onMapClick);
 
@@ -1806,7 +1843,7 @@
         }
     };
     const routeClear = () => {
-        window.location.href = getCurrentLinkWithoutParameters();
+        window.location.href = getShareLinkWith("");
     };
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
@@ -1863,11 +1900,51 @@
             document.getElementById("nearby-routes-content").style.display = "none";
             document.getElementById("nearby-routes-prompt").style.display = "";
             document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "Click on map to drop location pin or turn on GPS" : "點擊地圖以放置位置圖釘或打開定位位置";
+
+            let shareLink = getShareLink();
+            window.history.replaceState(null, null, shareLink);
+            document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
         }
+    };
+
+    const isNumber = (n) => { 
+        return !isNaN(parseFloat(n)) && !isNaN(n - 0);
     };
 
     const loadUrlParameters = () => {
         let flag = false;
+
+        let pinParameter = getUrlParameter("pin");
+        if (pinParameter != null) {
+            let parts = pinParameter.split(",");
+            let lat = Number(parts[0]);
+            let lng = Number(parts[1]);
+            if (isNumber(lat) && isNumber(lng)) {
+                let latlng = new L.LatLng(lat, lng);
+                if (droppedPin == null) {
+                    droppedPin = new L.marker(latlng, {draggable:'true'});
+                    pin.addLayer(droppedPin);
+                    droppedPin.on('dragend', (event) => {
+                        droppedPin = event.target;
+                        let position = droppedPin.getLatLng();
+                        droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
+                        map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
+                        updateNearestRoutes(position.lat, position.lng);
+                    });
+                } else {
+                    droppedPin.setLatLng(latlng, {draggable:'true'});
+                    let position = droppedPin.getLatLng();
+                    map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
+                }
+                updateNearestRoutes(lat, lng);
+            }
+        } else {
+            let gpsParameter = getUrlParameter("gps");
+            if (gpsParameter == "true") {
+                toggleGps();
+            }
+        }
+
         let parameters = [null];
         for (let i = 1; true; i++) {
             let parameter = getUrlParameter("r" + i);
@@ -1930,8 +2007,18 @@
     const getCurrentLinkWithoutParameters = () => {
         return location.protocol + '//' + location.host + location.pathname;
     }
+    const getShareLinkWith = (shareParameters) => {
+        let link = getCurrentLinkWithoutParameters() + shareParameters;
+        if (droppedPin != null) {
+            let pin = "pin=" + droppedPin.getLatLng().lat + "," + droppedPin.getLatLng().lng;
+            link += (shareParameters.startsWith("?") ? "&" : "?") + pin;
+        } else if (gpsMarker != null) {
+            link += (shareParameters.startsWith("?") ? "&" : "?") + "gps=true";
+        }
+        return link;
+    };
     const getShareLink = () => {
-        return getCurrentLinkWithoutParameters() + currentShareParameters;
+        return getShareLinkWith(currentShareParameters);
     };
     const copyShareLink = () => {
         let link = getShareLink();
