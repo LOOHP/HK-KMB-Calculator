@@ -604,13 +604,13 @@
                 droppedPin = event.target;
                 let position = droppedPin.getLatLng();
                 droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
-                map.flyTo(new L.LatLng(position.lat, position.lng), 17, {"duration": 1});
+                map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
                 updateNearestRoutes(position.lat, position.lng);
             });
         } else {
             droppedPin.setLatLng(e.latlng, {draggable:'true'});
             let position = droppedPin.getLatLng();
-            map.flyTo(new L.LatLng(position.lat, position.lng), 17, {"duration": 1});
+            map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
         }
         updateNearestRoutes(e.latlng.lat, e.latlng.lng);
     };
