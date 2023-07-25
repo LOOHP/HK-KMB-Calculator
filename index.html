@@ -977,9 +977,33 @@
         }
     };
 
+    const checkFlag = (condition, task) => {
+        if (condition() === false) {
+            window.setTimeout(() => checkFlag(task), 100);
+        } else {
+            task();
+        }
+    }
+    const makeId = (length) => {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            counter += 1;
+        }
+        return result;
+    }
+
+    let calculateTasks = [];
     const calculate = () => {
         let collection = document.getElementsByClassName("route-input-element");
         if (collection.length == 0) {
+            return;
+        }
+        if (calculateTasks.length > 0) {
+            checkFlag(() => calculateTasks.length == 0, calculate);
             return;
         }
 
@@ -997,11 +1021,6 @@
                             routeValid = true;
                             break;
                         }
-                    }
-                    if (routeValid) {
-                        //document.getElementById('route-' + leg + '-type').focus();
-                    } else {
-                        //document.getElementById('route-' + leg).focus();
                     }
                     return;
                 }
@@ -1046,11 +1065,9 @@
                 let startingStopIndex = Number(document.getElementById('route-' + leg + '-start').value);
                 let endingStopIndex = Number(document.getElementById('route-' + leg + '-end').value);
                 if (startingStopIndex == -1) {
-                    //document.getElementById('route-' + leg + '-start').focus();
                     return;
                 }
                 if (endingStopIndex == -1) {
-                    //document.getElementById('route-' + leg + '-end').focus();
                     return;
                 }
                 if (i == 0) {
@@ -1334,6 +1351,8 @@
                 let route = entry[8];
 
                 let resolvedSpecialUrl = kmbSpecialAnnouncementsUrl.replace("{route}", route["route"]).replace("{bound}", route["bound"]["kmb"] == "O" ? 1 : 2);
+                let task0Id = makeId(10);
+                calculateTasks.push(task0Id);
                 getJSON(resolvedSpecialUrl, (err, data) => {
                     if (err == null) {
                         let entries = data["data"];
@@ -1361,10 +1380,13 @@
                     } else {
                         alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
                     }
+                    calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
                 });
 
                 let boundNumber = route["bound"]["kmb"] == "O" ? 1 : 2;
                 let resolvedTimeTableUrl = kmbTimeTableUrl.replace("{route}", route["route"]).replace("{bound}", boundNumber);
+                let task1Id = makeId(10);
+                calculateTasks.push(task1Id);
                 getJSON(resolvedTimeTableUrl, (err, data) => {
                     if (err == null) {
                         let timeTableData = data["data"];
@@ -1464,6 +1486,7 @@
                     } else {
                         alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                     }
+                    calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                 });
 
                 let stopNames = entry[9];
@@ -1491,6 +1514,8 @@
                     }
                 }
 
+                let task2Id = makeId(10);
+                calculateTasks.push(task2Id);
                 getJSON("./route_paths/" + route["route"] + ".json", (err, data) => {
                     if (err == null) {                
                         let sections = data[route["bound"]["kmb"]][route["serviceType"]];
@@ -1544,6 +1569,7 @@
                     } else {
                         alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
                     }
+                    calculateTasks.splice(calculateTasks.indexOf(task2Id), 1);
                 });
             }
 
