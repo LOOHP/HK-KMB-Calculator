@@ -1934,7 +1934,9 @@
         return getCurrentLinkWithoutParameters() + currentShareParameters;
     };
     const copyShareLink = () => {
-        navigator.clipboard.writeText(getShareLink());
+        let link = getShareLink();
+        navigator.clipboard.writeText(link);
+        prompt(language == "en" ? "Copied share link to clipboard!" : "分享鏈接已複製到剪貼板", link);
     };
 
     document.getElementById('route-add').addEventListener("click", routeAdd, false);
