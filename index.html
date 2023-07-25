@@ -116,7 +116,7 @@
                             <button class="button is-info" id="toggle-eta">⏳</button>
                             <button class="button is-info" id="toggle-timetable">🕒</button>
                             <button class="button is-info" id="toggle-map">🗺️</button>
-                            <button class="button is-info" id="toggle-gps">🧭</button>
+                            <button class="button is-dark" id="toggle-gps">🧭</button>
                         </div>
                         <div style="overflow: auto; width: 100%;" class="desk">
                             <table class="table" id="fare-table" style="word-break: keep-all; display: none;">
@@ -151,7 +151,7 @@
                         <br>
                         <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold;">
                             <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
-                            <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘</p>
+                            <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
                             <div id="nearby-routes-content" style="display: none; max-height: 400px; overflow: auto;"></div>
                         </div>
                         <h5 class="title is-5" style="color: #111770; font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
@@ -172,6 +172,9 @@
 
     let gps = new L.FeatureGroup();
     map.addLayer(gps);
+
+    let pin = new L.FeatureGroup();
+    map.addLayer(pin);
 
     let redIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -216,9 +219,19 @@
     const updatePosition = (position) => {
         if (gpsMarker == null) {
             gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "Your Location" : "你的位置");
+            droppedPin = null;
+            pin.clearLayers();
+            map.flyTo(new L.LatLng(position.coords.latitude, position.coords.longitude), 17, {"duration": 1});
+            updateNearestRoutes(position.coords.latitude, position.coords.longitude);
         }
         gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
     };
+    setInterval(() => {
+        if (gpsMarker != null) {
+            let position = gpsMarker.getLatLng();
+            updateNearestRoutes(position.lat, position.lng);
+        }
+    }, 15000);
 
     const capitalize = (str, lower = true) => {
         return (lower ? str.toLowerCase() : str).replace(/(?:^|\s|["'([{])+\S/g, match => match.toUpperCase());
@@ -291,7 +304,7 @@
         document.getElementById('data-label').innerHTML = "Data Sources";
 
         document.getElementById('nearby-routes-label').innerHTML = "Nearby Routes";
-        document.getElementById('nearby-routes-prompt').innerHTML = "Click on map to drop location pin";
+        document.getElementById('nearby-routes-prompt').innerHTML = "Click on map to drop location pin or turn on GPS";
     }
 
     const getJSON = (url, callback) => {
@@ -485,7 +498,7 @@
         if (Object.keys(nearbyRoutes).length == 0) {
             document.getElementById("nearby-routes-content").style.display = "none";
             document.getElementById("nearby-routes-prompt").style.display = "";
-            document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "There are no nearby KMB/LWB bus stops." : "附近沒有九巴或龍運巴士站";
+            document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "There are no nearby KMB/LWB bus stops" : "附近沒有九巴或龍運巴士站";
             return;
         }
         document.getElementById("nearby-routes-prompt").style.display = "none";
@@ -501,8 +514,7 @@
 
         let routes = [];
         for (let key in nearbyRoutes) {
-            let entry = nearbyRoutes[key];
-            routes.push(entry);
+            routes.push(nearbyRoutes[key]);
         }
         let hour = (new Date().getUTCHours() + 8) % 24;
         let isNight = hour >= 1 && hour <= 5;
@@ -582,20 +594,23 @@
         if (dataSheet == null) {
             return;
         }
+        if (gpsMarker != null) {
+            return;
+        }
         if (droppedPin == null) {
             droppedPin = new L.marker(e.latlng, {draggable:'true'});
-            map.addLayer(droppedPin);
+            pin.addLayer(droppedPin);
             droppedPin.on('dragend', (event) => {
                 droppedPin = event.target;
                 let position = droppedPin.getLatLng();
                 droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
-                map.panTo(new L.LatLng(position.lat, position.lng));
+                map.flyTo(new L.LatLng(position.lat, position.lng), 17, {"duration": 1});
                 updateNearestRoutes(position.lat, position.lng);
             });
         } else {
             droppedPin.setLatLng(e.latlng, {draggable:'true'});
             let position = droppedPin.getLatLng();
-            map.panTo(new L.LatLng(position.lat, position.lng));
+            map.flyTo(new L.LatLng(position.lat, position.lng), 17, {"duration": 1});
         }
         updateNearestRoutes(e.latlng.lat, e.latlng.lng);
     };
@@ -1653,7 +1668,7 @@
 
             document.getElementById("eta-table").innerHTML += append;
 
-            map.flyToBounds(markers.getBounds());
+            map.flyToBounds(markers.getBounds(), {"duration": 1});
 
             document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + ")";
 
@@ -1733,18 +1748,26 @@
     };
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
+        document.getElementById('toggle-map').classList.remove("is-info");
+        document.getElementById('toggle-map').classList.remove("is-dark");
         if (mapElement.style.display === "none") {
+            document.getElementById('toggle-map').classList.add("is-info");
             mapElement.style.display = "";
         } else {
+            document.getElementById('toggle-map').classList.add("is-dark");
             mapElement.style.display = "none";
         }
     };
     const toggleTimetable = () => {
         let timetableElement = document.getElementById('time-table');
         if (timetableElement.innerHTML != "") {
+            document.getElementById('toggle-timetable').classList.remove("is-info");
+            document.getElementById('toggle-timetable').classList.remove("is-dark");
             if (timetableElement.style.display === "none") {
+                document.getElementById('toggle-timetable').classList.add("is-info");
                 timetableElement.style.display = "";
             } else {
+                document.getElementById('toggle-timetable').classList.add("is-dark");
                 timetableElement.style.display = "none";
             }
         }
@@ -1752,21 +1775,32 @@
     const toggleEta = () => {
         let etaElement = document.getElementById('eta-table');
         if (etaElement.innerHTML != "") {
+            document.getElementById('toggle-eta').classList.remove("is-info");
+            document.getElementById('toggle-eta').classList.remove("is-dark");
             if (etaElement.style.display === "none") {
+                document.getElementById('toggle-eta').classList.add("is-info");
                 etaElement.style.display = "";
             } else {
+                document.getElementById('toggle-eta').classList.add("is-dark");
                 etaElement.style.display = "none";
             }
         }
     };
     const toggleGps = () => {
+        document.getElementById('toggle-gps').classList.remove("is-info");
+        document.getElementById('toggle-gps').classList.remove("is-dark");
         if (gpsWatchID == null) {
+            document.getElementById('toggle-gps').classList.add("is-info");
             getLocation();
         } else {
+            document.getElementById('toggle-gps').classList.add("is-dark");
             navigator.geolocation.clearWatch(gpsWatchID);
             gpsWatchID = null;
             gpsMarker = null;
             gps.clearLayers();
+            document.getElementById("nearby-routes-content").style.display = "none";
+            document.getElementById("nearby-routes-prompt").style.display = "";
+            document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "Click on map to drop location pin or turn on GPS" : "點擊地圖以放置位置圖釘或打開定位位置";
         }
     };
 
