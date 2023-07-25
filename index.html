@@ -117,11 +117,9 @@
                             <button class="button is-info" id="toggle-timetable">🕒</button>
                             <button class="button is-info" id="toggle-map">🗺️</button>
                             <button class="button is-info" id="toggle-gps">🧭</button>
-                            <br><br>
-                            <button class="button is-dark" id="calculate">計算轉乘車費</button>
                         </div>
                         <div style="overflow: auto; width: 100%;" class="desk">
-                            <table class="table" id="fare-table" style="word-break: keep-all;">
+                            <table class="table" id="fare-table" style="word-break: keep-all; display: none;">
                                 <tbody>
                                     <tr>
                                         <th id="route-label">路線</th>
@@ -151,7 +149,12 @@
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
                         <div id="map" style="color: black; height: 50%; aspect-ratio: 7/6;"></div>
                         <br>
-                        <h5 class="title is-5" style="color: #111770; font-size: 15px;"><a id="data-label">數據來源</a>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
+                        <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold;">
+                            <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
+                            <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘</p>
+                            <div id="nearby-routes-content" style="display: none; max-height: 400px; overflow: auto;"></div>
+                        </div>
+                        <h5 class="title is-5" style="color: #111770; font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
                     </div>
                 </div>
             </div>
@@ -209,13 +212,13 @@
         if (navigator.geolocation) {
             gpsWatchID = navigator.geolocation.watchPosition(updatePosition);
         }
-    }
+    };
     const updatePosition = (position) => {
         if (gpsMarker == null) {
             gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "Your Location" : "你的位置");
         }
         gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
-    }
+    };
 
     const capitalize = (str, lower = true) => {
         return (lower ? str.toLowerCase() : str).replace(/(?:^|\s|["'([{])+\S/g, match => match.toUpperCase());
@@ -273,7 +276,6 @@
 
         document.getElementById('language').innerHTML = "中文";
         document.getElementById('title-label').innerHTML = "KMB Bus Interchange (BBI) Fare Calculator";
-        document.getElementById('calculate').innerHTML = "Calculate";
 
         document.getElementById('route-label').innerHTML = "Route";
         document.getElementById('board-label').innerHTML = "Suggested Boarding Stop";
@@ -287,6 +289,9 @@
         document.getElementById('total-fare-label').innerHTML = "Total Fare";
         document.getElementById('total-fare').innerHTML = "$0.0 (Half Fare $0.0)";
         document.getElementById('data-label').innerHTML = "Data Sources";
+
+        document.getElementById('nearby-routes-label').innerHTML = "Nearby Routes";
+        document.getElementById('nearby-routes-prompt').innerHTML = "Click on map to drop location pin";
     }
 
     const getJSON = (url, callback) => {
@@ -447,6 +452,154 @@
     let kmbTimeTableUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getschedule&route={route}&bound={bound}";
     let kmbRouteDataUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getstops&route={route}&bound={bound}&serviceType={type}";
     let kmbStopEtaUrl = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/{stop}";
+    let kmbStopRouteEtaUrl = "https://data.etabus.gov.hk/v1/transport/kmb/eta/{stop}/{route}/{type}";
+
+    const updateNearestRoutes = (lat, lng) => {
+        let stops = dataSheet["stopList"];
+        let nearbyStops = [];
+        let gpsLocation = {"lat": lat, "lng": lng};
+        for (let stopId in stops) {
+            let entry = stops[stopId];
+            let distance = findDistance(gpsLocation, entry["location"]);
+            if (/^[0-9A-Z]{16}$/.test(stopId) && distance <= 0.3) {
+                nearbyStops.push({"stopId": stopId, "data": entry, "distance": distance});
+            }
+        }
+        let nearbyRoutes = {};
+        for (let i = 0; i < nearbyStops.length; i++) {
+            let nearbyStop = nearbyStops[i];
+            for (let key in dataSheet["routeList"]) {
+                let data = dataSheet["routeList"][key];
+                if (data["bound"].hasOwnProperty("kmb") && data["stops"]["kmb"].indexOf(nearbyStop["stopId"]) >= 0) {
+                    let key = data["route"] + "," + data["bound"]["kmb"];
+                    if (nearbyRoutes.hasOwnProperty(key)) {
+                        if (nearbyRoutes[key]["stop"]["distance"] > nearbyStop["distance"]) {
+                            nearbyRoutes[key] = {"stop": nearbyStop, "route": data};
+                        }
+                    } else {
+                        nearbyRoutes[key] = {"stop": nearbyStop, "route": data};
+                    }
+                }
+            }
+        }
+        if (Object.keys(nearbyRoutes).length == 0) {
+            document.getElementById("nearby-routes-content").style.display = "none";
+            document.getElementById("nearby-routes-prompt").style.display = "";
+            document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "There are no nearby KMB/LWB bus stops." : "附近沒有九巴或龍運巴士站";
+            return;
+        }
+        document.getElementById("nearby-routes-prompt").style.display = "none";
+        document.getElementById("nearby-routes-prompt").innerHTML = "";
+
+        let table = 
+            "<table class=\"table has-background-grey-lighter\" id=\"fare-table\" style=\"height: 100px;\">" +
+            "<tbody>" +
+                "<tr>" +
+                    "<th>" + (language == "en" ? "Route" : "路線") + "</th>" +
+                    "<th style=\"text-align: right;\">" + (language == "en" ? "Min." : "分鐘") + "</th>" +
+                "</tr>";
+
+        let routes = [];
+        for (let key in nearbyRoutes) {
+            let entry = nearbyRoutes[key];
+            routes.push(entry);
+        }
+        let hour = (new Date().getUTCHours() + 8) % 24;
+        let isNight = hour >= 1 && hour <= 5;
+        routes.sort((a, b) => {
+            let pa = a["route"]["route"][0];
+            let pb = b["route"]["route"][0];
+            let sa = a["route"]["route"][a["route"]["route"].length - 1];
+            let sb = b["route"]["route"][b["route"]["route"].length - 1];
+            let na = Number(a["route"]["route"].match(/[0-9]+/g));
+            let nb = Number(b["route"]["route"].match(/[0-9]+/g));
+            if (isNight) {
+                if (pa == "N") {
+                    na -= 10000;
+                }
+                if (sa == "S") {
+                    na -= 8000;
+                }
+                if (pb == "N") {
+                    nb -= 10000;
+                }
+                if (sb == "S") {
+                    nb -= 8000;
+                }
+            }
+            if (!/[0-9]/.test(pa)) {
+                na += 1000;
+            }
+            if (!/[0-9]/.test(pb)) {
+                nb += 1000;
+            }
+            let diff = na - nb;
+            if (diff == 0) {
+                diff = a["route"]["route"].localeCompare(b["route"]["route"]);
+            }
+            if (diff == 0) {
+                diff = Number(a["route"]["serviceType"]) - Number(b["route"]["serviceType"]);
+            }
+            if (diff == 0) {
+                diff = Number(a["route"]["bound"]["kmb"]) - Number(b["route"]["bound"]["kmb"]);
+            }
+            return diff;
+        });
+
+        for (let i = 0; i < routes.length; i++) {
+            let entry = routes[i];
+            let route = entry["route"];
+            let stop = entry["stop"];
+
+            let stopId = stop["stopId"];
+            let bound = route["bound"]["kmb"];
+
+            let routeNumber = route["route"];
+            let stopName = stop["data"]["name"][language == "en" ? "en" : "zh"];
+            let destName = route["dest"][language == "en" ? "en" : "zh"];
+
+            if (language == "en") {
+                stopName = capitalize(stopName);
+                destName = capitalize(destName);
+            }
+
+            table += 
+                "<tr>" +
+                    "<th style=\"font-size: 20px;\">" + routeNumber + " <span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>" + destName + "<br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
+                    "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + stopId + "," + routeNumber + "," + bound + ",1,25,true\"></span></th>" +
+                "</tr>";
+        }
+
+        table += "</tbody></table>";
+
+        document.getElementById("nearby-routes-content").innerHTML = table;
+        document.getElementById("nearby-routes-content").style.display = "";
+
+        updateEta();
+    };
+    let droppedPin = null;
+    const onMapClick = (e) => {
+        if (dataSheet == null) {
+            return;
+        }
+        if (droppedPin == null) {
+            droppedPin = new L.marker(e.latlng, {draggable:'true'});
+            map.addLayer(droppedPin);
+            droppedPin.on('dragend', (event) => {
+                droppedPin = event.target;
+                let position = droppedPin.getLatLng();
+                droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
+                map.panTo(new L.LatLng(position.lat, position.lng));
+                updateNearestRoutes(position.lat, position.lng);
+            });
+        } else {
+            droppedPin.setLatLng(e.latlng, {draggable:'true'});
+            let position = droppedPin.getLatLng();
+            map.panTo(new L.LatLng(position.lat, position.lng));
+        }
+        updateNearestRoutes(e.latlng.lat, e.latlng.lng);
+    };
+    map.on('click', onMapClick);
 
     const updateEta = () => {
         let collection = document.getElementsByClassName("eta-update");
@@ -461,10 +614,11 @@
             let bound = matches[2];
             let seq = matches[3];
             let fontSize = matches[4];
+            let noScheduledType = matches[5] == "true";
             if (stops.hasOwnProperty(stopId)) {
-                stops[stopId].push([element, stopId, routeNumber, bound, seq, fontSize]);
+                stops[stopId].push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType]);
             } else {
-                stops[stopId] = [[element, stopId, routeNumber, bound, seq, fontSize]];
+                stops[stopId] = [[element, stopId, routeNumber, bound, seq, fontSize, noScheduledType]];
             }
         }
 
@@ -491,13 +645,14 @@
                                 let elementBound = entry[3];
                                 let elementSeq = entry[4];
                                 let elementFontSize = entry[5];
+                                let elementScheduledType = entry[6];
 
                                 if (elementRouteNumber == routeNumber && elementBound == bound) {
                                     let message = "";
                                     if (language == "en") {
-                                        if (mins > -60) {
+                                        if (mins > 0) {
                                             message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b> Min.";
-                                        } else if (mins == 0) {
+                                        } else if (mins > -60) {
                                             message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> Min.";
                                         }
                                         if (bus["rmk_en"] != "") {
@@ -518,9 +673,9 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = "No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType ? "🕒" : "No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = "暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType ? "🕒" : "暫時沒有預定班次";
                                             }
                                         } else {
                                             entry[0].innerHTML = "-";
@@ -709,7 +864,7 @@
             let lastSelected = document.getElementById('route-' + leg + '-type').selectedIndex;
             removeOptions(document.getElementById('route-' + leg + '-type'));
 
-            routes.sort((a, b) => a[1]["serviceType"] - b[1]["serviceType"]);
+            routes.sort((a, b) => Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]));
             for (let u = 0; u < routes.length; u++) {
                 let route = routes[u][1];
                 let bound = route["bound"]["kmb"];
@@ -812,7 +967,6 @@
         if (collection.length == 0) {
             return;
         }
-        document.getElementById('calculate').disabled = true;
 
         try {
             for (let i = 0; i < collection.length; i++) {
@@ -830,9 +984,9 @@
                         }
                     }
                     if (routeValid) {
-                        document.getElementById('route-' + leg + '-type').focus();
+                        //document.getElementById('route-' + leg + '-type').focus();
                     } else {
-                        document.getElementById('route-' + leg).focus();
+                        //document.getElementById('route-' + leg).focus();
                     }
                     return;
                 }
@@ -858,8 +1012,6 @@
                 }
             }
 
-            deleteRows(document.getElementById('fare-table'), 1);
-
             let rowsData = [];
 
             let consecutiveInterchanges = 1;
@@ -879,12 +1031,12 @@
                 let startingStopIndex = Number(document.getElementById('route-' + leg + '-start').value);
                 let endingStopIndex = Number(document.getElementById('route-' + leg + '-end').value);
                 if (startingStopIndex == -1) {
-                    document.getElementById('route-' + leg + '-start').focus();
-                    break;
+                    //document.getElementById('route-' + leg + '-start').focus();
+                    return;
                 }
                 if (endingStopIndex == -1) {
-                    document.getElementById('route-' + leg + '-end').focus();
-                    break;
+                    //document.getElementById('route-' + leg + '-end').focus();
+                    return;
                 }
                 if (i == 0) {
                     let startingStopId = stops[startingStopIndex];
@@ -1103,6 +1255,9 @@
             document.getElementById('eta-table').style.display = "none";
 
             document.getElementById('fare-table-mobile').innerHTML = "";
+            document.getElementById('fare-table').style.display = "none";
+
+            deleteRows(document.getElementById('fare-table'), 1);
 
             let stopMarkerData = {};
 
@@ -1399,13 +1554,13 @@
                                     "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25,false\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25,false\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25,false\"></th>" +
                                 "</tr>" + 
                             "</tbody>" +
                         "</table>";
@@ -1431,13 +1586,13 @@
                                         "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25,false\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25,false\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25,false\"></th>" +
                                     "</tr>" + 
                                 "</tbody>" +
                             "</table>";
@@ -1461,19 +1616,19 @@
                             let nextEntry = rowsData[stopMarker[4] + 1];
                             content += "<a class=\"map-eta\">"
                                 + "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[0] + "</b><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15\"></a><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15\"></a><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15\"></a><br><br>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15,false\"></span><br>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15,false\"></span><br>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15,false\"></span><br><br>"
 
                                 + "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[1] + "</b><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",1,15\"></a><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",2,15\"></a><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",3,15\"></a><br></a>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",1,15,false\"></span><br>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",2,15,false\"></span><br>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",3,15,false\"></span><br></a>"
                         } else {
                             content += "<a class=\"map-eta\">"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15\"></a><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15\"></a><br>"
-                                + "<a style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15\"></a><br></a>";
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15,false\"></span><br>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15,false\"></span><br>"
+                                + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15,false\"></span><br></a>";
                         }
                         e.popup.setContent(content);
                     }
@@ -1505,9 +1660,9 @@
             updateEta();
 
             document.getElementById('eta-table').style.display = "";
-            document.getElementById('calculate').disabled = false;
+            document.getElementById('fare-table').style.display = "";
         } finally {
-            document.getElementById('calculate').disabled = false;
+            
         }
     };
 
@@ -1516,13 +1671,13 @@
             "<div class=\"columns\">" + 
                 "<div class=\"column\">" + 
                     "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">第%c程路線</h5>" + 
-                    "<input list=\"bus-routes\" class=\"input\" type=\"text\" autocomplete=\"off\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes();\">" + 
+                    "<input list=\"bus-routes\" class=\"input\" type=\"text\" autocomplete=\"off\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes(); calculate();\">" + 
                     "<datalist id=\"bus-routes\">{BusRouteOptions}</datalist>" +
                 "</div>" + 
                 "<div class=\"column\">" + 
                     "<h5 class=\"title is-5 has-text-black\">路線類型</h5>" + 
                     "<div class=\"select\">" + 
-                        "<select id=\"route-%s-type\" onChange=\"updateStartingStops();\" style=\"width: 100%;\">" + 
+                        "<select id=\"route-%s-type\" onChange=\"updateStartingStops(); calculate();\" style=\"width: 100%;\">" + 
                             "<option id=\"route-%s-type-n\" value=\"-1\">請選擇路線類型</option>" + 
                         "</select>" + 
                     "</div>" + 
@@ -1530,7 +1685,7 @@
                 "<div class=\"column\">" + 
                     "<h5 class=\"title is-5 has-text-black\">上車巴士站</h5>" + 
                     "<div class=\"select\">" + 
-                        "<select id=\"route-%s-start\" onChange=\"updateDestinationStops();\" style=\"width: 100%;\">" + 
+                        "<select id=\"route-%s-start\" onChange=\"updateDestinationStops(); calculate();\" style=\"width: 100%;\">" + 
                             "<option id=\"route-%s-start-n\" value=\"-1\">請選擇上車巴士站</option>" + 
                         "</select>" + 
                     "</div>" + 
@@ -1538,7 +1693,7 @@
                 "<div class=\"column\">" + 
                     "<h5 class=\"title is-5 has-text-black\">落車巴士站</h5>" + 
                     "<div class=\"select\">" + 
-                        "<select id=\"route-%s-end\" style=\"width: 100%;\">" + 
+                        "<select id=\"route-%s-end\" onChange=\"calculate();\" style=\"width: 100%;\">" + 
                             "<option id=\"route-%s-end-n\" value=\"-1\">請選擇落車巴士站</option>" + 
                         "</select>" + 
                     "</div>" + 
@@ -1567,11 +1722,13 @@
         } else {
             div.insertAdjacentHTML('beforeend', append);
         }
+        calculate();
     };
     const routeRemove = () => {
         let collection = document.getElementsByClassName("route-input-element");
         if (collection.length > 1) {
             collection[collection.length - 1].remove();
+            calculate();
         }
     };
     const toggleMap = () => {
@@ -1620,8 +1777,6 @@
     document.getElementById('toggle-eta').addEventListener("click", toggleEta, false);
     document.getElementById('toggle-map').addEventListener("click", toggleMap, false);
     document.getElementById('toggle-gps').addEventListener("click", toggleGps, false);
-
-    document.getElementById('calculate').addEventListener("click", calculate, false);
 </script>
 
 </html>
