@@ -671,7 +671,11 @@
                                             message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> Min.";
                                         }
                                         if (bus["rmk_en"] != "") {
-                                            message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
+                                            if (elementScheduledType) {
+                                                message += (message == "" ? bus["rmk_en"] : " <br class=\"div-only-mobile\">(" + bus["rmk_en"] + ")");
+                                            } else {
+                                                message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
+                                            }
                                         }
                                     } else {
                                         if (mins > 0) {
@@ -680,7 +684,11 @@
                                             message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> 分鐘";
                                         }
                                         if (bus["rmk_tc"] != "") {
-                                            message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
+                                            if (elementScheduledType) {
+                                                message += (message == "" ? bus["rmk_tc"] : " <br class=\"div-only-mobile\">(" + bus["rmk_tc"] + ")");
+                                            } else {
+                                                message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
+                                            }
                                         }
                                     }
                                     message = message.replaceAll("原定", "預定").replaceAll("最後班次", "尾班車");
@@ -1007,6 +1015,8 @@
             return;
         }
 
+        let taskId = makeId(10);
+        calculateTasks.push(taskId);
         try {
             for (let i = 0; i < collection.length; i++) {
                 let leg = i + 1;
@@ -1703,7 +1713,7 @@
             document.getElementById('eta-table').style.display = "";
             document.getElementById('fare-table').style.display = "";
         } finally {
-            
+            calculateTasks.splice(calculateTasks.indexOf(taskId), 1);
         }
     };
 
