@@ -534,7 +534,7 @@
             routes.push(nearbyRoutes[key]);
         }
         let hour = (new Date().getUTCHours() + 8) % 24;
-        let isNight = hour >= 1 && hour <= 5;
+        let isNight = hour >= 1 && hour < 5;
         routes.sort((a, b) => {
             let pa = a["route"]["route"][0];
             let pb = b["route"]["route"][0];
