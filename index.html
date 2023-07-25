@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="icon" type="image/x-icon" href="https://www.kmb.hk/images/inc/kmb_r.png">
+    <link rel="icon" type="image/x-icon" href="https://play-lh.googleusercontent.com/M8q3UWGb7LhaCViShhXX9BZus7BSdVMEJfNFDdnpwWL7a4XCYPp7V_we4eXg9Yb5do0=w240-h480-rw">
     <title id="title">九巴轉乘車費計算機 KMB BBI Calculator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -59,6 +59,23 @@
             cursor: default;
             color: #C1C1C1;
         }
+        .desk {
+        }
+        .div-only-mobile {
+        }
+        @media screen and (max-width : 1920px) {
+            .div-only-mobile {
+                display: none;
+            }
+        }
+        @media screen and (max-width : 906px) {
+            .desk {
+                display: none;
+            }
+            .div-only-mobile {
+                display: inline-block;
+            }
+        }
     </style>
 
     <section class="hero is-link is-fullheight has-background-danger">
@@ -103,7 +120,7 @@
                             <br><br>
                             <button class="button is-dark" id="calculate">計算轉乘車費</button>
                         </div>
-                        <div style="overflow: auto; width: 100%;">
+                        <div style="overflow: auto; width: 100%;" class="desk">
                             <table class="table" id="fare-table" style="word-break: keep-all;">
                                 <tbody>
                                     <tr>
@@ -119,6 +136,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div style="overflow: auto; width: 100%;" class="div-only-mobile" id="fare-table-mobile"></div>
                         <br>
                         <table class="table" id="fare-final-table">
                             <tbody>
@@ -252,9 +270,11 @@
     }
     if (language == "en") {
         document.getElementById('language').href = "./?language=zh";
+
         document.getElementById('language').innerHTML = "中文";
         document.getElementById('title-label').innerHTML = "KMB Bus Interchange (BBI) Fare Calculator";
         document.getElementById('calculate').innerHTML = "Calculate";
+
         document.getElementById('route-label').innerHTML = "Route";
         document.getElementById('board-label').innerHTML = "Suggested Boarding Stop";
         document.getElementById('alight-label').innerHTML = "Suggested Alighting Stop";
@@ -263,6 +283,7 @@
         document.getElementById('timelimit-label').innerHTML = "Time Limit";
         document.getElementById('note-label').innerHTML = "Remarks";
         document.getElementById('fare-label').innerHTML = "Fare";
+
         document.getElementById('total-fare-label').innerHTML = "Total Fare";
         document.getElementById('total-fare').innerHTML = "$0.0 (Half Fare $0.0)";
         document.getElementById('data-label').innerHTML = "Data Sources";
@@ -1081,6 +1102,8 @@
             document.getElementById('eta-table').innerHTML = "";
             document.getElementById('eta-table').style.display = "none";
 
+            document.getElementById('fare-table-mobile').innerHTML = "";
+
             let stopMarkerData = {};
 
             let totalFare = 0;
@@ -1096,6 +1119,46 @@
                     entry[5] == null ? "-" : entry[5] + (language == "en" ? " Min." : "分鐘"), 
                     entry[6], 
                     "$" + entry[7].toFixed(1));
+
+                let mobileText = 
+                "<table class=\"table\">" +
+                    "<tbody>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Route" : "路線") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[0] + "</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Suggested Boarding Stop" : "建議上車巴士站") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[14][entry[12]] + "</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Suggested Alighting Stop" : "建議落車巴士站") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[14][entry[13]] + "</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Discount" : "優惠") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + (entry[3] == null ? "-" : entry[3]) + "</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Max. Successive Discount" : "最高連續轉乘") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + (entry[4] == null ? "-" : entry[4]) + "</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Time Limit" : "時限") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + (entry[5] == null ? "-" : entry[5] + (language == "en" ? " Min." : "分鐘")) + "</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Remarks" : "備註") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[6] + "</th>" +
+                        "</tr>" +
+                        "<tr>" +
+                            "<th>" + (language == "en" ? "Fare" : "車費") + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + "$" + entry[7].toFixed(1) + "</th>" +
+                        "</tr>" +
+                    "</tbody>" +
+                "</table>";
+                document.getElementById('fare-table-mobile').innerHTML += mobileText;
+
                 totalFare += entry[7];
 
                 let route = entry[8];
