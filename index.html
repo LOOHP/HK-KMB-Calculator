@@ -793,7 +793,7 @@
 
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.0012, e.latlng.lng], 17, {"duration": 1});
+                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], 17, {"duration": 1});
                 });
             }
 
@@ -847,7 +847,7 @@
 
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.0012, e.latlng.lng], 17, {"duration": 1});
+                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], 17, {"duration": 1});
                 });
             }
 
@@ -2012,8 +2012,8 @@
                         + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15,false\"></span><br>";
                 }
 
-                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.0012, e.latlng.lng], 17, {"duration": 1});
+                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170}).on('click', (e) => {
+                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], 17, {"duration": 1});
                 }).on('popupopen', (e) => {
                     updateEta();
                 });
