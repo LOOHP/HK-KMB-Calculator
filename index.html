@@ -1284,6 +1284,21 @@
         return result;
     }
 
+    const executeGetGSONTasks = (tasks) => {
+        if (tasks.length == 0) {
+            return;
+        }
+        let entry = tasks[0];
+        getJSON(entry[0], (err, data) => {
+            try {
+                entry[1](err, data);
+            } finally {
+                tasks.shift()
+                executeGetGSONTasks(tasks);
+            }
+        });
+    };
+
     let currentShareParameters = "";
     let calculateTasks = [];
     const calculate = () => {
@@ -1588,6 +1603,7 @@
             deleteRows(document.getElementById('fare-table'), 1);
 
             let stopMarkerData = {};
+            let getJSONTasksQueue = [];
 
             let totalFare = 0;
             for (let i = 0; i < rowsData.length; i++) {
@@ -1649,7 +1665,7 @@
                 let resolvedSpecialUrl = kmbSpecialAnnouncementsUrl.replace("{route}", route["route"]).replace("{bound}", route["bound"]["kmb"] == "O" ? 1 : 2);
                 let task0Id = makeId(10);
                 calculateTasks.push(task0Id);
-                getJSON(resolvedSpecialUrl, (err, data) => {
+                getJSONTasksQueue.push([resolvedSpecialUrl, (err, data) => {
                     if (err == null) {
                         let entries = data["data"];
                         let messages = [];
@@ -1677,13 +1693,13 @@
                         alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
                     }
                     calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
-                });
+                }]);
 
                 let boundNumber = route["bound"]["kmb"] == "O" ? 1 : 2;
                 let resolvedTimeTableUrl = kmbTimeTableUrl.replace("{route}", route["route"]).replace("{bound}", boundNumber);
                 let task1Id = makeId(10);
                 calculateTasks.push(task1Id);
-                getJSON(resolvedTimeTableUrl, (err, data) => {
+                getJSONTasksQueue.push([resolvedTimeTableUrl, (err, data) => {
                     if (err == null) {
                         let timeTableData = data["data"];
                         let times = {};
@@ -1790,7 +1806,7 @@
                         alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                     }
                     calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
-                });
+                }]);
 
                 let stopNames = entry[9];
                 let stopDetails = entry[10];
@@ -1878,6 +1894,8 @@
                     }
                 });
             }
+
+            executeGetGSONTasks(getJSONTasksQueue);
 
             let etaTables = [];
             for (let key in stopMarkerData) {
