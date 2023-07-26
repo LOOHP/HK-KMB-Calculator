@@ -314,7 +314,7 @@
     };
     const updatePosition = (position) => {
         if (gpsMarker == null) {
-            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "Your Location" : "你的位置");
+            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "<b>Your Location</b>" : "<b>你的位置</b>");
             droppedPin = null;
             pin.clearLayers();
             map.flyTo(new L.LatLng(position.coords.latitude, position.coords.longitude), 17, {"duration": 1});
@@ -759,7 +759,9 @@
                     stopName = capitalize(stopName);
                 }
 
-                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby]" : "[鄰近]") + " " + stopName + "</b></div><br>";
+                let distance = Math.round(findDistance(stop["location"], gpsLocation) * 1000).toFixed(0);
+                let title = (language == "en" ? "Nearby " : "鄰近") + distance + (language == "en" ? "m" : "米");
+                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + stopName + "</b></div><br>";
 
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
@@ -773,7 +775,7 @@
                     let table = 
                         "<tr>" +
                             "<th><b style=\"font-size: 15px; text-align: center;\">" + routeNumber + "</b></th>" +
-                            "<th style=\"padding:0 0 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">往</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
+                            "<th style=\"padding:0 0 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">" + (language == "en" ? "To " : "往") + "</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
                         "</tr>";
 
                     routesInfo.push(table);
@@ -867,7 +869,9 @@
             return;
         }
         if (droppedPin == null) {
-            droppedPin = new L.marker(e.latlng, {draggable:'true'});
+            droppedPin = new L.marker(e.latlng, {draggable:'true'}).on('click', (e) => {
+                map.panTo(e.latlng, {"duration": 1})
+            });
             pin.addLayer(droppedPin);
             droppedPin.on('dragend', (event) => {
                 droppedPin = event.target;
@@ -2169,7 +2173,9 @@
             if (isNumber(lat) && isNumber(lng)) {
                 let latlng = new L.LatLng(lat, lng);
                 if (droppedPin == null) {
-                    droppedPin = new L.marker(latlng, {draggable:'true'});
+                    droppedPin = new L.marker(latlng, {draggable:'true'}).on('click', (e) => {
+                        map.panTo(e.latlng, {"duration": 1})
+                    });
                     pin.addLayer(droppedPin);
                     droppedPin.on('dragend', (event) => {
                         droppedPin = event.target;
