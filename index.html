@@ -168,6 +168,8 @@
 </body>
 
 <script>
+    const weekdayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
     const getUrlParameter = (sParam) => {
         let sPageURL = window.location.search.substring(1);
         let sURLVariables = sPageURL.split('&');
@@ -1760,10 +1762,52 @@
                                         }
                                     }
 
+                                    let timeRangeStartHour = null;
+                                    let timeRangeStartMinute = null;
+                                    let timeRangeEndHour = null;
+                                    let timeRangeEndMinute = null;
+                                    let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(time);
+                                    if (matcher != null) {
+                                        timeRangeStartHour = Number(matcher[1]);
+                                        timeRangeStartMinute = Number(matcher[2]);
+
+                                        if (matcher[3] != undefined) {
+                                            timeRangeEndHour = Number(matcher[3]);
+                                            timeRangeEndMinute = Number(matcher[4]);
+                                        } else {
+                                            timeRangeEndHour = timeRangeStartHour;
+                                            timeRangeEndMinute = timeRangeStartMinute;
+                                        }
+                                    }
+
+                                    let now = new Date();
+                                    let nowHour = (now.getUTCHours() + 8) % 24;
+                                    let nowMinute = now.getUTCMinutes();
+                                    let weekday = weekdayNames.indexOf(new Date().toLocaleDateString("en-US", {
+                                        timeZone: "Asia/Hong_Kong",
+                                        weekday: "long"
+                                    })) + 1;
+                                    let isNow = false;
+                                    if (daysOfWeek.indexOf(weekday) >= 0) {
+                                        if (timeRangeStartHour > timeRangeEndHour) {
+                                            if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
+                                                isNow = true;
+                                            } else if (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute) {
+                                                isNow = true;
+                                            } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
+                                                isNow = true;
+                                            }
+                                        } else {
+                                            if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
+                                                isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute);
+                                            }
+                                        }
+                                    }
+
                                     if (!times.hasOwnProperty(dayTypeName)) {
                                         times[dayTypeName] = [];
                                     }
-                                    times[dayTypeName].push([time, frequency, daysOfWeek]);
+                                    times[dayTypeName].push([time, frequency, daysOfWeek, isNow]);
                                 }
                             }
                         }
@@ -1775,18 +1819,21 @@
                             for (let u = 0; u < entries.length; u++) {
                                 let entry = entries[u];
                                 let daysOfWeek = entry[2];
+                                let isNow = entry[3];
+
+                                let fontWeight = isNow ? "bold" : "normal";
                                 if (daysOfWeek.length == 0) {
                                     rows.push(
                                         "<tr>" +
-                                            "<th style=\"font-weight: normal;\">" + entry[0] + "</th>" +
-                                            "<th style=\"font-weight: normal; text-align: right;\">-</th>" +
+                                            "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                            "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
                                         "</tr>"
                                     );
                                 } else {
                                     rows.push(
                                         "<tr>" +
-                                            "<th style=\"font-weight: normal;\">" + entry[0] + "</th>" +
-                                            "<th style=\"font-weight: normal; text-align: right;\">" + entry[1] + "</th>" +
+                                            "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                            "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
                                         "</tr>"
                                     );
                                 }
