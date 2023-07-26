@@ -165,6 +165,18 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     return 6371.0 * c
 
 
+def find_first_closest_location_index(location, locations):
+    closest_distance = haversine_distance(location[0], location[1], locations[0][0], locations[0][1])
+    for i in range(1, len(locations)):
+        loc = locations[i]
+        distance = haversine_distance(location[0], location[1], loc[0], loc[1])
+        if distance <= closest_distance:
+            closest_distance = distance
+        else:
+            return i - 1
+    return len(locations) - 1
+
+
 def find_closest_section(location, sections):
     closest = None
     closest_distance = -1
@@ -189,7 +201,14 @@ def sort_sections(start, sections):
     return result
 
 
-def resolve_route_information(data, start):
+def kmb_route_exists(route):
+    for kmb_route in kmb_route_list:
+        if (route["route"] == kmb_route["route"] and route["bound"]["kmb"] == kmb_route["bound"] and route["serviceType"] == kmb_route["service_type"] and route["orig"]["zh"] == kmb_route["orig_tc"] and route["dest"]["zh"] == kmb_route["dest_tc"]):
+            return True
+    return False
+
+
+def resolve_route_information(data, start, stops):
     result = []
     pattern = "<coordinates> *(.*?) *<\/coordinates>"
     itr = re.finditer(pattern, data, flags=0)
@@ -201,7 +220,22 @@ def resolve_route_information(data, start):
         for matcher_2 in itr_2:
             sub_result.append([float(matcher_2.group(2)), float(matcher_2.group(1))])
         result.append(sub_result)
-    return sort_sections(start, result)
+    sorted_result = sort_sections(start, result)
+    combined = []
+    for section in sorted_result:
+        combined = section + combined
+    combined.reverse()
+    if len(stops) <= 1:
+        return combined
+    result = []
+    for i in range(1, len(stops) - 1):
+        stop = data_sheet["stopList"][stops[i]]
+        location = [stop["location"]["lat"], stop["location"]["lng"]]
+        index = find_first_closest_location_index(location, combined)
+        result.append(combined[:(index + 1)])
+        del combined[0:(index + 1)]
+    result.append(combined)
+    return result
 
 
 def add_route_path(route_number, route_data):
@@ -211,9 +245,14 @@ def add_route_path(route_number, route_data):
         if entry["route"] == route_number:
             first_stop = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route-stop/" + route_number + "/" + ("outbound" if entry["bound"] == "O" else "inbound") + "/" + entry["service_type"])["data"][0]["stop"]
             first_stop_data = get_json("https://data.etabus.gov.hk/v1/transport/kmb/stop/" + first_stop)["data"]
+            stops = None
+            for key, route in data_sheet["routeList"].items():
+                if "kmb" in route["bound"] and kmb_route_exists(route) and route["route"] == route_number and entry["bound"] == route["bound"]["kmb"] and entry["service_type"] == route["serviceType"]:
+                    stops = route["stops"]["kmb"]
+                    break
             try:
                 b = resolve_route_information(get_text(paths_url.replace("{route}", route_number).replace("{bound}", "1" if entry["bound"] == "O" else "2").replace(
-                    "{type}", entry["service_type"])), [float(first_stop_data["lat"]), float(first_stop_data["long"])])
+                    "{type}", entry["service_type"])), [float(first_stop_data["lat"]), float(first_stop_data["long"])], stops)
                 if entry["bound"] not in route_paths:
                     route_paths[entry["bound"]] = {}
                 route_paths[entry["bound"]][entry["service_type"]] = b
@@ -230,23 +269,25 @@ def write_dict_to_file(file, dictionary, indent=4):
 
 
 if __name__ == '__main__':
-    bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
-    bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_b1.json", resolve_bbi_data(bbi_data_b1))
+    data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
+    paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
+    kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")
+
+    #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
+    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
+    #bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
+    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_b1.json", resolve_bbi_data(bbi_data_b1))
 
     #print(get_text("https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=1686913282.html"))
 
     #a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\regional_two_way_section_fare.json", a)
 
-    paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
-
-    #with concurrent.futures.ThreadPoolExecutor() as executor:
-    #    futures = []
-    #    route_numbers = get_all_routes()
-    #    route_data = get_all_routes_data()
-    #    for route_number in route_numbers:
-    #        futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
-    #    for future in concurrent.futures.as_completed(futures):
-    #        pass
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        route_numbers = get_all_routes()
+        route_data = get_all_routes_data()
+        for route_number in route_numbers:
+            futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
+        for future in concurrent.futures.as_completed(futures):
+            pass
