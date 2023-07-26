@@ -429,7 +429,6 @@
                 }
             }
             busRouteListOptions = "<option value=" + busRouteList.join("><option value=") + ">";
-            document.getElementById("route-add").disabled = false;
         } else {
             alert("Unable to get response from " + dataSheetUrl + ". (Is it down?)");
         }
@@ -473,6 +472,7 @@
                 routeAdd();
             }
             document.getElementById("toggle-gps").disabled = false;
+            document.getElementById("route-add").disabled = false;
         }
     }
     waitLoadParameters(() => kmbRouteList != null && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
