@@ -772,8 +772,11 @@
                         destName = capitalize(destName);
                     }
 
+                    let allStops = route["stops"]["kmb"];
+                    let params = "'" + routeNumber + "','" + route["bound"]["kmb"] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+
                     let table = 
-                        "<tr>" +
+                        "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
                             "<th><b style=\"font-size: 15px; text-align: center;\">" + routeNumber + "</b></th>" +
                             "<th style=\"padding:0 0 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">" + (language == "en" ? "To " : "往") + "</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
                         "</tr>";
@@ -813,8 +816,21 @@
                         destName = capitalize(destName);
                     }
 
+                    let allStops = route["stops"]["kmb"];
+                    let startStopId;
+                    let lastIndex = -1;
+                    for (let u = 0; u < nearbyStops.length; u++) {
+                        let stop = nearbyStops[u]["stopId"];
+                        let index = allStops.lastIndexOf(stop);
+                        if (index >= 0 && index > lastIndex) {
+                            startStopId = stop;
+                            lastIndex = index;
+                        }
+                    }
+                    let params = "'" + routeNumber + "','" + route["bound"]["kmb"] + "','" + route["serviceType"] + "','" + startStopId + "','" + stopId + "'";
+
                     let table = 
-                        "<tr>" +
+                        "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
                             "<th><b style=\"font-size: 15px\">" + routeNumber + "</b></th>" +
                             "<th style=\"padding:0 0 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">往</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
                         "</tr>";
