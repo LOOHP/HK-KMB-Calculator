@@ -724,9 +724,9 @@
                                     let message = "";
                                     if (language == "en") {
                                         if (mins > 0) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b><br class=\"div-only-mobile\"> Min.";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                         } else if (mins > -60) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b><br class=\"div-only-mobile\"> Min.";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                         }
                                         if (bus["rmk_en"] != "") {
                                             if (elementScheduledType) {
@@ -737,9 +737,9 @@
                                         }
                                     } else {
                                         if (mins > 0) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b><br class=\"div-only-mobile\"> <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         } else if (mins > -60) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b><br class=\"div-only-mobile\"> <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         }
                                         if (bus["rmk_tc"] != "") {
                                             if (elementScheduledType) {
