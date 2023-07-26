@@ -323,7 +323,7 @@
             updateNearestRoutes(position.coords.latitude, position.coords.longitude);
 
             let shareLink = getShareLink();
-            window.history.replaceState(null, null, shareLink);
+            window.history.pushState(null, null, shareLink);
             document.getElementById('language').href = getShareLink(true);
         }
         gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
@@ -437,18 +437,30 @@
         return -1;
     };
 
+    let busRouteList = [];
+    let busRouteListOptions = "";
     let kmbRouteList = null;
     const kmbRouteListUrl = "https://data.etabus.gov.hk/v1/transport/kmb/route/";
     getJSON(kmbRouteListUrl, (err, data) => {
         if (err == null) {
             kmbRouteList = data["data"];
+            for (let i = 0; i < kmbRouteList.length; i++) {
+                let route = kmbRouteList[i]["route"];
+                if (busRouteList.indexOf(route) < 0) {
+                    busRouteList.push(route);
+                }
+            }
+            let options = "";
+            for (let i = 0; i < busRouteList.length; i++) {
+                let route = busRouteList[i];
+                options += "<option value=" + route + ">" + route + "</option>";
+            }
+            busRouteListOptions = options;
         } else {
             alert("Unable to get response from " + kmbRouteListUrl + ". (Is it down?)");
         }
     });
 
-    let busRouteList = [];
-    let busRouteListOptions = "";
     let dataSheet = null;
     const dataSheetUrl = "https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json";
     getJSON(dataSheetUrl, (err, data) => {
@@ -456,9 +468,6 @@
             dataSheet = data;
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
-                if (busRouteList.indexOf(data["route"]) < 0) {
-                    busRouteList.push(data["route"]);
-                }
                 if (data["fares"] == null && data["bound"].hasOwnProperty("kmb")) {
                     for (let key0 in dataSheet["routeList"]) {
                         let data0 = dataSheet["routeList"][key0];
@@ -468,7 +477,6 @@
                     }
                 }
             }
-            busRouteListOptions = "<option value=" + busRouteList.join("><option value=") + ">";
         } else {
             alert("Unable to get response from " + dataSheetUrl + ". (Is it down?)");
         }
@@ -517,7 +525,7 @@
             ready = true;
         }
     }
-    waitLoadParameters(() => dataSheet != null && kmbRouteList != null && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
+    waitLoadParameters(() => dataSheet != null && kmbRouteList != null && busRouteListOptions != "" && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
@@ -899,7 +907,7 @@
                 updateNearestRoutes(position.lat, position.lng);
 
                 let shareLink = getShareLink();
-                window.history.replaceState(null, null, shareLink);
+                window.history.pushState(null, null, shareLink);
                 document.getElementById('language').href = getShareLink(true);
             });
         } else {
@@ -910,7 +918,7 @@
         updateNearestRoutes(e.latlng.lat, e.latlng.lng);
 
         let shareLink = getShareLink();
-        window.history.replaceState(null, null, shareLink);
+        window.history.pushState(null, null, shareLink);
         document.getElementById('language').href = getShareLink(true);
     };
     map.on('click', onMapClick);
@@ -2083,11 +2091,12 @@
 
             document.getElementById('eta-table').style.display = "";
             document.getElementById('fare-table').style.display = "";
+
+            let shareLink = getShareLink();
+            window.history.pushState(null, null, shareLink);
+            document.getElementById('language').href = getShareLink(true);
         } finally {
             calculateTasks.splice(calculateTasks.indexOf(taskId), 1);
-            let shareLink = getShareLink();
-            window.history.replaceState(null, null, shareLink);
-            document.getElementById('language').href = getShareLink(true);
         }
     };
 
@@ -2216,7 +2225,7 @@
             document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "Click on map to drop location pin or turn on GPS" : "點擊地圖以放置位置圖釘或打開定位位置";
 
             let shareLink = getShareLink();
-            window.history.replaceState(null, null, shareLink);
+            window.history.pushState(null, null, shareLink);
             document.getElementById('language').href = getShareLink(true);
         }
     };
@@ -2248,7 +2257,7 @@
                         updateNearestRoutes(position.lat, position.lng);
 
                         let shareLink = getShareLink();
-                        window.history.replaceState(null, null, shareLink);
+                        window.history.pushState(null, null, shareLink);
                         document.getElementById('language').href = getShareLink(true);
                     });
                 } else {
