@@ -313,7 +313,7 @@
         document.getElementById('nearby-routes-prompt').innerHTML = "Click on map to drop location pin or turn on GPS";
     }
 
-    const getJSON = (url, callback) => {
+    const getJSON = (url, callback, retry = true) => {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.responseType = 'json';
@@ -323,7 +323,11 @@
             if (status === 200) {
                 callback(null, xhr.response);
             } else {
-                callback(status, xhr.response);
+                if (retry) {
+                    setTimeout(() => getJSON(url, callback, false), 1000);
+                } else {
+                    callback(status, xhr.response);
+                }
             }
         };
         xhr.send();
