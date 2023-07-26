@@ -228,7 +228,7 @@
 
             let shareLink = getShareLink();
             window.history.replaceState(null, null, shareLink);
-            document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
+            document.getElementById('language').href = getShareLink(true);
         }
         gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
     };
@@ -595,6 +595,7 @@
                 stopName = capitalize(stopName);
                 destName = capitalize(destName);
             }
+            destName = destName.replaceAll("(", "​(").replace(/([^​]{5})/g,"$1​");
 
             let allStops = route["stops"]["kmb"];
             let index = 1;
@@ -611,7 +612,7 @@
 
             table += 
                 "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                    "<th style=\"font-size: 20px;\">" + routeNumber + " <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span><span style=\"word-break: keep-all;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
+                    "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumber + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
                     "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + stopId + "," + routeNumber + "," + bound + ",1,25,true\"></span></th>" +
                 "</tr>";
         }
@@ -658,7 +659,7 @@
 
                 let shareLink = getShareLink();
                 window.history.replaceState(null, null, shareLink);
-                document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
+                document.getElementById('language').href = getShareLink(true);
             });
         } else {
             droppedPin.setLatLng(e.latlng, {draggable:'true'});
@@ -669,7 +670,7 @@
 
         let shareLink = getShareLink();
         window.history.replaceState(null, null, shareLink);
-        document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
+        document.getElementById('language').href = getShareLink(true);
     };
     map.on('click', onMapClick);
 
@@ -723,32 +724,35 @@
                                     let message = "";
                                     if (language == "en") {
                                         if (mins > 0) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b> Min.";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b><br class=\"div-only-mobile\"> Min.";
                                         } else if (mins > -60) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> Min.";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b><br class=\"div-only-mobile\"> Min.";
                                         }
                                         if (bus["rmk_en"] != "") {
                                             if (elementScheduledType) {
-                                                message += (message == "" ? bus["rmk_en"] : " <br class=\"div-only-mobile\">(" + bus["rmk_en"] + ")");
+                                                message += (message == "" ? bus["rmk_en"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_en"] + ")</span><span class=\"desk\">(" + bus["rmk_en"] + ")</span>");
                                             } else {
                                                 message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
                                             }
                                         }
                                     } else {
                                         if (mins > 0) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b> <span style=\"word-break: keep-all;\">分鐘</span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b><br class=\"div-only-mobile\"> <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         } else if (mins > -60) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b> <span style=\"word-break: keep-all;\">分鐘</span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b><br class=\"div-only-mobile\"> <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         }
                                         if (bus["rmk_tc"] != "") {
                                             if (elementScheduledType) {
-                                                message += (message == "" ? bus["rmk_tc"] : " <br class=\"div-only-mobile\">(" + bus["rmk_tc"] + ")");
+                                                message += (message == "" ? bus["rmk_tc"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_tc"] + ")</span><span class=\"desk\">(" + bus["rmk_tc"] + ")</span>");
                                             } else {
                                                 message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
                                             }
                                         }
                                     }
-                                    message = message.replaceAll("原定", "預定").replaceAll("最後班次", "尾班車").replaceAll("尾班車已過", "尾班車已過本站");
+                                    message = message
+                                        .replaceAll("原定", "預定")
+                                        .replaceAll("最後班次", "尾班車")
+                                        .replaceAll("尾班車已過", "尾班車已過本站");
 
                                     if (message == "") {
                                         if (elementSeq == 1) {
@@ -1781,7 +1785,7 @@
             calculateTasks.splice(calculateTasks.indexOf(taskId), 1);
             let shareLink = getShareLink();
             window.history.replaceState(null, null, shareLink);
-            document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
+            document.getElementById('language').href = getShareLink(true);
         }
     };
 
@@ -1911,7 +1915,7 @@
 
             let shareLink = getShareLink();
             window.history.replaceState(null, null, shareLink);
-            document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
+            document.getElementById('language').href = getShareLink(true);
         }
     };
 
@@ -1941,7 +1945,7 @@
 
                         let shareLink = getShareLink();
                         window.history.replaceState(null, null, shareLink);
-                        document.getElementById('language').href = shareLink + "&language=" + (language == "en" ? "zh" : "en");
+                        document.getElementById('language').href = getShareLink(true);
                     });
                 } else {
                     droppedPin.setLatLng(latlng, {draggable:'true'});
@@ -2019,18 +2023,25 @@
     const getCurrentLinkWithoutParameters = () => {
         return location.protocol + '//' + location.host + location.pathname;
     }
-    const getShareLinkWith = (shareParameters) => {
+    const getShareLinkWith = (shareParameters, languageFlipped = false) => {
         let link = getCurrentLinkWithoutParameters() + shareParameters;
         if (droppedPin != null) {
             let pin = "pin=" + droppedPin.getLatLng().lat + "," + droppedPin.getLatLng().lng;
-            link += (shareParameters.startsWith("?") ? "&" : "?") + pin;
+            link += (shareParameters.startsWith("?") ? "&" : "?") + pin + "&";
         } else if (gpsMarker != null) {
-            link += (shareParameters.startsWith("?") ? "&" : "?") + "gps=true";
+            link += (shareParameters.startsWith("?") ? "&" : "?") + "gps=true" + "&";
+        } else {
+            link += shareParameters.startsWith("?") ? "&" : "?";
+        }
+        if (languageFlipped) {
+            link += "language=" + (language == "en" ? "zh" : "en");
+        } else {
+            link += "language=" + language;
         }
         return link;
     };
-    const getShareLink = () => {
-        return getShareLinkWith(currentShareParameters);
+    const getShareLink = (languageFlipped = false) => {
+        return getShareLinkWith(currentShareParameters, languageFlipped);
     };
     const copyShareLink = () => {
         let link = getShareLink();
