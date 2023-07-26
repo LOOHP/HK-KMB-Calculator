@@ -1467,7 +1467,19 @@
                     }
 
                     let bbiDataSheet = lastBound == "O" ? bbiF1 : bbiB1;
-                    if (bbiDataSheet[lastRouteNumber] != undefined) {
+                    if (rowsData[i - 1][8]["dest"]["zh"].indexOf("循環線") >= 0) {
+                        bbiDataSheet = {};
+                        for (let key in bbiF1) {
+                            bbiDataSheet[key] = [...bbiF1[key]];
+                        }
+                        for (let key in bbiB1) {
+                            if (bbiDataSheet.hasOwnProperty(key)) {
+                                bbiDataSheet[key] = bbiDataSheet[key].concat(bbiB1[key]);
+                            } else {
+                                bbiDataSheet[key] = [...bbiB1[key]];
+                            }
+                        }
+                    } else if (bbiDataSheet[lastRouteNumber] != undefined) {
                         let bbiData = bbiDataSheet[lastRouteNumber];
                         if (bbiData.length > 0) {
                             if (bbiData[0]["bbi_direction"] != rowsData[i - 1][8]["dest"]["zh"] && rowsData[i - 1][8]["dest"]["zh"].indexOf("循環線") < 0) {
