@@ -1262,7 +1262,6 @@
             let leg = i + 1;
             let lastSelected = document.getElementById('route-' + leg + '-start').value;
             let lastSelectedName = document.getElementById('route-' + leg + '-start').options[document.getElementById('route-' + leg + '-start').selectedIndex].text;
-            console.log(lastSelectedName);
             removeOptions(document.getElementById('route-' + leg + '-start'));
             let key = document.getElementById('route-' + leg + '-type').value;
             let routeKey = key.substring(0, key.indexOf("_"));
