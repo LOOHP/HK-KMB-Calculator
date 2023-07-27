@@ -242,6 +242,8 @@
     let nearbyLines = new L.FeatureGroup();
     let nearbyStopsMarker = new L.FeatureGroup();
 
+    let activeRouteMarker = new L.FeatureGroup();
+
     let map = L.map('map', {layers: [lines, markers, nearbyStopsMarker]}).setView([22.3622764, 114.1508789], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -580,6 +582,7 @@
 
             nearbyLines.clearLayers();
             nearbyStopsMarker.clearLayers();
+            activeRouteMarker.clearLayers();
 
             if (Object.keys(nearbyRoutes).length == 0) {
                 document.getElementById("nearby-routes-content").style.display = "none";
@@ -749,8 +752,14 @@
                                 } else {
                                     desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
                                 }
+                                let color = '#8a0101';
+                                if (routeNumber.startsWith("N") || routeNumber.endsWith("S")) {
+                                    color = '#000000';
+                                } else if (routeNumber.startsWith("R") || routeNumber.endsWith("R")) {
+                                    color = '#014c8a';
+                                }
                                 new L.Polyline(pointListRoute, {
-                                    color: 'black',
+                                    color: color,
                                     weight: 2,
                                     opacity: 0.7,
                                     smoothFactor: 0.00001
@@ -1967,7 +1976,7 @@
                                     weight: 4,
                                     opacity: 1,
                                     smoothFactor: 1
-                                }).addTo(lines).bindPopup(desc);
+                                }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc);
                                 if (pointListAfter.length > 0) {
                                     new L.Polyline(pointListAfter, {
                                         color: '#141414',
@@ -1977,6 +1986,7 @@
                                     }).addTo(lines).bindPopup(desc);
                                 }
                             }
+                            map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
                         } else {
                             alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
                         }
@@ -2083,11 +2093,14 @@
                         + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15,false\"></span><br>";
                 }
 
-                L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170}).on('click', (e) => {
+                let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170}).on('click', (e) => {
                     map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], 17, {"duration": 1});
                 }).on('popupopen', (e) => {
                     updateEta();
                 });
+                if (stopType >= 0 && stopType <= 3) {
+                    stopPin.addTo(activeRouteMarker);
+                }
             }
 
             let append = 
@@ -2099,7 +2112,7 @@
 
             document.getElementById("eta-table").innerHTML += append;
 
-            map.flyToBounds(markers.getBounds(), {"duration": 1});
+            map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
 
             document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + ")";
 
