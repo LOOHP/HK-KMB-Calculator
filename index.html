@@ -1261,6 +1261,8 @@
         for (let i = 0; i < collection.length; i++) {
             let leg = i + 1;
             let lastSelected = document.getElementById('route-' + leg + '-start').value;
+            let lastSelectedName = document.getElementById('route-' + leg + '-start').options[document.getElementById('route-' + leg + '-start').selectedIndex].text;
+            console.log(lastSelectedName);
             removeOptions(document.getElementById('route-' + leg + '-start'));
             let key = document.getElementById('route-' + leg + '-type').value;
             let routeKey = key.substring(0, key.indexOf("_"));
@@ -1276,7 +1278,12 @@
                 addOptions(document.getElementById('route-' + leg + '-start'), name, "route-" + leg + "-start-" + k, k);
             }
 
-            document.getElementById('route-' + leg + '-start').value = Math.max(lastSelected, 0) < document.getElementById('route-' + leg + '-start').options.length ? lastSelected : -1;
+            let sameNameArray = [...document.getElementById('route-' + leg + '-start').options].filter((a) => a.text == lastSelectedName);
+            if (sameNameArray.length >= 0 && sameNameArray[0] != undefined && sameNameArray[0].value >= 0) {
+                document.getElementById('route-' + leg + '-start').value = sameNameArray[0].value;
+            } else {
+                document.getElementById('route-' + leg + '-start').value = Math.max(lastSelected, 0) < document.getElementById('route-' + leg + '-start').options.length ? lastSelected : -1;
+            }
         }
 
         updateDestinationStops();
@@ -1289,6 +1296,7 @@
         for (let i = 0; i < collection.length; i++) {
             let leg = i + 1;
             let lastSelected = document.getElementById('route-' + leg + '-end').value;
+            let lastSelectedName = document.getElementById('route-' + leg + '-end').options[document.getElementById('route-' + leg + '-end').selectedIndex].text;
             removeOptions(document.getElementById('route-' + leg + '-end'));
             let key = document.getElementById('route-' + leg + '-type').value;
             let routeKey = key.substring(0, key.indexOf("_"));
@@ -1304,7 +1312,13 @@
                 let name = language == "en" ? capitalize(stop["name"]["en"]) : stop["name"]["zh"];
                 addOptions(document.getElementById('route-' + leg + '-end'), name, "route-" + leg + "-end-" + k, k);
             }
-            document.getElementById('route-' + leg + '-end').value = valueExists(lastSelected, document.getElementById('route-' + leg + '-end')) ? lastSelected : -1;
+
+            let sameNameArray = [...document.getElementById('route-' + leg + '-end').options].filter((a) => a.text == lastSelectedName);
+            if (sameNameArray.length >= 0 && sameNameArray[0] != undefined && sameNameArray[0].value >= 0) {
+                document.getElementById('route-' + leg + '-end').value = sameNameArray[0].value;
+            } else {
+                document.getElementById('route-' + leg + '-end').value = Math.max(lastSelected, 0) < document.getElementById('route-' + leg + '-end').options.length ? lastSelected : -1;
+            }
         }
     };
 
