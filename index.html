@@ -1771,6 +1771,9 @@
                                     if (time == "") {
                                         continue;
                                     }
+                                    if (frequency == "") {
+                                        frequency = "-";
+                                    }
 
                                     let dayTypeName;
                                     let daysOfWeek;
@@ -1795,24 +1798,6 @@
                                         }
                                     }
 
-                                    let timeRangeStartHour = null;
-                                    let timeRangeStartMinute = null;
-                                    let timeRangeEndHour = null;
-                                    let timeRangeEndMinute = null;
-                                    let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(time);
-                                    if (matcher != null) {
-                                        timeRangeStartHour = Number(matcher[1]);
-                                        timeRangeStartMinute = Number(matcher[2]);
-
-                                        if (matcher[3] != undefined) {
-                                            timeRangeEndHour = Number(matcher[3]);
-                                            timeRangeEndMinute = Number(matcher[4]);
-                                        } else {
-                                            timeRangeEndHour = timeRangeStartHour;
-                                            timeRangeEndMinute = timeRangeStartMinute;
-                                        }
-                                    }
-
                                     let now = new Date();
                                     let nowHour = (now.getUTCHours() + 8) % 24;
                                     let nowMinute = now.getUTCMinutes();
@@ -1820,19 +1805,42 @@
                                         timeZone: "Asia/Hong_Kong",
                                         weekday: "long"
                                     })) + 1;
+
                                     let isNow = false;
-                                    if (daysOfWeek.indexOf(weekday) >= 0) {
-                                        if (timeRangeStartHour > timeRangeEndHour) {
-                                            if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
-                                                isNow = true;
-                                            } else if (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute) {
-                                                isNow = true;
-                                            } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
-                                                isNow = true;
+                                    let timeSections = time.split(",");
+
+                                    for (let i = 0; i < timeSections.length && !isNow; i++) {
+                                        let timeRangeStartHour = null;
+                                        let timeRangeStartMinute = null;
+                                        let timeRangeEndHour = null;
+                                        let timeRangeEndMinute = null;
+                                        let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeSections[i]);
+                                        if (matcher != null) {
+                                            timeRangeStartHour = Number(matcher[1]);
+                                            timeRangeStartMinute = Number(matcher[2]);
+
+                                            if (matcher[3] != undefined) {
+                                                timeRangeEndHour = Number(matcher[3]);
+                                                timeRangeEndMinute = Number(matcher[4]);
+                                            } else {
+                                                timeRangeEndHour = timeRangeStartHour;
+                                                timeRangeEndMinute = timeRangeStartMinute;
                                             }
-                                        } else {
-                                            if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
-                                                isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute);
+                                        }
+
+                                        if (daysOfWeek.indexOf(weekday) >= 0) {
+                                            if (timeRangeStartHour > timeRangeEndHour) {
+                                                if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
+                                                    isNow = true;
+                                                } else if (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute) {
+                                                    isNow = true;
+                                                } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
+                                                    isNow = true;
+                                                }
+                                            } else {
+                                                if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
+                                                    isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute);
+                                                }
                                             }
                                         }
                                     }
