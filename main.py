@@ -285,6 +285,7 @@ if __name__ == '__main__':
     data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
     paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
     kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")
+    ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
     ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
     ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
 
@@ -307,5 +308,5 @@ if __name__ == '__main__':
     #    for future in concurrent.futures.as_completed(futures):
     #        pass
 
-    read_ctb_bbi()
+    #read_ctb_bbi()
 
