@@ -760,7 +760,7 @@
                 }
                 destName = destName.replaceAll("(", "​(").replace(/([^​]{5})/g,"$1​");
 
-                if (stop["co"] == "ctb") {
+                if (entry["co"] == "ctb") {
                     stopName += language == "en" ? " (CTB)" : " (城巴)";
                 }
 
@@ -789,7 +789,7 @@
                     }
                 }
 
-                let params = "'" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+                let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
 
                 table += 
                     "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
@@ -855,13 +855,13 @@
                 let distance = Math.round(findDistance(stop["location"], gpsLocation) * 1000).toFixed(0);
                 let title = (language == "en" ? "Nearby " : "鄰近") + distance + (language == "en" ? "m" : "米");
 
-                let co;
+                let stopCo = /[0-9]{6}/g.test(stopId) ? "ctb" : "kmb";
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
                     let routeNumber = route["route"];
                     let destName = route["dest"][language == "en" ? "en" : "zh"];
-                    co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+                    let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
                     if (language == "en") {
                         destName = capitalize(destName);
                     }
@@ -878,7 +878,7 @@
                     routesInfo.push(table);
                 }
 
-                if (co == "ctb") {
+                if (stopCo == "ctb") {
                     stopName += language == "en" ? " (CTB)" : " (城巴)";
                 }
                 let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + stopName + "</b></div><br>";
@@ -904,11 +904,11 @@
                     stopName = capitalize(stopName);
                 }
 
-                let co;
+                let stopCo = /[0-9]{6}/g.test(stopId) ? "ctb" : "kmb";
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
-                    co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+                    let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
                     let routeNumber = route["route"];
                     let destName = route["dest"][language == "en" ? "en" : "zh"];
                     if (language == "en") {
@@ -937,7 +937,7 @@
                     routesInfo.push(table);
                 }
 
-                if (co == "ctb") {
+                if (stopCo == "ctb") {
                     stopName += language == "en" ? " (CTB)" : " (城巴)";
                 }
                 let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + stopName + "</b></div><br>";
@@ -965,7 +965,7 @@
             updatingRouteTasks.splice(updatingRouteTasks.indexOf(taskId), 1);
         }
     };
-    const handleNearbyRouteClick = (routeNumber, bound, type, startingStop, endingStop) => {
+    const handleNearbyRouteClick = (co, routeNumber, bound, type, startingStop, endingStop) => {
         let index = 1;
         let shareLink = getShareLink();
         for (let i = 1; true; i++) {
@@ -976,7 +976,7 @@
             }
         }
 
-        let link = shareLink + "&r" + index + "=" + routeNumber + "," + bound + "," + type + "," + startingStop + "," + endingStop;
+        let link = shareLink + "&r" + index + "=" + co + "," + routeNumber + "," + bound + "," + type + "," + startingStop + "," + endingStop;
         window.location.href = link;
     };
 
