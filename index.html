@@ -498,7 +498,9 @@
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
                 if (data["bound"].hasOwnProperty("kmb")) {
-                    kmbOps.add(data["route"]);
+                    if (data["co"].indexOf("ctb") >= 0) {
+                        kmbOps.add(data["route"]);
+                    }
                     if (data["fares"] == null) {
                         for (let key0 in dataSheet["routeList"]) {
                             let data0 = dataSheet["routeList"][key0];
@@ -645,7 +647,6 @@
 
             nearbyLines.clearLayers();
             nearbyStopsMarker.clearLayers();
-            activeRouteMarker.clearLayers();
 
             if (Object.keys(nearbyRoutes).length == 0) {
                 document.getElementById("nearby-routes-content").style.display = "none";
@@ -1959,6 +1960,7 @@
 
             markers.clearLayers();
             lines.clearLayers();
+            activeRouteMarker.clearLayers();
             document.getElementById('special-announcements').innerHTML = "";
             document.getElementById('special-announcements').style.display = "none";
 
