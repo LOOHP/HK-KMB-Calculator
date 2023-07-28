@@ -238,6 +238,19 @@ def resolve_route_information(data, start, stops):
     return result
 
 
+def read_ctb_bbi():
+    result = []
+    for i in range(2, 95):
+        print(i)
+        tc_data = get_json(ctb_bbi_tc_url + str(i))
+        en_data = get_json(ctb_bbi_en_url + str(i))
+        for u in range(0, len(tc_data)):
+            entry = tc_data[u]
+            entry["remarkEn"] = en_data[u]["remark"]
+            result.append(entry)
+    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\ctb_bbi_data.json", result)
+
+
 def add_route_path(route_number, route_data):
     print(route_number)
     route_paths = {}
@@ -272,6 +285,8 @@ if __name__ == '__main__':
     data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
     paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
     kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")
+    ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
+    ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
 
     #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
@@ -283,11 +298,14 @@ if __name__ == '__main__':
     #a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\regional_two_way_section_fare.json", a)
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
-        route_numbers = get_all_routes()
-        route_data = get_all_routes_data()
-        for route_number in route_numbers:
-            futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
-        for future in concurrent.futures.as_completed(futures):
-            pass
+    #with concurrent.futures.ThreadPoolExecutor() as executor:
+    #    futures = []
+    #    route_numbers = get_all_routes()
+    #    route_data = get_all_routes_data()
+    #    for route_number in route_numbers:
+    #        futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
+    #    for future in concurrent.futures.as_completed(futures):
+    #        pass
+
+    read_ctb_bbi()
+

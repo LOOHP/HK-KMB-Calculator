@@ -132,12 +132,12 @@
                                 <tbody>
                                     <tr>
                                         <th id="route-label">路線</th>
-                                        <th style="text-align: center;" id="board-label">建議上車巴士站</th>
-                                        <th style="text-align: center;" id="alight-label">建議落車巴士站</th>
-                                        <th style="text-align: center;" id="discount-label">優惠</th>
-                                        <th style="text-align: center;" id="interchange-label">最高連續轉乘</th>
-                                        <th style="text-align: center;" id="timelimit-label">時限</th>
-                                        <th style="text-align: center;" id="note-label">備註</th>
+                                        <th style="text-align: left;" id="board-label">建議上車巴士站</th>
+                                        <th style="text-align: left;" id="alight-label">建議落車巴士站</th>
+                                        <th style="text-align: left;" id="discount-label">優惠</th>
+                                        <th style="text-align: left;" id="interchange-label">最高連續轉乘</th>
+                                        <th style="text-align: left;" id="timelimit-label">時限</th>
+                                        <th style="text-align: left;" id="note-label">備註</th>
                                         <th style="text-align: right;" id="fare-label">車費</th>
                                     </tr>
                                 </tbody>
@@ -325,7 +325,7 @@
             gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "<b>Your Location</b>" : "<b>你的位置</b>");
             droppedPin = null;
             pin.clearLayers();
-            map.flyTo(new L.LatLng(position.coords.latitude, position.coords.longitude), 17, {"duration": 1});
+            map.flyTo(new L.LatLng(position.coords.latitude, position.coords.longitude), Math.max(17, map.getZoom()), {"duration": 1});
             updateNearestRoutes(position.coords.latitude, position.coords.longitude);
 
             let shareLink = getShareLink();
@@ -461,9 +461,31 @@
                 let route = busRouteList[i];
                 options += "<option value=" + route + ">" + route + "</option>";
             }
-            busRouteListOptions = options;
+            busRouteListOptions += options;
         } else {
             alert("Unable to get response from " + kmbRouteListUrl + ". (Is it down?)");
+        }
+    });
+
+    let ctbRouteList = null;
+    const ctbRouteListUrl = "https://rt.data.gov.hk/v2/transport/citybus/route/ctb";
+    getJSON(ctbRouteListUrl, (err, data) => {
+        if (err == null) {
+            ctbRouteList = data["data"];
+            for (let i = 0; i < ctbRouteList.length; i++) {
+                let route = ctbRouteList[i]["route"];
+                if (busRouteList.indexOf(route) < 0) {
+                    busRouteList.push(route);
+                }
+            }
+            let options = "";
+            for (let i = 0; i < busRouteList.length; i++) {
+                let route = busRouteList[i];
+                options += "<option value=" + route + ">" + route + "</option>";
+            }
+            busRouteListOptions = options;
+        } else {
+            alert("Unable to get response from " + ctbRouteListUrl + ". (Is it down?)");
         }
     });
 
@@ -472,15 +494,34 @@
     getJSON(dataSheetUrl, (err, data) => {
         if (err == null) {
             dataSheet = data;
+            let kmbOps = new Set();
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
-                if (data["fares"] == null && data["bound"].hasOwnProperty("kmb")) {
-                    for (let key0 in dataSheet["routeList"]) {
-                        let data0 = dataSheet["routeList"][key0];
-                        if (data0 != data && data0["fares"] != null && data0["route"] == data["route"] && data0["seq"] == data["seq"]) {
-                            data["fares"] = data0["fares"].slice(0, data["stops"]["kmb"].length);
+                if (data["bound"].hasOwnProperty("kmb")) {
+                    kmbOps.add(data["route"]);
+                    if (data["fares"] == null) {
+                        for (let key0 in dataSheet["routeList"]) {
+                            let data0 = dataSheet["routeList"][key0];
+                            if (data0 != data && data0["fares"] != null && data0["route"] == data["route"] && data0["seq"] == data["seq"]) {
+                                data["fares"] = data0["fares"].slice(0, data["stops"]["kmb"].length);
+                            }
                         }
                     }
+                }
+            }
+            let ctbOps = new Set();
+            for (let key in dataSheet["routeList"]) {
+                let data = dataSheet["routeList"][key];
+                if (data["bound"].hasOwnProperty("ctb") && kmbOps.has(data["route"]) && !data["bound"].hasOwnProperty("kmb")) {
+                    ctbOps.add(data["route"]);
+                    delete dataSheet["routeList"][key];
+                }
+            }
+            let intersection = new Set([...ctbOps].filter(x => kmbOps.has(x)));
+            for (let key in dataSheet["routeList"]) {
+                let data = dataSheet["routeList"][key];
+                if (intersection.has(data["route"])) {
+                    dataSheet["routeList"][key]["jointOp"] = true;
                 }
             }
         } else {
@@ -518,6 +559,16 @@
         }
     });
 
+    let bbiCtb = null;
+    const bbiCtbUrl = "./ctb_bbi_data.json";
+    getJSON(bbiCtbUrl, (err, data) => {
+        if (err == null) {
+            bbiCtb = data;
+        } else {
+            alert("Unable to get response from " + bbiCtbUrl + ". (Is it down?)");
+        }
+    });
+
     let ready = false;
     const waitLoadParameters = (condition) => {
         if (condition() === false) {
@@ -539,6 +590,8 @@
     let kmbRouteDataUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getstops&route={route}&bound={bound}&serviceType={type}";
     let kmbStopEtaUrl = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/{stop}";
     let kmbStopRouteEtaUrl = "https://data.etabus.gov.hk/v1/transport/kmb/eta/{stop}/{route}/{type}";
+    let ctbStopEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/{stop}/{route}";
+    let ctbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/route-stop/CTB/{route}/{bound}";
 
     let updatingRouteTasks = [];
 
@@ -558,8 +611,15 @@
             for (let stopId in stops) {
                 let entry = stops[stopId];
                 let distance = findDistance(gpsLocation, entry["location"]);
-                if (/^[0-9A-Z]{16}$/.test(stopId) && distance <= 0.3) {
+                if ((/^[0-9A-Z]{16}$/.test(stopId) || /^[0-9]{6}$/.test(stopId)) && distance <= 0.3) {
                     nearbyStops.push({"stopId": stopId, "data": entry, "distance": distance});
+                }
+                if (distance <= 0.3) {
+                    if (/^[0-9A-Z]{16}$/.test(stopId)) {
+                        nearbyStops.push({"stopId": stopId, "data": entry, "distance": distance, "co": "kmb"});
+                    } else if (/^[0-9]{6}$/.test(stopId)) {
+                        nearbyStops.push({"stopId": stopId, "data": entry, "distance": distance, "co": "ctb"});
+                    }
                 }
             }
             let nearbyRoutes = {};
@@ -567,14 +627,17 @@
                 let nearbyStop = nearbyStops[i];
                 for (let key in dataSheet["routeList"]) {
                     let data = dataSheet["routeList"][key];
-                    if (data["bound"].hasOwnProperty("kmb") && data["stops"]["kmb"].indexOf(nearbyStop["stopId"]) >= 0) {
-                        let key = data["route"] + "," + data["bound"]["kmb"];
+                    let isKmb = data["bound"].hasOwnProperty("kmb") && data["stops"]["kmb"].indexOf(nearbyStop["stopId"]) >= 0;
+                    let isCtb = data["bound"].hasOwnProperty("ctb") && data["stops"]["ctb"].indexOf(nearbyStop["stopId"]) >= 0;
+                    if (isKmb || isCtb) {
+                        let co = isKmb ? "kmb" : "ctb";
+                        let key = data["route"] + "," + data["bound"][co];
                         if (nearbyRoutes.hasOwnProperty(key)) {
                             if (nearbyRoutes[key]["stop"]["distance"] > nearbyStop["distance"]) {
-                                nearbyRoutes[key] = {"stop": nearbyStop, "route": data};
+                                nearbyRoutes[key] = {"stop": nearbyStop, "route": data, "co": co};
                             }
                         } else {
-                            nearbyRoutes[key] = {"stop": nearbyStop, "route": data};
+                            nearbyRoutes[key] = {"stop": nearbyStop, "route": data, "co": co};
                         }
                     }
                 }
@@ -587,7 +650,7 @@
             if (Object.keys(nearbyRoutes).length == 0) {
                 document.getElementById("nearby-routes-content").style.display = "none";
                 document.getElementById("nearby-routes-prompt").style.display = "";
-                document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "There are no nearby KMB/LWB bus stops" : "附近沒有九巴或龍運巴士站";
+                document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "There are no nearby KMB/CTB bus stops" : "附近沒有九巴或城巴巴士站";
                 return;
             }
             document.getElementById("nearby-routes-prompt").style.display = "none";
@@ -669,9 +732,10 @@
                 let entry = routes[i];
                 let route = entry["route"];
                 let stop = entry["stop"];
+                let co = entry["co"];
 
                 let stopId = stop["stopId"];
-                let bound = route["bound"]["kmb"];
+                let bound = route["bound"][co];
 
                 if (allNearbyStops.hasOwnProperty(stopId)) {
                     allNearbyStops[stopId].push(route);
@@ -696,7 +760,11 @@
                 }
                 destName = destName.replaceAll("(", "​(").replace(/([^​]{5})/g,"$1​");
 
-                let allStops = route["stops"]["kmb"];
+                if (stop["co"] == "ctb") {
+                    stopName += language == "en" ? " (CTB)" : " (城巴)";
+                }
+
+                let allStops = route["stops"][co];
 
                 for (let u = allStops.indexOf(stopId); u < allStops.length; u++) {
                     let routeStopId = allStops[u];
@@ -726,52 +794,54 @@
                 table += 
                     "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
                         "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumber + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
-                        "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + stopId + "," + routeNumber + "," + bound + ",1,25,true\"></span></th>" +
+                        "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,true\"></span></th>" +
                     "</tr>";
 
-                let task0Id = makeId(10);
-                updatingRouteTasks.push(task0Id);
-                getJSON("./route_paths/" + routeNumber + ".json", (err, data) => {
-                    try {
-                        if (err == null) {                
-                            let sections = data[bound][route["serviceType"]];
-                            if (sections == undefined) {
-                                return;
-                            }
+                if (co == "kmb") {
+                    let task0Id = makeId(10);
+                    updatingRouteTasks.push(task0Id);
+                    getJSON("./route_paths/" + routeNumber + ".json", (err, data) => {
+                        try {
+                            if (err == null) {                
+                                let sections = data[bound][route["serviceType"]];
+                                if (sections == undefined) {
+                                    return;
+                                }
 
-                            for (let i = allStops.indexOf(stopId); i < sections.length; i++) {
-                                let path = sections[i];
-                                let pointListRoute = [];
-                                for (let u = 0; u < path.length; u++) {
-                                    let position = path[u];
-                                    pointListRoute.push(new L.LatLng(position[0], position[1]));
+                                for (let i = allStops.indexOf(stopId); i < sections.length; i++) {
+                                    let path = sections[i];
+                                    let pointListRoute = [];
+                                    for (let u = 0; u < path.length; u++) {
+                                        let position = path[u];
+                                        pointListRoute.push(new L.LatLng(position[0], position[1]));
+                                    }
+                                    let desc;
+                                    if (language == "en") {
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
+                                    } else {
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
+                                    }
+                                    let color = '#8a0101';
+                                    if (routeNumber.startsWith("N") || routeNumber.endsWith("S")) {
+                                        color = '#000000';
+                                    } else if (routeNumber.startsWith("R") || routeNumber.endsWith("R")) {
+                                        color = '#014c8a';
+                                    }
+                                    new L.Polyline(pointListRoute, {
+                                        color: color,
+                                        weight: 2,
+                                        opacity: 0.7,
+                                        smoothFactor: 0.00001
+                                    }).addTo(nearbyLines).bindPopup(desc);
                                 }
-                                let desc;
-                                if (language == "en") {
-                                    desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
-                                } else {
-                                    desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
-                                }
-                                let color = '#8a0101';
-                                if (routeNumber.startsWith("N") || routeNumber.endsWith("S")) {
-                                    color = '#000000';
-                                } else if (routeNumber.startsWith("R") || routeNumber.endsWith("R")) {
-                                    color = '#014c8a';
-                                }
-                                new L.Polyline(pointListRoute, {
-                                    color: color,
-                                    weight: 2,
-                                    opacity: 0.7,
-                                    smoothFactor: 0.00001
-                                }).addTo(nearbyLines).bindPopup(desc);
+                            } else {
+                                alert("Unable to get response from ./route_paths/" + routeNumber + ".json. (Is it down?)");
                             }
-                        } else {
-                            alert("Unable to get response from ./route_paths/" + routeNumber + ".json. (Is it down?)");
+                        } finally {
+                            updatingRouteTasks.splice(updatingRouteTasks.indexOf(task0Id), 1);
                         }
-                    } finally {
-                        updatingRouteTasks.splice(updatingRouteTasks.indexOf(task0Id), 1);
-                    }
-                });
+                    });
+                }
             }
 
             for (let stopId in allNearbyStops) {
@@ -784,19 +854,20 @@
 
                 let distance = Math.round(findDistance(stop["location"], gpsLocation) * 1000).toFixed(0);
                 let title = (language == "en" ? "Nearby " : "鄰近") + distance + (language == "en" ? "m" : "米");
-                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + stopName + "</b></div><br>";
 
+                let co;
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
                     let routeNumber = route["route"];
                     let destName = route["dest"][language == "en" ? "en" : "zh"];
+                    co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
                     if (language == "en") {
                         destName = capitalize(destName);
                     }
 
-                    let allStops = route["stops"]["kmb"];
-                    let params = "'" + routeNumber + "','" + route["bound"]["kmb"] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+                    let allStops = route["stops"][co];
+                    let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
 
                     let table = 
                         "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
@@ -807,6 +878,11 @@
                     routesInfo.push(table);
                 }
 
+                if (co == "ctb") {
+                    stopName += language == "en" ? " (CTB)" : " (城巴)";
+                }
+                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + stopName + "</b></div><br>";
+
                 let table =
                     "<table>" +
                         "<tbody>" +
@@ -816,7 +892,7 @@
 
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], 17, {"duration": 1});
+                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                 });
             }
 
@@ -828,18 +904,18 @@
                     stopName = capitalize(stopName);
                 }
 
-                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + stopName + "</b></div><br>";
-
+                let co;
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
+                    co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
                     let routeNumber = route["route"];
                     let destName = route["dest"][language == "en" ? "en" : "zh"];
                     if (language == "en") {
                         destName = capitalize(destName);
                     }
 
-                    let allStops = route["stops"]["kmb"];
+                    let allStops = route["stops"][co];
                     let startStopId;
                     let lastIndex = -1;
                     for (let u = 0; u < nearbyStops.length; u++) {
@@ -850,7 +926,7 @@
                             lastIndex = index;
                         }
                     }
-                    let params = "'" + routeNumber + "','" + route["bound"]["kmb"] + "','" + route["serviceType"] + "','" + startStopId + "','" + stopId + "'";
+                    let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + startStopId + "','" + stopId + "'";
 
                     let table = 
                         "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
@@ -861,6 +937,11 @@
                     routesInfo.push(table);
                 }
 
+                if (co == "ctb") {
+                    stopName += language == "en" ? " (CTB)" : " (城巴)";
+                }
+                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + stopName + "</b></div><br>";
+
                 let table =
                     "<table>" +
                         "<tbody>" +
@@ -870,7 +951,7 @@
 
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], 17, {"duration": 1});
+                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                 });
             }
 
@@ -940,21 +1021,120 @@
         let collection = document.getElementsByClassName("eta-update");
         
         let stops = {};
+        let ctbEntries = [];
         for (let i = 0; i < collection.length; i++) {
             let element = collection[i];
             let tag = element.id.substring(element.id.lastIndexOf("_") + 1);
             let matches = tag.split(",");
-            let stopId = matches[0];
-            let routeNumber = matches[1];
-            let bound = matches[2];
-            let seq = matches[3];
-            let fontSize = matches[4];
-            let noScheduledType = matches[5] == "true";
-            if (stops.hasOwnProperty(stopId)) {
-                stops[stopId].push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType]);
+            let co = matches[0];
+            let stopId = matches[1];
+            let routeNumber = matches[2];
+            let bound = matches[3];
+            let seq = matches[4];
+            let fontSize = matches[5];
+            let noScheduledType = matches[6] == "true";
+
+            if (co == "kmb") {
+                if (stops.hasOwnProperty(stopId)) {
+                    stops[stopId].push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
+                } else {
+                    stops[stopId] = [[element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]];
+                }
             } else {
-                stops[stopId] = [[element, stopId, routeNumber, bound, seq, fontSize, noScheduledType]];
+                ctbEntries.push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
             }
+        }
+
+        for (let i = 0; i < ctbEntries.length; i++) {
+            let entry = ctbEntries[i];
+            let stopId = entry[1];
+            let routeNumber = entry[2];
+            let resolvedStopEtaUrl = ctbStopEtaUrl.replace("{stop}", stopId).replace("{route}", routeNumber);
+            getJSON(resolvedStopEtaUrl, (err, data) => {
+                if (err == null) {
+                    let elementRouteNumber = entry[2];
+                    let elementBound = entry[3];
+                    let elementSeq = entry[4];
+                    let elementFontSize = entry[5];
+                    let elementScheduledType = entry[6];
+
+                    if (elementSeq == 1) {
+                        if (language == "en") {
+                        entry[0].innerHTML = elementScheduledType ? "-" : "No scheduled departures at this moment";
+                        } else {
+                            entry[0].innerHTML = elementScheduledType ? "-" : "暫時沒有預定班次";
+                        }
+                    } else {
+                        entry[0].innerHTML = "-";
+                    }
+
+                    let buses = data["data"];
+                    for (let u = 0; u < buses.length; u++) {
+                        let bus = buses[u];
+                        if (bus["co"] == "CTB") {
+                            let routeNumber = bus["route"];
+                            let bound = bus["dir"];
+                            let seq = bus["eta_seq"];
+                            let eta = bus["eta"];
+
+                            let mins = eta == null ? -999 : Math.round((new Date(eta) - new Date()) / 1000 / 60);
+
+                            if (elementRouteNumber == routeNumber && elementBound == bound) {
+                                let message = "";
+                                if (language == "en") {
+                                    if (mins > 0) {
+                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                    } else if (mins > -60) {
+                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                    }
+                                    if (bus["rmk_en"] != "") {
+                                        if (elementScheduledType) {
+                                            message += (message == "" ? bus["rmk_en"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_en"] + ")</span><span class=\"desk\">(" + bus["rmk_en"] + ")</span>");
+                                        } else {
+                                            message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
+                                        }
+                                    }
+                                } else {
+                                    if (mins > 0) {
+                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                    } else if (mins > -60) {
+                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                    }
+                                    if (bus["rmk_tc"] != "") {
+                                        if (elementScheduledType) {
+                                            message += (message == "" ? bus["rmk_tc"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_tc"] + ")</span><span class=\"desk\">(" + bus["rmk_tc"] + ")</span>");
+                                        } else {
+                                            message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
+                                        }
+                                    }
+                                }
+                                message = message
+                                    .replaceAll("原定", "預定")
+                                    .replaceAll("最後班次", "尾班車")
+                                    .replaceAll("尾班車已過", "尾班車已過本站");
+
+                                if (message == "") {
+                                    if (elementSeq == 1) {
+                                        if (language == "en") {
+                                            entry[0].innerHTML = elementScheduledType ? "🕒" : "No scheduled departures at this moment";
+                                        } else {
+                                            entry[0].innerHTML = elementScheduledType ? "🕒" : "暫時沒有預定班次";
+                                        }
+                                    } else {
+                                        entry[0].innerHTML = "-";
+                                    }
+                                } else if (elementSeq == seq) {
+                                    entry[0].innerHTML = message;
+                                } else if (elementSeq > seq) {
+                                    entry[0].innerHTML = "-";
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                }
+            });
         }
 
         for (let stopId in stops) {
@@ -968,7 +1148,6 @@
                         if (bus["co"] == "KMB") {
                             let routeNumber = bus["route"];
                             let bound = bus["dir"];
-                            let type = bus["service_type"];
                             let seq = bus["eta_seq"];
                             let eta = bus["eta"];
 
@@ -1177,9 +1356,9 @@
         }
         return false;
     };
-    const hasStartWith = (list, str) => {
-        for (let u = 0; u < list.length; u++) {
-            if (list[u].startsWith(str)) {
+    const hasRouteStartWith = (str) => {
+        for (let key in dataSheet["routeList"]) {
+            if (dataSheet["routeList"][key]["route"].startsWith(str)) {
                 return true;
             }
         }
@@ -1195,7 +1374,7 @@
             let leg = i + 1;
             let routeNumber = document.getElementById('route-' + leg).value.toUpperCase();
             document.getElementById('route-' + leg).value = routeNumber;
-            while (!hasStartWith(busRouteList, routeNumber)) {
+            while (!hasRouteStartWith(routeNumber)) {
                 routeNumber = routeNumber.substring(0, routeNumber.length - 1);
                 document.getElementById('route-' + leg).value = routeNumber;
             }
@@ -1203,23 +1382,31 @@
 
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
-                if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb") && kmbRouteExists(data)) {
+                if (data["route"] == routeNumber && ((data["bound"].hasOwnProperty("kmb") && kmbRouteExists(data)) || data["bound"].hasOwnProperty("ctb"))) {
                     routes.push([key, data]);
                 }
             }
             let lastSelected = document.getElementById('route-' + leg + '-type').selectedIndex;
             removeOptions(document.getElementById('route-' + leg + '-type'));
 
-            routes.sort((a, b) => Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]));
+            routes.sort((a, b) => {
+                let coA = a[1]["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+                let coB = b[1]["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+                if (coA != coB) {
+                    return -coA.localeCompare(coB);
+                }
+                return Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]);
+            });
             for (let u = 0; u < routes.length; u++) {
                 let route = routes[u][1];
-                let bound = route["bound"]["kmb"];
+                let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+                let bound = route["bound"][co];
                 let type = route["serviceType"];
                 let name = language == "en" ? "To " + capitalize(route["dest"]["en"]) : "往" + route["dest"]["zh"];
                 if (type != 1) {
                     for (let k = 0; k < routes.length; k++) {
                         let data = routes[k][1];
-                        if (data["bound"]["kmb"] == bound && data["serviceType"] == 1 && kmbRouteExists(data)) {
+                        if (data["bound"].hasOwnProperty(co) && (co != "kmb" || kmbRouteExists(data)) && data["bound"][co] == bound && data["serviceType"] == 1) {
                             if (data["dest"]["zh"] != route["dest"]["zh"]) {
                                 if (language == "en") {
                                     name += " - Special To " + capitalize(route["dest"]["en"]);
@@ -1243,6 +1430,9 @@
                         }
                     }
                 }
+                if (co == "ctb") {
+                    name += language == "en" ? " - CTB" : " - 城巴";
+                }
 
                 addOptions(document.getElementById('route-' + leg + '-type'), name, "route-" + leg + "-type-" + bound + type, routes[u][0] + "_" + type);
             }
@@ -1261,7 +1451,10 @@
         for (let i = 0; i < collection.length; i++) {
             let leg = i + 1;
             let lastSelected = document.getElementById('route-' + leg + '-start').value;
-            let lastSelectedName = document.getElementById('route-' + leg + '-start').options[document.getElementById('route-' + leg + '-start').selectedIndex].text;
+            let lastSelectedName = "";
+            try {
+                document.getElementById('route-' + leg + '-start').options[document.getElementById('route-' + leg + '-start').selectedIndex].text;
+            } catch (ignore) {}
             removeOptions(document.getElementById('route-' + leg + '-start'));
             let key = document.getElementById('route-' + leg + '-type').value;
             let routeKey = key.substring(0, key.indexOf("_"));
@@ -1269,7 +1462,8 @@
             if (route == undefined) {
                 continue;
             }
-            let stops = route["stops"]["kmb"];
+            let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+            let stops = route["stops"][co];
             for (let k = 0; k < stops.length - 1; k++) {
                 let stopId = stops[k];
                 let stop = dataSheet["stopList"][stopId];
@@ -1295,7 +1489,10 @@
         for (let i = 0; i < collection.length; i++) {
             let leg = i + 1;
             let lastSelected = document.getElementById('route-' + leg + '-end').value;
-            let lastSelectedName = document.getElementById('route-' + leg + '-end').options[document.getElementById('route-' + leg + '-end').selectedIndex].text;
+            let lastSelectedName = "";
+            try {
+                document.getElementById('route-' + leg + '-end').options[document.getElementById('route-' + leg + '-end').selectedIndex].text;
+            } catch (ignore) {}
             removeOptions(document.getElementById('route-' + leg + '-end'));
             let key = document.getElementById('route-' + leg + '-type').value;
             let routeKey = key.substring(0, key.indexOf("_"));
@@ -1303,7 +1500,8 @@
             if (route == undefined) {
                 continue;
             }
-            let stops = route["stops"]["kmb"];
+            let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+            let stops = route["stops"][co];
             let startingStop = Number(document.getElementById('route-' + leg + '-start').value);
             for (let k = startingStop + 1; k < stops.length; k++) {
                 let stopId = stops[k];
@@ -1380,7 +1578,7 @@
 
                     for (let key in dataSheet["routeList"]) {
                         let data = dataSheet["routeList"][key];
-                        if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb")) {
+                        if (data["route"] == routeNumber) {
                             routeValid = true;
                             break;
                         }
@@ -1414,14 +1612,16 @@
             let consecutiveInterchanges = 1;
             let lastRouteNumber = -1;
             let lastFare = 0;
+            let lastCo = null;
             let lastBound = null;
             for (let i = 0; i < collection.length; i++) {
                 let leg = i + 1;
                 let key = document.getElementById('route-' + leg + '-type').value;
                 let routeKey = key.substring(0, key.indexOf("_"));
                 let route = dataSheet["routeList"][routeKey];
+                let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
                 let routeNumber = route["route"];
-                let stops = route["stops"]["kmb"];
+                let stops = route["stops"][co];
                 let displayStopNames = stopIdsToNames(stops, language);
                 let stopNames = stopIdsToNames(stops);
                 let stopDetails = stopIdsToDetails(stops);
@@ -1443,7 +1643,7 @@
                     let endingName = endingStop["name"]["zh"];
 
                     let note = "-";
-                    let twoWaySectionFare = checkTwoWaySectionFare(routeNumber, stopNames, startingName, endingName);
+                    let twoWaySectionFare = co == "kmb" ? checkTwoWaySectionFare(routeNumber, stopNames, startingName, endingName) : null;
                     let fare = 0;
                     if (twoWaySectionFare == null) {
                         fare = Number(route["fares"][startingStopIndex]);
@@ -1461,8 +1661,9 @@
                     lastFare = fare;
                     lastRouteNumber = routeNumber;
                     consecutiveInterchanges = 1;
-                    lastBound = route["bound"]["kmb"];
+                    lastBound = route["bound"][co];
                     lastStopDetails = stopDetails.slice(startingStopIndex + 1, endingStopIndex + 1);
+                    lastCo = co;
                 } else {
                     let endingStopId = stops[endingStopIndex];
                     let endingStop = dataSheet["stopList"][endingStopId];
@@ -1479,7 +1680,7 @@
                     let interchangeName2 = interchangeStop2["name"]["zh"];
 
                     let note = "-";
-                    let twoWaySectionFare = checkTwoWaySectionFare(routeNumber, stopNames, interchangeName2, endingName);
+                    let twoWaySectionFare = co == "kmb" ? checkTwoWaySectionFare(routeNumber, stopNames, interchangeName2, endingName) : null;
                     let fare = 0;
                     if (twoWaySectionFare == null) {
                         fare = Number(route["fares"][startingStopIndex]);
@@ -1492,65 +1693,157 @@
                         }
                     }
 
-                    let bbiDataSheet = lastBound == "O" ? bbiF1 : bbiB1;
-                    if (rowsData[i - 1][8]["dest"]["zh"].indexOf("循環線") >= 0) {
-                        bbiDataSheet = {};
-                        for (let key in bbiF1) {
-                            bbiDataSheet[key] = [...bbiF1[key]];
-                        }
-                        for (let key in bbiB1) {
-                            if (bbiDataSheet.hasOwnProperty(key)) {
-                                bbiDataSheet[key] = bbiDataSheet[key].concat(bbiB1[key]);
-                            } else {
-                                bbiDataSheet[key] = [...bbiB1[key]];
-                            }
-                        }
-                    } else if (bbiDataSheet[lastRouteNumber] != undefined) {
-                        let bbiData = bbiDataSheet[lastRouteNumber];
-                        if (bbiData.length > 0) {
-                            if (bbiData[0]["bbi_direction"] != rowsData[i - 1][8]["dest"]["zh"] && rowsData[i - 1][8]["dest"]["zh"].indexOf("循環線") < 0) {
-                                bbiDataSheet = lastBound == "O" ? bbiB1 : bbiF1;
-                            }
-                        }
-                    }
                     let hasBbi = false;
-                    if (bbiDataSheet[lastRouteNumber] != undefined) {
-                        let bbiData = bbiDataSheet[lastRouteNumber];
-                        for (let k = 0; k < bbiData.length; k++) {
-                            let bbiRoute = bbiData[k];
-                            let routeDest = null;
-                            let type = route["stops"]["kmb"];
-                            let bound = route["bound"]["kmb"];
-                            if (type == 1) {
-                                routeDest = route["dest"]["zh"];
-                            } else {
-                                for (let key in dataSheet["routeList"]) {
-                                    let data = dataSheet["routeList"][key];
-                                    if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb") && data["bound"]["kmb"] == bound && data["serviceType"] == 1) {
-                                        routeDest = data["dest"]["zh"];
-                                        break;
-                                    }
+                    if (co == "kmb") {
+                        let bbiDataSheet = lastBound == "O" ? bbiF1 : bbiB1;
+                        if (rowsData[i - 1][8]["dest"]["zh"].indexOf("循環線") >= 0) {
+                            bbiDataSheet = {};
+                            for (let key in bbiF1) {
+                                bbiDataSheet[key] = [...bbiF1[key]];
+                            }
+                            for (let key in bbiB1) {
+                                if (bbiDataSheet.hasOwnProperty(key)) {
+                                    bbiDataSheet[key] = bbiDataSheet[key].concat(bbiB1[key]);
+                                } else {
+                                    bbiDataSheet[key] = [...bbiB1[key]];
                                 }
                             }
-                            if (bbiRoute["bbi_route_number"] == routeNumber && (bbiRoute["destination"] == routeDest.replace("(循環線)", "") || routeDest.indexOf("循環線") >= 0)) {
-                                let maxChanges = bbiRoute["max_change"];
+                        } else if (bbiDataSheet[lastRouteNumber] != undefined) {
+                            let bbiData = bbiDataSheet[lastRouteNumber];
+                            if (bbiData.length > 0) {
+                                if (bbiData[0]["bbi_direction"] != rowsData[i - 1][8]["dest"]["zh"] && rowsData[i - 1][8]["dest"]["zh"].indexOf("循環線") < 0) {
+                                    bbiDataSheet = lastBound == "O" ? bbiB1 : bbiF1;
+                                }
+                            }
+                        }
+                        if (bbiDataSheet[lastRouteNumber] != undefined) {
+                            let bbiData = bbiDataSheet[lastRouteNumber];
+                            for (let k = 0; k < bbiData.length; k++) {
+                                let bbiRoute = bbiData[k];
+                                let routeDest = null;
+                                let type = route["stops"]["kmb"];
+                                let bound = route["bound"]["kmb"];
+                                if (type == 1) {
+                                    routeDest = route["dest"]["zh"];
+                                } else {
+                                    for (let key in dataSheet["routeList"]) {
+                                        let data = dataSheet["routeList"][key];
+                                        if (data["route"] == routeNumber && data["bound"].hasOwnProperty("kmb") && data["bound"]["kmb"] == bound && data["serviceType"] == 1) {
+                                            routeDest = data["dest"]["zh"];
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (bbiRoute["bbi_route_number"].replace("(城巴)", "") == routeNumber && (bbiRoute["destination"] == routeDest.replace("(循環線)", "") || routeDest.indexOf("循環線") >= 0)) {
+                                    let maxChanges = bbiRoute["max_change"];
+                                    if (maxChanges >= consecutiveInterchanges++) {
+                                        hasBbi = true;
+                                        let timeLimit = bbiRoute["time_limit"];
+                                        let recommendedBbi = bbiRoute["recommended_bbi"];
+
+                                        if (recommendedBbi != "任何能接駁第二程路線的巴士站") {
+                                            let recommendedBbiIndex = stopNamesIndexOf(recommendedBbi, stopNames);
+                                            if (recommendedBbiIndex >= startingStopIndex && recommendedBbiIndex <= endingStopIndex) {
+                                                let interchangeStopClosestResult = findCloestStop(stopDetails[recommendedBbiIndex], rowsData[i - 1][10]);
+                                                let interchangeStopIndex = rowsData[i - 1][11].indexOf(interchangeStopClosestResult[0]);
+                                                if (interchangeStopIndex >= rowsData[i - 1][12] && interchangeStopIndex <= rowsData[i - 1][13]) {
+                                                    interchangeName2 = bbiRoute["recommended_bbi"];
+                                                    interchangeStopId2 = stops[recommendedBbiIndex];
+                                                    startingStopIndex = recommendedBbiIndex;
+                                                    interchangeStop1 = dataSheet["stopList"][interchangeStopClosestResult[0]];
+                                                    interchangeName1 = interchangeStop1["name"]["zh"];
+                                                }
+                                            }
+                                        }
+
+                                        if (rowsData[i - 1][2] != interchangeName1) {
+                                            rowsData[i - 1][2] = interchangeName1;
+                                            let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
+                                            rowsData[i - 1][13] = newEndingStopIndex;
+                                            let twoWaySectionFare0 = lastCo == "kmb" ? checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1) : null;
+                                            let fare0 = 0;
+                                            let note0 = "-";
+                                            if (twoWaySectionFare0 == null) {
+                                                fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                            } else {
+                                                fare0 = twoWaySectionFare0[2];
+                                                if (language == "en") {
+                                                    note = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
+                                                } else {
+                                                    note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                                                }
+                                            }
+                                            lastFare = fare0;
+                                            lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
+
+                                            rowsData[i - 1][6] = note0;
+                                            rowsData[i - 1][7] = fare0;
+                                        }
+
+                                        let discountType = bbiRoute["discount_type"];
+                                        let discount = bbiRoute["discount"];
+                                        if (discountType == "free") {
+                                            fare = 0;
+                                        } else if (discountType == "discount") {
+                                            fare -= discount;
+                                        } else if (discountType == "combined_fare") {
+                                            fare = discount - lastFare;
+                                        } else if (discountType == "fixed_fare") {
+                                            fare = discount;
+                                        } else if (discountType == "return") {
+                                            fare = -discount;
+                                        }
+                                        fare = roundTo1Decimal(fare);
+
+                                        let discount_message = bbiRoute["discount_raw"];
+                                        if (language == "en") {
+                                            discount_message = discount_message
+                                                    .replace("減", "Discount")
+                                                    .replace("兩程合共", "Combined Fare")
+                                                    .replace("免費", "Free")
+                                                    .replace("付", "Pay")
+                                                    .replace("回贈", "Rebate");
+
+                                        }
+
+                                        startingStopIndex = stops.indexOf(interchangeStopId2);
+
+                                        rowsData.push([routeNumber, interchangeName2, endingName, discount_message, maxChanges, timeLimit, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    } else if (co == "ctb") {
+                        let lastRouteData = rowsData[i - 1][8];
+                        for (let k = 0; k < bbiCtb.length; k++) {
+                            let entry = bbiCtb[k];
+                            let firstRoute = entry["firstRoute"].trim();
+                            let firstBound = entry["firstBound"].trim() == "F" ? "O" : "I";
+                            let secondRoute = entry["secondRoute"].trim();
+                            let secondBound = entry["secondBound"].trim() == "F" ? "O" : "I";
+                            if (lastCo != "ctb") {
+                                firstBound = firstBound == "O" ? "I" : "O";
+                            }
+                            if (routeNumber == secondRoute && route["bound"]["ctb"] == secondBound && lastRouteNumber == firstRoute && lastBound == firstBound) {
+                                let remark = language == "en" ? entry["remarkEn"] : entry["remark"];
+
+                                let maxChanges = 3;
                                 if (maxChanges >= consecutiveInterchanges++) {
                                     hasBbi = true;
-                                    let timeLimit = bbiRoute["time_limit"];
-                                    let recommendedBbi = bbiRoute["recommended_bbi"];
+                                    let timeLimit = entry["timeLimit"];
+                                    let recommendedBbi = entry["stopName"];
 
-                                    if (recommendedBbi != "任何能接駁第二程路線的巴士站") {
-                                        let recommendedBbiIndex = stopNamesIndexOf(recommendedBbi, stopNames);
-                                        if (recommendedBbiIndex >= startingStopIndex && recommendedBbiIndex <= endingStopIndex) {
-                                            let interchangeStopClosestResult = findCloestStop(stopDetails[recommendedBbiIndex], rowsData[i - 1][10]);
-                                            let interchangeStopIndex = rowsData[i - 1][11].indexOf(interchangeStopClosestResult[0]);
-                                            if (interchangeStopIndex >= rowsData[i - 1][12] && interchangeStopIndex <= rowsData[i - 1][13]) {
-                                                interchangeName2 = bbiRoute["recommended_bbi"];
-                                                interchangeStopId2 = stops[recommendedBbiIndex];
-                                                startingStopIndex = recommendedBbiIndex;
-                                                interchangeStop1 = dataSheet["stopList"][interchangeStopClosestResult[0]];
-                                                interchangeName1 = interchangeStop1["name"]["zh"];
-                                            }
+                                    let recommendedBbiIndex = stopNamesIndexOf(recommendedBbi, stopNames);
+                                    if (recommendedBbiIndex >= startingStopIndex && recommendedBbiIndex <= endingStopIndex) {
+                                        let interchangeStopClosestResult = findCloestStop(stopDetails[recommendedBbiIndex], rowsData[i - 1][10]);
+                                        let interchangeStopIndex = rowsData[i - 1][11].indexOf(interchangeStopClosestResult[0]);
+                                        if (interchangeStopIndex >= rowsData[i - 1][12] && interchangeStopIndex <= rowsData[i - 1][13]) {
+                                            interchangeName2 = entry["stopName"];
+                                            interchangeStopId2 = stops[recommendedBbiIndex];
+                                            startingStopIndex = recommendedBbiIndex;
+                                            interchangeStop1 = dataSheet["stopList"][interchangeStopClosestResult[0]];
+                                            interchangeName1 = interchangeStop1["name"]["zh"];
                                         }
                                     }
 
@@ -1558,7 +1851,7 @@
                                         rowsData[i - 1][2] = interchangeName1;
                                         let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
                                         rowsData[i - 1][13] = newEndingStopIndex;
-                                        let twoWaySectionFare0 = checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1);
+                                        let twoWaySectionFare0 = lastCo == "kmb" ? checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1) : null;
                                         let fare0 = 0;
                                         let note0 = "-";
                                         if (twoWaySectionFare0 == null) {
@@ -1578,22 +1871,31 @@
                                         rowsData[i - 1][7] = fare0;
                                     }
 
-                                    let discountType = bbiRoute["discount_type"];
-                                    let discount = bbiRoute["discount"];
-                                    if (discountType == "free") {
+                                    let discountType = entry["discount"];
+                                    let discount = Number(entry["discountAmount"]["adult"]);
+                                    let discount_message;
+                                    if (discountType == "L2") {
                                         fare = 0;
-                                    } else if (discountType == "discount") {
+                                        discount_message = "免費";
+                                    } else if (discountType == "FR" || discountType == "FF") {
                                         fare -= discount;
-                                    } else if (discountType == "combined_fare") {
+                                        discount_message = "減 $" + roundTo1Decimal(discount);
+                                    } else if (discountType == "TF") {
                                         fare = discount - lastFare;
-                                    } else if (discountType == "fixed_fare") {
-                                        fare = discount;
-                                    } else if (discountType == "return") {
-                                        fare = -discount;
+                                        discount_message = "兩程合共 $" + roundTo1Decimal(discount + lastFare);
+                                    } else if (discountType == "L1") {
+                                        fare = fare - lastFare;
+                                        let rounded = roundTo1Decimal(fare);
+                                        if (rounded < 0) {
+                                            discount_message = "回贈 $" + (-rounded);
+                                        } else if (rounded > 0) {
+                                            discount_message = "付 $" + rounded;
+                                        } else {
+                                            discount_message = "免費";
+                                        }
                                     }
                                     fare = roundTo1Decimal(fare);
 
-                                    let discount_message = bbiRoute["discount_raw"];
                                     if (language == "en") {
                                         discount_message = discount_message
                                                 .replace("減", "Discount")
@@ -1619,7 +1921,7 @@
 
                             let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
                             rowsData[i - 1][13] = newEndingStopIndex;
-                            let twoWaySectionFare0 = checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1);
+                            let twoWaySectionFare0 = co == "kmb" ? checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1) : null;
                             let fare0 = 0;
                             let note0 = "-";
                             if (twoWaySectionFare0 == null) {
@@ -1646,10 +1948,11 @@
                     }
                     lastRouteNumber = routeNumber;
                     lastFare = fare;
-                    lastBound = route["bound"]["kmb"];
+                    lastBound = route["bound"][co];
                     lastStopDetails = stopDetails.slice(startingStopIndex + 1, endingStopIndex + 1);
+                    lastCo = co;
                 }
-                shareParameters.push("r" + leg + "=" + routeNumber + "," + route["bound"]["kmb"] + "," + route["serviceType"] + "," + stops[startingStopIndex] + "," + stops[endingStopIndex]);
+                shareParameters.push("r" + leg + "=" + co + "," + routeNumber + "," + route["bound"][co] + "," + route["serviceType"] + "," + stops[startingStopIndex] + "," + stops[endingStopIndex]);
             }
 
             currentShareParameters = "?" + shareParameters.join("&");
@@ -1676,15 +1979,31 @@
             let totalFare = 0;
             for (let i = 0; i < rowsData.length; i++) {
                 let entry = rowsData[i];
+                let co = entry[8]["bound"].hasOwnProperty("kmb") ? "kmb" : "ctb";
+                let routeText = entry[0];
+                if (co == "ctb") {
+                    routeText += " - " + (language == "en" ? "CTB" : "城巴");
+                }
+                let remark = entry[6];
+                if (entry[8].hasOwnProperty("jointOp")) {
+                    if (remark != "") {
+                        remark += " / ";
+                    }
+                    if (language == "en") {
+                        remark = "Joint Operated Route - Fare discount might be inaccurate";
+                    } else {
+                        remark = "聯營路線 - 轉乘優惠未必準確";
+                    }
+                }
 
                 addRows(document.getElementById('fare-table'), 
-                    entry[0], 
+                    routeText, 
                     entry[14][entry[12]], 
                     entry[14][entry[13]], 
                     entry[3] == null ? "-" : entry[3], 
                     entry[4] == null ? "-" : entry[4], 
                     entry[5] == null ? "-" : entry[5] + (language == "en" ? " Min." : "分鐘"), 
-                    entry[6], 
+                    remark, 
                     "$" + entry[7].toFixed(1));
 
                 let mobileText = 
@@ -1692,7 +2011,7 @@
                     "<tbody>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Route" : "路線") + "</th>" +
-                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[0] + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + routeText + "</th>" +
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Suggested Boarding Stop" : "建議上車巴士站") + "</th>" +
@@ -1716,7 +2035,7 @@
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Remarks" : "備註") + "</th>" +
-                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[6] + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + remark + "</th>" +
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Fare" : "車費") + "</th>" +
@@ -1730,204 +2049,206 @@
 
                 let route = entry[8];
 
-                let resolvedSpecialUrl = kmbSpecialAnnouncementsUrl.replace("{route}", route["route"]).replace("{bound}", route["bound"]["kmb"] == "O" ? 1 : 2);
-                let task0Id = makeId(10);
-                calculateTasks.push(task0Id);
-                getJSONTasksQueue.push([resolvedSpecialUrl, (err, data) => {
-                    if (err == null) {
-                        let entries = data["data"];
-                        let messages = [];
-                        for (let i = 0; i < entries.length; i++) {
-                            let entry = entries[i];
-                            let title = entry[language == "en" ? "kpi_title" : "kpi_title_chi"];
-                            let resolvedAnnouncementPictureUrl = kmbAnnouncementPictureUrl + entry["kpi_noticeimageurl"];
-                            messages.push("<a href=\"" + resolvedAnnouncementPictureUrl + "\" target=\"_blank\">" + title + "</a>");
-                        }
-                        if (messages.length > 0) {
-                            let html;
-                            if (language == "en") {
-                                html = "[Route " + route["route"] + " Announcements]<br> " + messages.join("<br>");
-                            } else {
-                                html = "[路線" + route["route"] + "特別公告]<br> " + messages.join("<br>");
+                if (co == "kmb") {
+                    let resolvedSpecialUrl = kmbSpecialAnnouncementsUrl.replace("{route}", route["route"]).replace("{bound}", route["bound"]["kmb"] == "O" ? 1 : 2);
+                    let task0Id = makeId(10);
+                    calculateTasks.push(task0Id);
+                    getJSONTasksQueue.push([resolvedSpecialUrl, (err, data) => {
+                        if (err == null) {
+                            let entries = data["data"];
+                            let messages = [];
+                            for (let i = 0; i < entries.length; i++) {
+                                let entry = entries[i];
+                                let title = entry[language == "en" ? "kpi_title" : "kpi_title_chi"];
+                                let resolvedAnnouncementPictureUrl = kmbAnnouncementPictureUrl + entry["kpi_noticeimageurl"];
+                                messages.push("<a href=\"" + resolvedAnnouncementPictureUrl + "\" target=\"_blank\">" + title + "</a>");
                             }
-                            if (document.getElementById('special-announcements').innerHTML == "") {
-                                document.getElementById('special-announcements').style.display = "";
-                                document.getElementById('special-announcements').innerHTML = html;
-                            } else {
-                                document.getElementById('special-announcements').innerHTML += "<br><br>" + html
-                            }
-                        }
-                    } else {
-                        alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
-                    }
-                    calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
-                }]);
-
-                let boundNumber = route["bound"]["kmb"] == "O" ? 1 : 2;
-                let resolvedTimeTableUrl = kmbTimeTableUrl.replace("{route}", route["route"]).replace("{bound}", boundNumber);
-                let task1Id = makeId(10);
-                calculateTasks.push(task1Id);
-                getJSONTasksQueue.push([resolvedTimeTableUrl, (err, data) => {
-                    if (err == null) {
-                        let timeTableData = data["data"];
-                        let times = {};
-                        for (let key in timeTableData) {
-                            let serviceType = Number(key.trim());
-                            let list = timeTableData[key];
-                            if (serviceType == route["serviceType"]) {
-                                for (let u = 0; u < list.length; u++) {
-                                    let entry = list[u];
-                                    let dayType = entry["DayType"].trim();
-
-                                    let time = entry["BoundText" + boundNumber].trim();
-                                    let frequency = entry["BoundTime" + boundNumber].trim();
-                                    if (time == "") {
-                                        continue;
-                                    }
-                                    if (frequency == "") {
-                                        frequency = "-";
-                                    }
-
-                                    let dayTypeName;
-                                    let daysOfWeek;
-                                    if (dayType == "MF") {
-                                        dayTypeName = language == "en" ? "Monday to Friday" : "星期一至五";
-                                        daysOfWeek = [1, 2, 3, 4, 5];
-                                    } else if (dayType == "MS") {
-                                        dayTypeName = language == "en" ? "Monday to Saturday" : "星期一至六";
-                                        daysOfWeek = [1, 2, 3, 4, 5, 6];
-                                    } else if (dayType == "S") {
-                                        dayTypeName = language == "en" ? "Saturday" : "星期六";
-                                        daysOfWeek = [6];
-                                    } else if (dayType == "H") {
-                                        dayTypeName = language == "en" ? "Sunday & Public Holidays" : "星期日及公眾假期";
-                                        daysOfWeek = [7]; 
-                                    } else if (dayType == "D") {
-                                        dayTypeName = language == "en" ? "Daily" : "每天";
-                                        if (time == "於指定日期服務" || time == "On specific day only") {
-                                            daysOfWeek = [];
-                                        } else {
-                                            daysOfWeek = [1, 2, 3, 4, 5, 6, 7];
-                                        }
-                                    }
-
-                                    let now = new Date();
-                                    let nowHour = (now.getUTCHours() + 8) % 24;
-                                    let nowMinute = now.getUTCMinutes();
-                                    let weekday = weekdayNames.indexOf(new Date().toLocaleDateString("en-US", {
-                                        timeZone: "Asia/Hong_Kong",
-                                        weekday: "long"
-                                    })) + 1;
-
-                                    let isNow = false;
-                                    let timeSections = time.split(",");
-
-                                    for (let i = 0; i < timeSections.length && !isNow; i++) {
-                                        let timeRangeStartHour = null;
-                                        let timeRangeStartMinute = null;
-                                        let timeRangeEndHour = null;
-                                        let timeRangeEndMinute = null;
-                                        let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeSections[i]);
-                                        if (matcher != null) {
-                                            timeRangeStartHour = Number(matcher[1]);
-                                            timeRangeStartMinute = Number(matcher[2]);
-
-                                            if (matcher[3] != undefined) {
-                                                timeRangeEndHour = Number(matcher[3]);
-                                                timeRangeEndMinute = Number(matcher[4]);
-                                            } else {
-                                                timeRangeEndHour = timeRangeStartHour;
-                                                timeRangeEndMinute = timeRangeStartMinute;
-                                            }
-                                        }
-
-                                        if (daysOfWeek.indexOf(weekday) >= 0) {
-                                            if (timeRangeStartHour > timeRangeEndHour) {
-                                                if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
-                                                    isNow = true;
-                                                } else if (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute) {
-                                                    isNow = true;
-                                                } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
-                                                    isNow = true;
-                                                }
-                                            } else {
-                                                if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
-                                                    isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute);
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    if (!times.hasOwnProperty(dayTypeName)) {
-                                        times[dayTypeName] = [];
-                                    }
-                                    times[dayTypeName].push([time, frequency, daysOfWeek, isNow]);
-                                }
-                            }
-                        }
-
-                        let tables = [];
-                        for (let dayTypeName in times) {
-                            let entries = times[dayTypeName];
-                            let rows = [];
-                            for (let u = 0; u < entries.length; u++) {
-                                let entry = entries[u];
-                                let daysOfWeek = entry[2];
-                                let isNow = entry[3];
-
-                                let fontWeight = isNow ? "bold" : "normal";
-                                if (daysOfWeek.length == 0) {
-                                    rows.push(
-                                        "<tr>" +
-                                            "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                            "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
-                                        "</tr>"
-                                    );
+                            if (messages.length > 0) {
+                                let html;
+                                if (language == "en") {
+                                    html = "[Route " + route["route"] + " Announcements]<br> " + messages.join("<br>");
                                 } else {
-                                    rows.push(
-                                        "<tr>" +
-                                            "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                            "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
-                                        "</tr>"
-                                    );
+                                    html = "[路線" + route["route"] + "特別公告]<br> " + messages.join("<br>");
+                                }
+                                if (document.getElementById('special-announcements').innerHTML == "") {
+                                    document.getElementById('special-announcements').style.display = "";
+                                    document.getElementById('special-announcements').innerHTML = html;
+                                } else {
+                                    document.getElementById('special-announcements').innerHTML += "<br><br>" + html
                                 }
                             }
-                            let table = 
-                                "<table class=\"table\" style=\"word-break: keep-all;\">" +
-                                    "<tbody>" +
-                                        "<tr>" +
-                                            "<th>" + dayTypeName + "</th>" +
-                                            "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
-                                        "</tr>" + 
-                                        rows.join("") +
-                                    "</tbody>" +
-                                "</table>";
-
-                            tables.push(table);
+                        } else {
+                            alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
                         }
+                        calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
+                    }]);
 
-                        if (tables.length == 0) {
-                            tables.push(language == "en" ? "On specific day only" : "於指定日期服務");
+                    let boundNumber = route["bound"]["kmb"] == "O" ? 1 : 2;
+                    let resolvedTimeTableUrl = kmbTimeTableUrl.replace("{route}", route["route"]).replace("{bound}", boundNumber);
+                    let task1Id = makeId(10);
+                    calculateTasks.push(task1Id);
+                    getJSONTasksQueue.push([resolvedTimeTableUrl, (err, data) => {
+                        if (err == null) {
+                            let timeTableData = data["data"];
+                            let times = {};
+                            for (let key in timeTableData) {
+                                let serviceType = Number(key.trim());
+                                let list = timeTableData[key];
+                                if (serviceType == route["serviceType"]) {
+                                    for (let u = 0; u < list.length; u++) {
+                                        let entry = list[u];
+                                        let dayType = entry["DayType"].trim();
+
+                                        let time = entry["BoundText" + boundNumber].trim();
+                                        let frequency = entry["BoundTime" + boundNumber].trim();
+                                        if (time == "") {
+                                            continue;
+                                        }
+                                        if (frequency == "") {
+                                            frequency = "-";
+                                        }
+
+                                        let dayTypeName;
+                                        let daysOfWeek;
+                                        if (dayType == "MF") {
+                                            dayTypeName = language == "en" ? "Monday to Friday" : "星期一至五";
+                                            daysOfWeek = [1, 2, 3, 4, 5];
+                                        } else if (dayType == "MS") {
+                                            dayTypeName = language == "en" ? "Monday to Saturday" : "星期一至六";
+                                            daysOfWeek = [1, 2, 3, 4, 5, 6];
+                                        } else if (dayType == "S") {
+                                            dayTypeName = language == "en" ? "Saturday" : "星期六";
+                                            daysOfWeek = [6];
+                                        } else if (dayType == "H") {
+                                            dayTypeName = language == "en" ? "Sunday & Public Holidays" : "星期日及公眾假期";
+                                            daysOfWeek = [7]; 
+                                        } else if (dayType == "D") {
+                                            dayTypeName = language == "en" ? "Daily" : "每天";
+                                            if (time == "於指定日期服務" || time == "On specific day only") {
+                                                daysOfWeek = [];
+                                            } else {
+                                                daysOfWeek = [1, 2, 3, 4, 5, 6, 7];
+                                            }
+                                        }
+
+                                        let now = new Date();
+                                        let nowHour = (now.getUTCHours() + 8) % 24;
+                                        let nowMinute = now.getUTCMinutes();
+                                        let weekday = weekdayNames.indexOf(new Date().toLocaleDateString("en-US", {
+                                            timeZone: "Asia/Hong_Kong",
+                                            weekday: "long"
+                                        })) + 1;
+
+                                        let isNow = false;
+                                        let timeSections = time.split(",");
+
+                                        for (let i = 0; i < timeSections.length && !isNow; i++) {
+                                            let timeRangeStartHour = null;
+                                            let timeRangeStartMinute = null;
+                                            let timeRangeEndHour = null;
+                                            let timeRangeEndMinute = null;
+                                            let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeSections[i]);
+                                            if (matcher != null) {
+                                                timeRangeStartHour = Number(matcher[1]);
+                                                timeRangeStartMinute = Number(matcher[2]);
+
+                                                if (matcher[3] != undefined) {
+                                                    timeRangeEndHour = Number(matcher[3]);
+                                                    timeRangeEndMinute = Number(matcher[4]);
+                                                } else {
+                                                    timeRangeEndHour = timeRangeStartHour;
+                                                    timeRangeEndMinute = timeRangeStartMinute;
+                                                }
+                                            }
+
+                                            if (daysOfWeek.indexOf(weekday) >= 0) {
+                                                if (timeRangeStartHour > timeRangeEndHour) {
+                                                    if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
+                                                        isNow = true;
+                                                    } else if (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute) {
+                                                        isNow = true;
+                                                    } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
+                                                        isNow = true;
+                                                    }
+                                                } else {
+                                                    if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
+                                                        isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (!times.hasOwnProperty(dayTypeName)) {
+                                            times[dayTypeName] = [];
+                                        }
+                                        times[dayTypeName].push([time, frequency, daysOfWeek, isNow]);
+                                    }
+                                }
+                            }
+
+                            let tables = [];
+                            for (let dayTypeName in times) {
+                                let entries = times[dayTypeName];
+                                let rows = [];
+                                for (let u = 0; u < entries.length; u++) {
+                                    let entry = entries[u];
+                                    let daysOfWeek = entry[2];
+                                    let isNow = entry[3];
+
+                                    let fontWeight = isNow ? "bold" : "normal";
+                                    if (daysOfWeek.length == 0) {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                            "</tr>"
+                                        );
+                                    } else {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                            "</tr>"
+                                        );
+                                    }
+                                }
+                                let table = 
+                                    "<table class=\"table\" style=\"word-break: keep-all;\">" +
+                                        "<tbody>" +
+                                            "<tr>" +
+                                                "<th>" + dayTypeName + "</th>" +
+                                                "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
+                                            "</tr>" + 
+                                            rows.join("") +
+                                        "</tbody>" +
+                                    "</table>";
+
+                                tables.push(table);
+                            }
+
+                            if (tables.length == 0) {
+                                tables.push(language == "en" ? "On specific day only" : "於指定日期服務");
+                            }
+
+                            let tableTableTitle = language == "en" ? ("Route " + route["route"] + " Timetable") : ("路線" + route["route"] + "時間表");
+                            let append = 
+                                "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
+                                "<div class=\"columns\">" +
+                                    "<div class=\"column\">" +
+                                        tables.join("</div><div class=\"column\">") +
+                                    "</div>" +
+                                "</div>";
+
+                            if (document.getElementById('time-table').innerHTML == "") {
+                                document.getElementById('time-table').style.display = "";
+                            }
+                            document.getElementById("time-table").innerHTML += append;
+                        } else {
+                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
-
-                        let tableTableTitle = language == "en" ? ("Route " + route["route"] + " Timetable") : ("路線" + route["route"] + "時間表");
-                        let append = 
-                            "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
-                            "<div class=\"columns\">" +
-                                "<div class=\"column\">" +
-                                    tables.join("</div><div class=\"column\">") +
-                                "</div>" +
-                            "</div>";
-
-                        if (document.getElementById('time-table').innerHTML == "") {
-                            document.getElementById('time-table').style.display = "";
-                        }
-                        document.getElementById("time-table").innerHTML += append;
-                    } else {
-                        alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
-                    }
-                    calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
-                }]);
+                        calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
+                    }]);
+                }
 
                 let stopNames = entry[9];
                 let stopDetails = entry[10];
@@ -1938,13 +2259,13 @@
                     let positionArray = [stopPosition["lat"], stopPosition["lng"]];
                     let stopMarker;
                     if (u < entry[12] || u > entry[13]) {
-                        stopMarker = [[route["route"]], 4, desc, positionArray, i, u];
+                        stopMarker = [[route["route"]], 4, desc, positionArray, i, u, co];
                     } else if (u == entry[12]) {
-                        stopMarker = [[route["route"]], 0, desc, positionArray, i, u];
+                        stopMarker = [[route["route"]], 0, desc, positionArray, i, u, co];
                     } else if (u == entry[13]) {
-                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u];
+                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u, co];
                     } else {
-                        stopMarker = [[route["route"]], 3, desc, positionArray, i, u];
+                        stopMarker = [[route["route"]], 3, desc, positionArray, i, u, co];
                     }
                     if (stopMarkerData.hasOwnProperty(stopDetails[u][0])) {
                         stopMarkerData[stopDetails[u][0]][0].push(stopMarker[0][0]);
@@ -1954,67 +2275,118 @@
                     }
                 }
 
-                let task2Id = makeId(10);
-                calculateTasks.push(task2Id);
-                getJSON("./route_paths/" + route["route"] + ".json", (err, data) => {
-                    try {
-                        if (err == null) {                
-                            let sections = data[route["bound"]["kmb"]][route["serviceType"]];
-                            if (sections == undefined) {
-                                return;
-                            }
-                            for (let i = 0; i < sections.length; i++) {
-                                let path = sections[i];
-                                let pointListBefore = [];
-                                let pointListRoute = [];
-                                let pointListAfter = [];
-                                for (let u = 0; u < path.length; u++) {
-                                    let position = path[u];
-                                    if (i < entry[12]) {
-                                        pointListBefore.push(new L.LatLng(position[0], position[1]));
-                                    } else if (i > entry[13] - 1) {
-                                        pointListAfter.push(new L.LatLng(position[0], position[1]));
+                if (co == "kmb") {
+                    let task2Id = makeId(10);
+                    calculateTasks.push(task2Id);
+                    getJSON("./route_paths/" + route["route"] + ".json", (err, data) => {
+                        try {
+                            if (err == null) {                
+                                let sections = data[route["bound"]["kmb"]][route["serviceType"]];
+                                if (sections == undefined) {
+                                    return;
+                                }
+                                for (let i = 0; i < sections.length; i++) {
+                                    let path = sections[i];
+                                    let pointListBefore = [];
+                                    let pointListRoute = [];
+                                    let pointListAfter = [];
+                                    for (let u = 0; u < path.length; u++) {
+                                        let position = path[u];
+                                        if (i < entry[12]) {
+                                            pointListBefore.push(new L.LatLng(position[0], position[1]));
+                                        } else if (i > entry[13] - 1) {
+                                            pointListAfter.push(new L.LatLng(position[0], position[1]));
+                                        } else {
+                                            pointListRoute.push(new L.LatLng(position[0], position[1]));
+                                        }
+                                    }
+                                    let desc;
+                                    if (language == "en") {
+                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
                                     } else {
-                                        pointListRoute.push(new L.LatLng(position[0], position[1]));
+                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
+                                    }
+                                    if (pointListBefore.length > 0) {
+                                        new L.Polyline(pointListBefore, {
+                                            color: '#141414',
+                                            weight: 3,
+                                            opacity: 0.5,
+                                            smoothFactor: 1
+                                        }).addTo(lines).bindPopup(desc);
+                                    }
+                                    new L.Polyline(pointListRoute, {
+                                        color: 'red',
+                                        weight: 4,
+                                        opacity: 1,
+                                        smoothFactor: 1
+                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc);
+                                    if (pointListAfter.length > 0) {
+                                        new L.Polyline(pointListAfter, {
+                                            color: '#141414',
+                                            weight: 3,
+                                            opacity: 0.5,
+                                            smoothFactor: 1
+                                        }).addTo(lines).bindPopup(desc);
                                     }
                                 }
-                                let desc;
-                                if (language == "en") {
-                                    desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
-                                } else {
-                                    desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
-                                }
-                                if (pointListBefore.length > 0) {
-                                    new L.Polyline(pointListBefore, {
-                                        color: '#141414',
-                                        weight: 3,
-                                        opacity: 0.5,
-                                        smoothFactor: 1
-                                    }).addTo(lines).bindPopup(desc);
-                                }
-                                new L.Polyline(pointListRoute, {
-                                    color: 'red',
-                                    weight: 4,
-                                    opacity: 1,
-                                    smoothFactor: 1
-                                }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc);
-                                if (pointListAfter.length > 0) {
-                                    new L.Polyline(pointListAfter, {
-                                        color: '#141414',
-                                        weight: 3,
-                                        opacity: 0.5,
-                                        smoothFactor: 1
-                                    }).addTo(lines).bindPopup(desc);
-                                }
+                                map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
+                            } else {
+                                alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
                             }
-                            map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
-                        } else {
-                            alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
+                        } finally {
+                            calculateTasks.splice(calculateTasks.indexOf(task2Id), 1);
                         }
-                    } finally {
-                        calculateTasks.splice(calculateTasks.indexOf(task2Id), 1);
+                    });
+                } else if (co == "ctb") {
+                    let pointListBefore = [];
+                    let pointListRoute = [];
+                    let pointListAfter = [];
+                    for (let i = 0; i < entry[10].length; i++) {
+                        let position = entry[10][i][1]["location"];
+                        if (i < entry[12]) {
+                            pointListBefore.push(new L.LatLng(position["lat"], position["lng"]));
+                        } else if (i > entry[13] - 1) {
+                            pointListAfter.push(new L.LatLng(position["lat"], position["lng"]));
+                            if (i == entry[13]) {
+                                pointListRoute.push(new L.LatLng(position["lat"], position["lng"]));
+                            }
+                        } else {
+                            pointListRoute.push(new L.LatLng(position["lat"], position["lng"]));
+                            if (i == entry[12]) {
+                                pointListBefore.push(new L.LatLng(position["lat"], position["lng"]));
+                            }
+                        }
                     }
-                });
+                    let desc;
+                    if (language == "en") {
+                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
+                    } else {
+                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
+                    }
+                    if (pointListBefore.length > 0) {
+                        new L.Polyline(pointListBefore, {
+                            color: '#141414',
+                            weight: 3,
+                            opacity: 0.5,
+                            smoothFactor: 1
+                        }).addTo(lines).bindPopup(desc);
+                    }
+                    new L.Polyline(pointListRoute, {
+                        color: 'gold',
+                        weight: 4,
+                        opacity: 1,
+                        smoothFactor: 1
+                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc);
+                    if (pointListAfter.length > 0) {
+                        new L.Polyline(pointListAfter, {
+                            color: '#141414',
+                            weight: 3,
+                            opacity: 0.5,
+                            smoothFactor: 1
+                        }).addTo(lines).bindPopup(desc);
+                    }
+                    map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
+                }
             }
 
             executeGetGSONTasks(getJSONTasksQueue);
@@ -2025,6 +2397,7 @@
                 let routes = stopMarker[0];
                 let stopType = stopMarker[1];
                 let desc = stopMarker[2];
+                let co = stopMarker[6];
                 if (rowsData.length > 1) {
                     desc = "[" + routes.join("/") + "] " + desc;
                 }
@@ -2034,20 +2407,20 @@
                     desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
                     icon = redIcon;
                     let table = 
-                        "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + "</h5>" + 
+                        "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + "</h5>" + 
                         "<table class=\"table\" style=\"word-break: keep-all;\">" +
                             "<tbody>" +
                                 "<tr>" +
                                     "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25,false\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",1,25,false\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25,false\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",2,25,false\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25,false\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",3,25,false\"></th>" +
                                 "</tr>" + 
                             "</tbody>" +
                         "</table>";
@@ -2066,20 +2439,20 @@
                         desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo;
 
                         let table = 
-                            "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + "</h5>" + 
+                            "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + changeTo + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + "</h5>" + 
                             "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                 "<tbody>" +
                                     "<tr>" +
-                                        "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
+                                        "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]] + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,25,false\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",1,25,false\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,25,false\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",2,25,false\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,25,false\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",3,25,false\"></th>" +
                                     "</tr>" + 
                                 "</tbody>" +
                             "</table>";
@@ -2099,23 +2472,23 @@
                     let nextEntry = rowsData[stopMarker[4] + 1];
                     desc += 
                           "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[0] + "</b><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15,false\"></span><br><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",1,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",2,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",3,15,false\"></span><br><br>"
 
                         + "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[1] + "</b><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",1,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",2,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"]["kmb"] + ",3,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",1,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",2,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",3,15,false\"></span><br>"
                 } else {
                     desc += 
-                          "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",1,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",2,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"]["kmb"] + ",3,15,false\"></span><br>";
+                          "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",1,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",2,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + rowsData[stopMarker[4]][8]["bound"][co] + ",3,15,false\"></span><br>";
                 }
 
                 let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170}).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], 17, {"duration": 1});
+                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                 }).on('popupopen', (e) => {
                     updateEta();
                 });
@@ -2336,21 +2709,23 @@
         for (let i = 1; i < parameters.length; i++) {
             let parameter = parameters[i];
             let parts = parameter.split(",");
-            let routeNumber = parts[0];
-            let bound = parts[1];
-            let type = parts[2];
-            let startingStop = parts[3];
-            let endingStop = parts[4];
-
-            if (busRouteList.indexOf(routeNumber) < 0) {
-                break;
+            let co = parts[0];
+            let s = 0;
+            if (co != "kmb" && co != "ctb") {
+                s = 1;
+                co = "kmb";
             }
+            let routeNumber = parts[1 - s];
+            let bound = parts[2 - s];
+            let type = parts[3 - s];
+            let startingStop = parts[4 - s];
+            let endingStop = parts[5 - s];
 
             let routeKey = null;
             let route = null;
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
-                if (data["bound"].hasOwnProperty("kmb") && kmbRouteExists(data) && data["route"] == routeNumber && data["bound"]["kmb"] == bound && data["serviceType"] == type) {
+                if (data["bound"].hasOwnProperty(co) && (co != "kmb" || kmbRouteExists(data)) && data["route"] == routeNumber && data["bound"][co] == bound && data["serviceType"] == type) {
                     routeKey = key + "_" + type;
                     route = data;
                     break;
@@ -2360,8 +2735,8 @@
                 break;
             }
 
-            let startingStopIndex = route["stops"]["kmb"].indexOf(startingStop);
-            let endingStopIndex = route["stops"]["kmb"].lastIndexOf(endingStop);
+            let startingStopIndex = route["stops"][co].indexOf(startingStop);
+            let endingStopIndex = route["stops"][co].lastIndexOf(endingStop);
 
             if (startingStopIndex < 0 || endingStopIndex < 0 || startingStopIndex >= endingStopIndex) {
                 break;
