@@ -14,10 +14,49 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="Control.FullScreen.css" />
+    <script src="Control.FullScreen.js"></script>
 </head>
 
 <body>
     <style>
+        .loading {
+            z-index: 999999;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(0,0,0,.5);
+        }
+        .loading-wheel {
+            width: 20px;
+            height: 20px;
+            margin-top: -40px;
+            margin-left: -40px;
+            
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            
+            border-width: 30px;
+            border-radius: 50%;
+            -webkit-animation: spin 1s linear infinite;
+        }
+        .style-2 .loading-wheel {
+            border-style: double;
+            border-color: #ccc transparent;
+        }
+        @-webkit-keyframes spin {
+            0% {
+                -webkit-transform: rotate(0);
+            }
+            100% {
+                -webkit-transform: rotate(-360deg);
+            }
+        }
         .table {
             margin-left: auto;
             margin-right: auto;
@@ -179,6 +218,7 @@
             </div>
         </div>
     </section>
+    <div class="loading style-2" id="loading-overlay"><div class="loading-wheel"></div></div>
 </body>
 
 <script>
@@ -255,7 +295,13 @@
 
     let activeRouteMarker = new L.FeatureGroup();
 
-    let map = L.map('map', {layers: [lines, markers, nearbyStopsMarker]}).setView([22.3622764, 114.1508789], 11);
+    let map = L.map('map', {
+        layers: [lines, markers, nearbyStopsMarker],
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: 'topleft'
+        }
+    }).setView([22.3622764, 114.1508789], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
@@ -653,6 +699,7 @@
             }
             document.getElementById("toggle-gps").disabled = false;
             document.getElementById("route-add").disabled = false;
+            document.getElementById("loading-overlay").style.display = "none";
             ready = true;
         }
     }
