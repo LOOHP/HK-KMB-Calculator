@@ -5,12 +5,37 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
     <meta property="og:title" content="九巴轉乘車費計算機 KMB BBI Calculator" />
     <meta property="og:description" content="Web app to calculate bus interchange routes and fares on Hong Kong Kowloon Motor Bus routes."/>
     <meta property="og:image" content="https://play-lh.googleusercontent.com/M8q3UWGb7LhaCViShhXX9BZus7BSdVMEJfNFDdnpwWL7a4XCYPp7V_we4eXg9Yb5do0=w240-h480-rw" />
     <meta property="og:image:alt" content="KMB App 1933 Icon" />
     <link rel="icon" type="image/x-icon" href="./icon.png">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#E41F31">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#E41F31">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#E41F31">
+    <meta name="apple-mobile-web-app-title" content="九巴轉乘車費計算機 KMB BBI Calculator">
+
     <title id="title">九巴轉乘車費計算機 KMB BBI Calculator</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -167,7 +192,6 @@
                         <div id="route-input"></div><br>
                         <div class="box">
                             <button class="button is-success" id="route-add" disabled>➕</button>
-                            <button class="button is-danger" id="route-remove">➖</button>
                             <button class="button" id="route-clear" style="background-color: #ad0e0e;">🗑️</button>
                             <br><br>
                             <button class="button is-info" id="toggle-eta">⏳</button>
@@ -207,10 +231,11 @@
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
                         <div id="map" style="color: black; height: 50%; aspect-ratio: 7/6;"></div>
                         <br>
-                        <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold;">
+                        <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold; position: relative;">
                             <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
                             <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
                             <div id="nearby-routes-content" style="display: none; max-height: 400px; overflow: auto;"></div>
+                            <button class="button" id="pin-remove" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;">❌</button>
                         </div>
                         <h5 class="title is-5" style="color: #111770; font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
                     </div>
@@ -1644,7 +1669,7 @@
                             }
                         }
                     }
-                    if (mainRoute != route) {
+                    if (mainRoute != null && mainRoute != route) {
                         if (mainRoute["dest"]["zh"] != route["dest"]["zh"]) {
                             if (language == "en") {
                                 name += " - Special To " + capitalize(route["dest"]["en"]);
@@ -1795,7 +1820,6 @@
         }
 
         updateStartingStops();
-        updateDestinationStops();
     };
     const updateStartingStops = () => {
         let collection = document.getElementsByClassName("route-input-element");
@@ -1807,7 +1831,7 @@
             let lastSelected = document.getElementById('route-' + leg + '-start').value;
             let lastSelectedName = "";
             try {
-                document.getElementById('route-' + leg + '-start').options[document.getElementById('route-' + leg + '-start').selectedIndex].text;
+                lastSelectedName = document.getElementById('route-' + leg + '-start').options[document.getElementById('route-' + leg + '-start').selectedIndex].text;
             } catch (ignore) {}
             removeOptions(document.getElementById('route-' + leg + '-start'));
             let key = document.getElementById('route-' + leg + '-type').value;
@@ -1845,7 +1869,7 @@
             let lastSelected = document.getElementById('route-' + leg + '-end').value;
             let lastSelectedName = "";
             try {
-                document.getElementById('route-' + leg + '-end').options[document.getElementById('route-' + leg + '-end').selectedIndex].text;
+                lastSelectedName = document.getElementById('route-' + leg + '-end').options[document.getElementById('route-' + leg + '-end').selectedIndex].text;
             } catch (ignore) {}
             removeOptions(document.getElementById('route-' + leg + '-end'));
             let key = document.getElementById('route-' + leg + '-type').value;
@@ -2751,7 +2775,8 @@
                                     "</div>" +
                                 "</div>";
 
-                            if (document.getElementById('time-table').innerHTML == "") {
+                            let toggleParameter = localStorage["toggle-options"];
+                            if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
                             }
                             document.getElementById("time-table").innerHTML += append;
@@ -3051,7 +3076,10 @@
 
             updateEta();
 
-            document.getElementById('eta-table').style.display = "";
+            let toggleParameter = localStorage["toggle-options"];
+            if ((Number(toggleParameter) & 0x01) == 0) {
+                document.getElementById('eta-table').style.display = "";
+            }
             document.getElementById('fare-table').style.display = "";
 
             let shareLink = getShareLink();
@@ -3063,10 +3091,10 @@
     };
 
     let routeInputHtml = 
-        "<div class=\"box has-background-grey-lighter route-input-element\" id=\"route-%s-element\">" + 
+        "<div class=\"box has-background-grey-lighter route-input-element\" id=\"route-%s-element\" style=\"position: relative;\">" + 
             "<div class=\"columns\">" + 
                 "<div class=\"column\">" + 
-                    "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">第%c程路線</h5>" + 
+                    "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\" id=\"route-%s-title\">第%c程路線</h5>" + 
                     "<input list=\"bus-routes\" class=\"input\" type=\"text\" autocomplete=\"off\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes(); calculate();\">" + 
                     "<datalist id=\"bus-routes\">{BusRouteOptions}</datalist>" +
                 "</div>" + 
@@ -3095,6 +3123,9 @@
                     "</div>" + 
                 "</div>" + 
             "</div>" + 
+            "<button class=\"button\" id=\"route-%s-remove\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px; background-color: #fac7c3;\">❌</button>" +
+            "<button class=\"button\" id=\"route-%s-up\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\">⬆️</button>" +
+            "<button class=\"button\" id=\"route-%s-down\" onClick=\"let index = %s; moveDown(index);\">⬇️</button>" +
         "</div>";
     if (language == "en") {
         routeInputHtml = routeInputHtml
@@ -3108,6 +3139,82 @@
                 .replace("請選擇落車巴士站", "Please Select Alighting Stop");
     }
 
+    const moveUp = (leg) => {
+        let collection = document.getElementsByClassName("route-input-element");
+        if (collection.length == 1) {
+            return;
+        }
+        if (leg <= 1) {
+            return;
+        }
+        let legHigher = leg - 1;
+        let routeNumberHigher = document.getElementById("route-" + legHigher).value;
+        let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
+        let startHigher = document.getElementById("route-" + legHigher + "-start").value;
+        let endHigher = document.getElementById("route-" + legHigher + "-end").value;
+
+        let legLower = leg;
+        let routeNumberLower = document.getElementById("route-" + legLower).value;
+        let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
+        let startLower = document.getElementById("route-" + legLower + "-start").value;
+        let endLower = document.getElementById("route-" + legLower + "-end").value;
+
+        document.getElementById("route-" + legHigher).value = routeNumberLower;
+        updateRoutes();
+        document.getElementById("route-" + legHigher + "-type").value = routeKeyLower;
+        updateStartingStops();
+        document.getElementById("route-" + legHigher + "-start").value = startLower;
+        updateDestinationStops();
+        document.getElementById("route-" + legHigher + "-end").value = endLower;
+
+        document.getElementById("route-" + legLower).value = routeNumberHigher;
+        updateRoutes();
+        document.getElementById("route-" + legLower + "-type").value = routeKeyHigher;
+        updateStartingStops();
+        document.getElementById("route-" + legLower + "-start").value = startHigher;
+        updateDestinationStops();
+        document.getElementById("route-" + legLower + "-end").value = endHigher;
+
+        calculate();
+    };
+    const moveDown = (leg) => {
+        let collection = document.getElementsByClassName("route-input-element");
+        if (collection.length == 1) {
+            return;
+        }
+        if (leg >= collection.length) {
+            return;
+        }
+        let legHigher = leg;
+        let routeNumberHigher = document.getElementById("route-" + legHigher).value;
+        let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
+        let startHigher = document.getElementById("route-" + legHigher + "-start").value;
+        let endHigher = document.getElementById("route-" + legHigher + "-end").value;
+
+        let legLower = leg + 1;
+        let routeNumberLower = document.getElementById("route-" + legLower).value;
+        let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
+        let startLower = document.getElementById("route-" + legLower + "-start").value;
+        let endLower = document.getElementById("route-" + legLower + "-end").value;
+
+        document.getElementById("route-" + legHigher).value = routeNumberLower;
+        updateRoutes();
+        document.getElementById("route-" + legHigher + "-type").value = routeKeyLower;
+        updateStartingStops();
+        document.getElementById("route-" + legHigher + "-start").value = startLower;
+        updateDestinationStops();
+        document.getElementById("route-" + legHigher + "-end").value = endLower;
+
+        document.getElementById("route-" + legLower).value = routeNumberHigher;
+        updateRoutes();
+        document.getElementById("route-" + legLower + "-type").value = routeKeyHigher;
+        updateStartingStops();
+        document.getElementById("route-" + legLower + "-start").value = startHigher;
+        updateDestinationStops();
+        document.getElementById("route-" + legLower + "-end").value = endHigher;
+
+        calculate();
+    };
     const routeAdd = () => {
         let div = document.getElementById('route-input');
         let collection = document.getElementsByClassName("route-input-element");
@@ -3118,13 +3225,63 @@
         } else {
             div.insertAdjacentHTML('beforeend', append);
         }
+        if (index <= 1) {
+            document.getElementById('route-' + index + '-up').disabled = true;
+            document.getElementById('route-' + index + '-remove').disabled = true;
+        } else {
+            document.getElementById('route-' + (index - 1) + '-down').disabled = false;
+            for (let i = 1; i <= collection.length; i++) {
+                document.getElementById('route-' + i + '-remove').disabled = false;
+            }
+        }
+        document.getElementById('route-' + index + '-down').disabled = true;
         calculate();
     };
-    const routeRemove = () => {
+    const routeRemove = (leg) => {
         let collection = document.getElementsByClassName("route-input-element");
-        if (collection.length > 1) {
-            collection[collection.length - 1].remove();
+        if (collection.length == 1) {
+            return;
+        }
+        let index;
+        let lastIndex = collection.length - 1;
+        if (leg == undefined) {
+            index = lastIndex;
+        } else {
+            index = leg - 1;
+        }
+        if (index > lastIndex) {
+            return;
+        }
+        if (index == lastIndex) {
+            collection[index].remove();
+            document.getElementById('route-' + index + '-down').disabled = true;
             calculate();
+        } else {
+            collection[index].remove();
+            for (let i = index; i < collection.length; i++) {
+                let newLeg = i + 1;
+                let oldLeg = newLeg + 1;
+                let routeNumber = document.getElementById("route-" + oldLeg).value;
+                let routeKey = document.getElementById("route-" + oldLeg + "-type").value;
+                let start = document.getElementById("route-" + oldLeg + "-start").value;
+                let end = document.getElementById("route-" + oldLeg + "-end").value;
+                collection[i].innerHTML = collection[i].innerHTML.replaceAll("route-" + oldLeg, "route-" + newLeg).replaceAll("let index = " + oldLeg, "let index = " + newLeg);
+                document.getElementById("route-" + newLeg + "-title").innerHTML = language == "en" ? ("Route " + oldLeg) : ("第" + toChineseNumber(newLeg) + "程路線");
+                document.getElementById("route-" + newLeg).value = routeNumber;
+                document.getElementById("route-" + newLeg + "-type").value = routeKey;
+                document.getElementById("route-" + newLeg + "-start").value = start;
+                document.getElementById("route-" + newLeg + "-end").value = end;
+                if (index == 0) {
+                    document.getElementById('route-' + newLeg + '-up').disabled = true;
+                }
+                if (index >= collection.length - 1) {
+                    document.getElementById('route-' + newLeg + '-down').disabled = true;
+                }
+            }
+            calculate();
+        }
+        if (collection.length == 1) {
+            document.getElementById('route-1-remove').disabled = true;
         }
     };
     const routeClear = () => {
@@ -3132,42 +3289,47 @@
     };
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
+        let toggleParameter = localStorage["toggle-options"];
         document.getElementById('toggle-map').classList.remove("is-info");
         document.getElementById('toggle-map').classList.remove("is-dark");
-        if (mapElement.style.display === "none") {
+        if ((Number(toggleParameter) & 0x04) != 0) {
             document.getElementById('toggle-map').classList.add("is-info");
             mapElement.style.display = "";
+            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x04;
         } else {
             document.getElementById('toggle-map').classList.add("is-dark");
             mapElement.style.display = "none";
+            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x04;
         }
     };
     const toggleTimetable = () => {
         let timetableElement = document.getElementById('time-table');
-        if (timetableElement.innerHTML != "") {
-            document.getElementById('toggle-timetable').classList.remove("is-info");
-            document.getElementById('toggle-timetable').classList.remove("is-dark");
-            if (timetableElement.style.display === "none") {
-                document.getElementById('toggle-timetable').classList.add("is-info");
-                timetableElement.style.display = "";
-            } else {
-                document.getElementById('toggle-timetable').classList.add("is-dark");
-                timetableElement.style.display = "none";
-            }
+        let toggleParameter = localStorage["toggle-options"];
+        document.getElementById('toggle-timetable').classList.remove("is-info");
+        document.getElementById('toggle-timetable').classList.remove("is-dark");
+        if ((Number(toggleParameter) & 0x02) != 0) {
+            document.getElementById('toggle-timetable').classList.add("is-info");
+            timetableElement.style.display = "";
+            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x02;
+        } else {
+            document.getElementById('toggle-timetable').classList.add("is-dark");
+            timetableElement.style.display = "none";
+            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x02;
         }
     };
     const toggleEta = () => {
         let etaElement = document.getElementById('eta-table');
-        if (etaElement.innerHTML != "") {
-            document.getElementById('toggle-eta').classList.remove("is-info");
-            document.getElementById('toggle-eta').classList.remove("is-dark");
-            if (etaElement.style.display === "none") {
-                document.getElementById('toggle-eta').classList.add("is-info");
-                etaElement.style.display = "";
-            } else {
-                document.getElementById('toggle-eta').classList.add("is-dark");
-                etaElement.style.display = "none";
-            }
+        let toggleParameter = localStorage["toggle-options"];
+        document.getElementById('toggle-eta').classList.remove("is-info");
+        document.getElementById('toggle-eta').classList.remove("is-dark");
+        if ((Number(toggleParameter) & 0x01) != 0) {
+            document.getElementById('toggle-eta').classList.add("is-info");
+            etaElement.style.display = "";
+            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x01;
+        } else {
+            document.getElementById('toggle-eta').classList.add("is-dark");
+            etaElement.style.display = "none";
+            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x01;
         }
     };
     const toggleGps = () => {
@@ -3186,6 +3348,18 @@
             document.getElementById("nearby-routes-prompt").style.display = "";
             document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "Click on map to drop location pin or turn on GPS" : "點擊地圖以放置位置圖釘或打開定位位置";
 
+            let shareLink = getShareLink();
+            window.history.pushState(null, null, shareLink);
+            document.getElementById('language').href = getShareLink(true);
+        }
+    };
+    const pinRemove = () => {
+        if (droppedPin != null) {
+            pin.clearLayers();
+            droppedPin = null;
+            document.getElementById("nearby-routes-content").style.display = "none";
+            document.getElementById("nearby-routes-prompt").style.display = "";
+            document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "Click on map to drop location pin or turn on GPS" : "點擊地圖以放置位置圖釘或打開定位位置";
             let shareLink = getShareLink();
             window.history.pushState(null, null, shareLink);
             document.getElementById('language').href = getShareLink(true);
@@ -3233,6 +3407,21 @@
             let gpsParameter = getUrlParameter("gps");
             if (gpsParameter == "true") {
                 toggleGps();
+            }
+        }
+
+        let toggleParameter = localStorage["toggle-options"];
+        if (toggleParameter != undefined) {
+            let value = Number(toggleParameter);
+            localStorage["toggle-options"] = 0;
+            if ((value & 0x01) != 0) {
+                toggleEta();
+            }
+            if ((value & 0x02) != 0) {
+                toggleTimetable();
+            }
+            if ((value & 0x04) != 0) {
+                toggleMap();
             }
         }
 
@@ -3328,7 +3517,6 @@
     };
 
     document.getElementById('route-add').addEventListener("click", routeAdd, false);
-    document.getElementById('route-remove').addEventListener("click", routeRemove, false);
     document.getElementById('route-clear').addEventListener("click", routeClear, false);
 
     document.getElementById('toggle-timetable').addEventListener("click", toggleTimetable, false);
