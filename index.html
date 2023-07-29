@@ -82,6 +82,14 @@
                 -webkit-transform: rotate(-360deg);
             }
         }
+        .unselectable {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
         .table {
             margin-left: auto;
             margin-right: auto;
@@ -279,14 +287,14 @@
             </div>
         </div>
         <div class="div-only-mobile">
-            <div class="mobile-navbar">
-                <a id="nav-anchor-route-input" href="#anchor-route-input" class="mobile-dav-item active">路線輸入</a>
-                <a id="nav-anchor-fare-table-mobile" href="#anchor-fare-table-mobile" class="mobile-dav-item">轉乘數據</a>
-                <a id="nav-anchor-eta-table" href="#anchor-eta-table" class="mobile-dav-item">預計到達</a>
-                <a id="nav-anchor-time-table" href="#anchor-time-table" class="mobile-dav-item">時間表</a>
-                <a id="nav-anchor-special-announcements" href="#anchor-special-announcements" class="mobile-dav-item">特別公告</a>
-                <a id="nav-anchor-map" href="#anchor-map" class="mobile-dav-item">地圖</a>
-                <a id="nav-anchor-nearby-routes" href="#anchor-nearby-routes" class="mobile-dav-item">鄰近路線</a>
+            <div class="mobile-navbar unselectable">
+                <a id="nav-anchor-route-input" onclick="jumpToAnchor('#anchor-route-input');" class="mobile-dav-item active">路線輸入</a>
+                <a id="nav-anchor-fare-table-mobile" onclick="jumpToAnchor('#anchor-fare-table-mobile');" class="mobile-dav-item">轉乘數據</a>
+                <a id="nav-anchor-eta-table" onclick="jumpToAnchor('#anchor-eta-table');" class="mobile-dav-item">預計到達</a>
+                <a id="nav-anchor-time-table" onclick="jumpToAnchor('#anchor-time-table');" class="mobile-dav-item">時間表</a>
+                <a id="nav-anchor-special-announcements" onclick="jumpToAnchor('#anchor-special-announcements');" class="mobile-dav-item">特別公告</a>
+                <a id="nav-anchor-map" onclick="jumpToAnchor('#anchor-map');" class="mobile-dav-item">地圖</a>
+                <a id="nav-anchor-nearby-routes" onclick="jumpToAnchor('#anchor-nearby-routes');" class="mobile-dav-item">鄰近路線</a>
             </div>
         </div>
     </section>
@@ -294,6 +302,10 @@
 </body>
 
 <script>
+    const jumpToAnchor = (selectedAnchor) => {
+        document.querySelector(selectedAnchor).scrollIntoView({behavior: 'smooth'});
+    };
+
     const getPercentageInView = (element) => {
         let bounding = element.getBoundingClientRect();
         let viewportHeight = window.innerHeight || document.documentElement.clientHeight;
@@ -315,7 +327,7 @@
         let largestPercentage = -1;
         for (let i = 0; i < collection.length; i++) {
             let element = collection[i];
-            let anchor = document.getElementById(element.href.substring(element.href.lastIndexOf("#") + 8));
+            let anchor = document.getElementById(element.id.substring(element.id.lastIndexOf("nav-anchor-") + "nav-anchor-".length));
             let percentage = getPercentageInView(anchor);
             if (percentage > largestPercentage) {
                 mainElement = element;
