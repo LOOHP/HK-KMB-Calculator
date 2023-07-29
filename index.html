@@ -147,6 +147,35 @@
         .leaflet-control-layers {
             text-align: left;
         }
+        .mobile-navbar {
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+        }
+        .mobile-navbar a {
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 5px;
+            text-decoration: none;
+            font-size: 12px;
+            flex-grow: 1;
+        }
+        .mobile-navbar a.active {
+            background-color: #E41F31;
+            color: white;
+        }
+        a.anchor {
+            display: block;
+            position: relative;
+            top: -40px;
+            visibility: hidden;
+        }
     </style>
 
     <section class="hero is-link is-fullheight has-background-danger">
@@ -189,6 +218,7 @@
                     <h3 class="title" id="title-label">九巴轉乘車費計算機</h3>
                     <h3 class="title" style="font-size: 15px;" id="subtitle-label">包含部分城巴及新大嶼山巴士路線轉乘數據</h3>
                     <div class="box has-background-white-ter" style="width: 100%;">
+                        <a class="anchor" id="anchor-route-input"></a>
                         <div id="route-input"></div><br>
                         <div class="box">
                             <button class="button is-success" id="route-add" disabled>➕</button>
@@ -200,6 +230,7 @@
                             <button class="button is-dark" id="toggle-gps" disabled>🧭</button>
                             <button class="button is-link" id="share-link">🔗</button>
                         </div>
+                        <a class="anchor" id="anchor-fare-table-mobile"></a>
                         <div style="overflow: auto; width: 100%;" class="desk">
                             <table class="table" id="fare-table" style="word-break: keep-all; display: none;">
                                 <tbody>
@@ -226,11 +257,16 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <a class="anchor" id="anchor-eta-table"></a>
                         <div class="box" id="eta-table" style="display: none;"></div>
+                        <a class="anchor" id="anchor-time-table"></a>
                         <div class="box" id="time-table" style="display: none;"></div>
+                        <a class="anchor" id="anchor-special-announcements"></a>
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
+                        <a class="anchor" id="anchor-map"></a>
                         <div id="map" style="color: black; height: 50%; aspect-ratio: 7/6;"></div>
                         <br>
+                        <a class="anchor" id="anchor-nearby-routes"></a>
                         <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold; position: relative;">
                             <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
                             <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
@@ -242,11 +278,60 @@
                 </div>
             </div>
         </div>
+        <div class="div-only-mobile">
+            <div class="mobile-navbar">
+                <a id="nav-anchor-route-input" href="#anchor-route-input" class="mobile-dav-item active">路線輸入</a>
+                <a id="nav-anchor-fare-table-mobile" href="#anchor-fare-table-mobile" class="mobile-dav-item">轉乘數據</a>
+                <a id="nav-anchor-eta-table" href="#anchor-eta-table" class="mobile-dav-item">預計到達</a>
+                <a id="nav-anchor-time-table" href="#anchor-time-table" class="mobile-dav-item">時間表</a>
+                <a id="nav-anchor-special-announcements" href="#anchor-special-announcements" class="mobile-dav-item">特別公告</a>
+                <a id="nav-anchor-map" href="#anchor-map" class="mobile-dav-item">地圖</a>
+                <a id="nav-anchor-nearby-routes" href="#anchor-nearby-routes" class="mobile-dav-item">鄰近路線</a>
+            </div>
+        </div>
     </section>
     <div class="loading style-2" id="loading-overlay"><div class="loading-wheel"></div></div>
 </body>
 
 <script>
+    const getPercentageInView = (element) => {
+        let bounding = element.getBoundingClientRect();
+        let viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        let viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+        let heightInView = Math.min(bounding.bottom, viewportHeight) - Math.max(bounding.top, 0);
+        let percentageHeightInView = (heightInView / bounding.height) * 100;
+
+        let widthInView = Math.min(bounding.right, viewportWidth) - Math.max(bounding.left, 0);
+        let percentageWidthInView = (widthInView / bounding.width) * 100;
+
+        return Math.min(percentageHeightInView, percentageWidthInView);
+    };
+
+    setInterval(() => {
+        let collection = document.getElementsByClassName("mobile-dav-item");
+        let flag = false;
+        let mainElement = null;
+        let largestPercentage = -1;
+        for (let i = 0; i < collection.length; i++) {
+            let element = collection[i];
+            let anchor = document.getElementById(element.href.substring(element.href.lastIndexOf("#") + 8));
+            let percentage = getPercentageInView(anchor);
+            if (percentage > largestPercentage) {
+                mainElement = element;
+                largestPercentage = percentage;
+            }
+        }
+        for (let i = 0; i < collection.length; i++) {
+            let element = collection[i];
+            if (mainElement == element) {
+                element.classList.add("active");
+            } else {
+                element.classList.remove("active");
+            }
+        }
+    }, 100);
+
     const weekdayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     const getUrlParameter = (sParam) => {
@@ -309,6 +394,14 @@
 
         document.getElementById('nearby-routes-label').innerHTML = "Nearby Routes";
         document.getElementById('nearby-routes-prompt').innerHTML = "Click on map to drop location pin or turn on GPS";
+
+        document.getElementById('nav-anchor-route-input').innerHTML = "Route Input";
+        document.getElementById('nav-anchor-fare-table-mobile').innerHTML = "Route Info";
+        document.getElementById('nav-anchor-eta-table').innerHTML = "ETA";
+        document.getElementById('nav-anchor-time-table').innerHTML = "Time-tables";
+        document.getElementById('nav-anchor-special-announcements').innerHTML = "Special Ann.";
+        document.getElementById('nav-anchor-map').innerHTML = "Route Map";
+        document.getElementById('nav-anchor-nearby-routes').innerHTML = "Nearby Routes";
     }
 
     let lines = new L.FeatureGroup();
