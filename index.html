@@ -232,7 +232,7 @@
             <div class="container has-text-centered" style="width: 100%;">
                <div class="column is-12" style="padding: min(12px, 1%);">
                     <h3 class="title" id="title-label">九巴轉乘車費計算機</h3>
-                    <h3 class="title" style="font-size: 15px;" id="subtitle-label">包含部分城巴及新大嶼山巴士路線轉乘數據</h3>
+                    <h3 class="title" style="font-size: 15px;" id="subtitle-label">包含部分城巴/新大嶼山巴士/港鐵巴士路線轉乘數據</h3>
                     <div class="box has-background-white-ter" style="width: 100%; padding: min(20px, 2%);">
                         <a class="anchor" id="anchor-route-input"></a>
                         <div id="route-input"></div><br>
@@ -395,6 +395,26 @@
         xhr.send();
     };
 
+    const postJSON = (url, callback, body, retry = true) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.responseType = 'json';
+        xhr.overrideMimeType("application/json");
+        xhr.onload = () => {
+            let status = xhr.status;
+            if (status === 200) {
+                callback(null, xhr.response);
+            } else {
+                if (retry) {
+                    setTimeout(() => getJSON(url, callback, false), 1000);
+                } else {
+                    callback(status, xhr.response);
+                }
+            }
+        };
+        xhr.send(JSON.stringify(body));
+    };
+
     let language = getUrlParameter("language");
     if (language == null) {
         language = "zh"
@@ -404,7 +424,7 @@
 
         document.getElementById('language').innerHTML = "中文";
         document.getElementById('title-label').innerHTML = "KMB Bus Interchange (BBI) Fare Calculator";
-        document.getElementById('subtitle-label').innerHTML = "Contains partial CityBus & New Lantao Bus route interchange data";
+        document.getElementById('subtitle-label').innerHTML = "Contains partial CityBus / New Lantao Bus / MTR Bus route interchange data";
 
         document.getElementById('route-label').innerHTML = "Route";
         document.getElementById('board-label').innerHTML = "Suggested Boarding Stop";
@@ -732,6 +752,19 @@
         }
     });
 
+    let mtrBusRouteList = null;
+    const mtrBusRouteListUrl = "./mtr_bus_routes.json";
+
+    let mtrBusStopAliasList = null;
+    const mtrBusStopAliasListUrl = "./mtr_bus_stop_alias.json";
+    getJSON(mtrBusStopAliasListUrl, (err, data) => {
+        if (err == null) {
+            mtrBusStopAliasList = data;
+        } else {
+            alert("Unable to get response from " + mtrBusStopAliasListUrl + ". (Is it down?)");
+        }
+    });
+
     const testOrderedSubset = (b, a, bIndex) => {
         if (!a.length) {
             return true;
@@ -808,6 +841,35 @@
                     dataSheet["routeList"][key]["jointOp"] = true;
                 }
             }
+
+            getJSON(mtrBusRouteListUrl, (err, data) => {
+                if (err == null) {
+                    mtrBusRouteList = data;
+                    for (let key in mtrBusRouteList) {
+                        let route = mtrBusRouteList[key]["route"];
+                        if (busRouteList.indexOf(route) < 0) {
+                            busRouteList.push(route);
+                        }
+                    }
+                    dataSheet["routeList"] = {...dataSheet["routeList"], ...mtrBusRouteList};
+                    let options = "";
+                    for (let i = 0; i < busRouteList.length; i++) {
+                        let route = busRouteList[i];
+                        options += "<option value=" + route + ">" + route + "</option>";
+                    }
+                    busRouteListOptions = options;
+                } else {
+                    alert("Unable to get response from " + mtrBusRouteListUrl + ". (Is it down?)");
+                }
+            });
+
+            getJSON("./mtr_bus_stops.json", (err, data) => {
+                if (err == null) {
+                    dataSheet["stopList"] = {...dataSheet["stopList"], ...data};
+                } else {
+                    alert("Unable to get response from ./mtr_bus_stops.json. (Is it down?)");
+                }
+            });
         } else {
             alert("Unable to get response from " + dataSheetUrl + ". (Is it down?)");
         }
@@ -867,7 +929,7 @@
             ready = true;
         }
     }
-    waitLoadParameters(() => dataSheet != null && kmbRouteList != null && nlbRouteList != null && busRouteListOptions != "" && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
+    waitLoadParameters(() => dataSheet != null && kmbRouteList != null && nlbRouteList != null && mtrBusRouteList != null && busRouteListOptions != "" && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
@@ -881,6 +943,8 @@
     let ctbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/route-stop/CTB/{route}/{bound}";
 
     let nlbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/nlb/stop.php?action=estimatedArrivals&routeId={route}&stopId={stop}&language={lang}";
+
+    let mtrBusRouteEtaUrl = "https://rt.data.gov.hk/v1/transport/mtr/bus/getSchedule";
 
     let updatingRouteTasks = [];
 
@@ -907,6 +971,8 @@
                         nearbyStops.push({"stopId": stopId, "data": entry, "distance": distance, "co": "ctb"});
                     } else if (/^[0-9]{1,4}$/.test(stopId)) {
                         nearbyStops.push({"stopId": stopId, "data": entry, "distance": distance, "co": "nlb"});
+                    } else if (/^[A-Z]?[0-9]{1,3}[A-Z]?-[A-Z][0-9]{3}$/.test(stopId)) {
+                        nearbyStops.push({"stopId": stopId, "data": entry, "distance": distance, "co": "mtr-bus"});
                     }
                 }
             }
@@ -918,8 +984,9 @@
                     let isKmb = data["bound"].hasOwnProperty("kmb") && data["stops"]["kmb"].indexOf(nearbyStop["stopId"]) >= 0;
                     let isCtb = data["bound"].hasOwnProperty("ctb") && data["stops"]["ctb"].indexOf(nearbyStop["stopId"]) >= 0;
                     let isNlb = data["bound"].hasOwnProperty("nlb") && data["stops"]["nlb"].indexOf(nearbyStop["stopId"]) >= 0;
-                    if (isKmb || isCtb || isNlb) {
-                        let co = isKmb ? "kmb" : (isCtb ? "ctb" : "nlb");
+                    let isMtrBus = data["bound"].hasOwnProperty("mtr-bus") && data["stops"]["mtr-bus"].indexOf(nearbyStop["stopId"]) >= 0;
+                    if (isKmb || isCtb || isNlb || isMtrBus) {
+                        let co = isKmb ? "kmb" : (isCtb ? "ctb" : (isNlb ? "nlb" : "mtr-bus"));
                         let key = data["route"] + "," + data["bound"][co];
                         if (nearbyRoutes.hasOwnProperty(key)) {
                             if (nearbyRoutes[key]["stop"]["distance"] > nearbyStop["distance"]) {
@@ -988,10 +1055,10 @@
                     }
                 }
                 if (!isHoliday) {
-                    if (pa == "R" || sa == "R") {
+                    if (pa == "R" || sa == "R" || (sa == "S" && a["route"]["route"] != "89S" && a["route"]["route"] != "796S")) {
                         na += 100000;
                     }
-                    if (pb == "R" || sb == "R") {
+                    if (pb == "R" || sb == "R" || (sb == "S" && b["route"]["route"] != "89S" && b["route"]["route"] != "796S")) {
                         nb += 100000;
                     }
                 }
@@ -1052,6 +1119,8 @@
                     stopName += language == "en" ? " (CTB)" : " (城巴)";
                 } else if (entry["co"] == "nlb") {
                     stopName += language == "en" ? " (NLB)" : " (嶼巴)";
+                } else if (entry["co"] == "mtr-bus") {
+                    stopName += language == "en" ? " (MTR-Bus)" : " (港鐵巴士)";
                 }
 
                 let allStops = route["stops"][co];
@@ -1105,14 +1174,22 @@
                                         let position = path[u];
                                         pointListRoute.push(new L.LatLng(position[0], position[1]));
                                     }
+                                    let coStr = "";
+                                    if (co == "ctb") {
+                                        coStr = language == "en" ? " - CTB" : " - 城巴";
+                                    } else if (co == "nlb") {
+                                        coStr = language == "en" ? " - NLB" : " - 嶼巴";
+                                    } else if (co == "mtr-bus") {
+                                        coStr = language == "en" ? " - MTR-Bus" : " - 港鐵巴士";
+                                    }
                                     let desc;
                                     if (language == "en") {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                                     } else {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                                     }
                                     let color = '#8a0101';
-                                    if (routeNumber.startsWith("N") || routeNumber.endsWith("S")) {
+                                    if (routeNumber.startsWith("N") || (routeNumber.endsWith("S") && routeNumber != "89S" && routeNumber != "796S")) {
                                         color = '#000000';
                                     } else if (routeNumber.startsWith("R") || routeNumber.endsWith("R")) {
                                         color = '#014c8a';
@@ -1145,13 +1222,13 @@
                 let distance = Math.round(findDistance(stop["location"], gpsLocation) * 1000).toFixed(0);
                 let title = (language == "en" ? "Nearby " : "鄰近") + distance + (language == "en" ? "m" : "米");
 
-                let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : "kmb");
+                let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : (/^[A-Z]?[0-9]{1,3}[A-Z]?-[A-Z][0-9]{3}$/.test(stopId) ? "mtr-bus" : "kmb"));
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
                     let routeNumber = route["route"];
                     let destName = route["dest"][language == "en" ? "en" : "zh"];
-                    let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : "nlb");
+                    let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : (route["bound"].hasOwnProperty("nlb") ? "nlb" : "mtr-bus"));
                     if (language == "en") {
                         destName = capitalize(destName);
                     }
@@ -1174,6 +1251,8 @@
                     stopName += language == "en" ? " - CTB" : " - 城巴";
                 } else if (stopCo == "nlb") {
                     stopName += language == "en" ? " - NLB" : " - 嶼巴";
+                } else if (stopCo == "mtr-bus") {
+                    stopName += language == "en" ? " - MTR-Bus" : " - 港鐵巴士";
                 }
                 let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + stopName + "</b></div><br>";
 
@@ -1199,11 +1278,11 @@
                     stopName = capitalize(stopName);
                 }
 
-                let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : "kmb");
+                let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : (/^[A-Z]?[0-9]{1,3}[A-Z]?-[A-Z][0-9]{3}$/.test(stopId) ? "mtr-bus" : "kmb"));
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
-                    let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : "nlb");
+                    let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : (route["bound"].hasOwnProperty("nlb") ? "nlb" : "mtr-bus"));
                     let routeNumber = route["route"];
                     let destName = route["dest"][language == "en" ? "en" : "zh"];
                     if (language == "en") {
@@ -1238,6 +1317,8 @@
                     stopName += language == "en" ? " - CTB" : " - 城巴";
                 } else if (stopCo == "nlb") {
                     stopName += language == "en" ? " - NLB" : " - 嶼巴";
+                } else if (stopCo == "mtr-bus") {
+                    stopName += language == "en" ? " - MTR-Bus" : " - 港鐵巴士";
                 }
                 let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + stopName + "</b></div><br>";
 
@@ -1327,6 +1408,7 @@
         let stops = {};
         let ctbEntries = [];
         let nlbEntries = [];
+        let mtrBusRoutes = {};
         for (let i = 0; i < collection.length; i++) {
             let element = collection[i];
             let tag = element.id.substring(element.id.lastIndexOf("_") + 1);
@@ -1349,7 +1431,116 @@
                 ctbEntries.push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
             } else if (co == "nlb") {
                 nlbEntries.push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
+            } else if (co == "mtr-bus") {
+                nlbEntries.push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
+            } else if (co == "mtr-bus") {
+                if (mtrBusRoutes.hasOwnProperty(routeNumber)) {
+                    mtrBusRoutes[routeNumber].push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
+                } else {
+                    mtrBusRoutes[routeNumber] = [[element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]];
+                }
             }
+        }
+
+        for (let routeNumber in mtrBusRoutes) {
+            let list = mtrBusRoutes[routeNumber];
+            postJSON(mtrBusRouteEtaUrl, {"language": language, "routeName": routeNumber}, (err, data) => {
+                if (err == null) {
+                    for (let m = 0; m < list.length; m++) {
+                        let entry = list[m];
+                        let elementRouteNumber = entry[2];
+                        let elementBound = entry[3];
+                        let elementSeq = entry[4];
+                        let elementFontSize = entry[5];
+                        let elementScheduledType = entry[6];
+                        if (elementSeq == 1) {
+                            if (language == "en") {
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                            } else {
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                            }
+                        } else {
+                            entry[0].innerHTML = "-";
+                        }
+                    }
+
+                    let busStops = data["busStop"];
+                    for (let k = 0; k < busStops.length; k++) {
+                        let busStop = busStops[k];
+                        let buses = busStop["bus"];
+                        for (let u = 0; u < buses.length; u++) {
+                            let bus = buses[u];
+                            let seq = u;
+                            let eta = bus["arrivalTimeInSecond"];
+                            let remark = bus["busRemark"] == null ? "" : bus["busRemark"];
+
+                            let mins = eta == null ? -999 : Math.round(Number(eta) / 60);
+                            
+                            for (let m = 0; m < list.length; m++) {
+                                let entry = list[m];
+                                let elementStopId = entry[1];
+                                let elementRouteNumber = entry[2];
+                                let elementSeq = entry[4];
+                                let elementFontSize = entry[5];
+                                let elementScheduledType = entry[6];
+
+                                if (elementRouteNumber == routeNumber && mtrBusStopAliasList[elementStopId].indexOf(stopId) >= 0) {
+                                    let message = "";
+                                    if (language == "en") {
+                                        if (mins > 0) {
+                                            message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
+                                        } else if (mins > -60) {
+                                            message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
+                                        }
+                                        if (remark != "" && elementScheduledType != 2) {
+                                            if (elementScheduledType > 0) {
+                                                message += (message == "" ? remark : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + remark + ")</span><span class=\"desk\">(" + remark + ")</span>");
+                                            } else {
+                                                message += (message == "" ? remark : " (" + remark + ")");
+                                            }
+                                        }
+                                    } else {
+                                        if (mins > 0) {
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                        } else if (mins > -60) {
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                        }
+                                        if (remark != "" && elementScheduledType != 2) {
+                                            if (elementScheduledType > 0) {
+                                                message += (message == "" ? remark : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + remark + ")</span><span class=\"desk\">(" + remark + ")</span>");
+                                            } else {
+                                                message += (message == "" ? remark : " (" + remark + ")");
+                                            }
+                                        }
+                                    }
+                                    message = message
+                                        .replaceAll("原定", "預定")
+                                        .replaceAll("最後班次", "尾班車")
+                                        .replaceAll("尾班車已過", "尾班車已過本站");
+
+                                    if (message == "") {
+                                        if (elementSeq == 1) {
+                                            if (language == "en") {
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                            } else {
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                            }
+                                        } else {
+                                            entry[0].innerHTML = "-";
+                                        }
+                                    } else if (elementSeq == seq) {
+                                        entry[0].innerHTML = message;
+                                    } else if (elementSeq > seq) {
+                                        entry[0].innerHTML = "-";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                }
+            });
         }
 
         for (let i = 0; i < nlbEntries.length; i++) {
@@ -1796,7 +1987,7 @@
 
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
-                if (data["route"] == routeNumber && ((data["bound"].hasOwnProperty("kmb") && kmbRouteExists(data)) || data["bound"].hasOwnProperty("ctb") || data["bound"].hasOwnProperty("nlb"))) {
+                if (data["route"] == routeNumber && ((data["bound"].hasOwnProperty("kmb") && kmbRouteExists(data)) || data["bound"].hasOwnProperty("ctb") || data["bound"].hasOwnProperty("nlb") || data["bound"].hasOwnProperty("mtr-bus"))) {
                     routes.push([key, data]);
                 }
             }
@@ -1804,8 +1995,8 @@
             removeOptions(document.getElementById('route-' + leg + '-type'));
 
             routes.sort((a, b) => {
-                let coA = a[1]["bound"].hasOwnProperty("kmb") ? 0 : (a[1]["bound"].hasOwnProperty("ctb") ? 1 : 2);
-                let coB = b[1]["bound"].hasOwnProperty("kmb") ? 0 : (b[1]["bound"].hasOwnProperty("ctb") ? 1 : 2);
+                let coA = a[1]["bound"].hasOwnProperty("kmb") ? 0 : (a[1]["bound"].hasOwnProperty("ctb") ? 1 : (a[1]["bound"].hasOwnProperty("nlb") ? 2 : 3));
+                let coB = b[1]["bound"].hasOwnProperty("kmb") ? 0 : (b[1]["bound"].hasOwnProperty("ctb") ? 1 : (b[1]["bound"].hasOwnProperty("nlb") ? 2 : 3));
                 if (coA != coB) {
                     return coA - coB;
                 }
@@ -1819,7 +2010,7 @@
             let sepCounter = -2;
             for (let u = 0; u < routes.length; u++) {
                 let route = routes[u][1];
-                let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : "nlb");
+                let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : (route["bound"].hasOwnProperty("nlb") ? "nlb" : "mtr-bus"));
                 let bound = co == "nlb" ? route["nlbId"] : route["bound"][co];
                 let type = route["serviceType"];
                 let name = language == "en" ? "To " + capitalize(route["dest"]["en"]) : "往" + route["dest"]["zh"];
@@ -1974,6 +2165,8 @@
                     name += language == "en" ? " - CTB" : " - 城巴";
                 } else if (co == "nlb") {
                     name += language == "en" ? " - NLB" : " - 嶼巴";
+                } else if (co == "mtr-bus") {
+                    name += language == "en" ? " - MTR-Bus" : " - 港鐵巴士";
                 }
 
                 if (lastCo != null && lastCo != co) {
@@ -2007,7 +2200,7 @@
             if (route == undefined) {
                 continue;
             }
-            let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : "nlb");
+            let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : (route["bound"].hasOwnProperty("nlb") ? "nlb" : "mtr-bus"));
             let stops = route["stops"][co];
             for (let k = 0; k < stops.length - 1; k++) {
                 let stopId = stops[k];
@@ -2045,7 +2238,7 @@
             if (route == undefined) {
                 continue;
             }
-            let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : "nlb");
+            let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : (route["bound"].hasOwnProperty("nlb") ? "nlb" : "mtr-bus"));
             let stops = route["stops"][co];
             let startingStop = Number(document.getElementById('route-' + leg + '-start').value);
             for (let k = startingStop + 1; k < stops.length; k++) {
@@ -2164,7 +2357,7 @@
                 let key = document.getElementById('route-' + leg + '-type').value;
                 let routeKey = key.substring(0, key.indexOf("_"));
                 let route = dataSheet["routeList"][routeKey];
-                let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : "nlb");
+                let co = route["bound"].hasOwnProperty("kmb") ? "kmb" : (route["bound"].hasOwnProperty("ctb") ? "ctb" : (route["bound"].hasOwnProperty("nlb") ? "nlb" : "mtr-bus"));
                 let routeNumber = route["route"];
                 let stops = route["stops"][co];
                 let displayStopNames = stopIdsToNames(stops, language);
@@ -2681,12 +2874,14 @@
             let totalFare = 0;
             for (let i = 0; i < rowsData.length; i++) {
                 let entry = rowsData[i];
-                let co = entry[8]["bound"].hasOwnProperty("kmb") ? "kmb" : (entry[8]["bound"].hasOwnProperty("ctb") ? "ctb" : "nlb");
+                let co = entry[8]["bound"].hasOwnProperty("kmb") ? "kmb" : (entry[8]["bound"].hasOwnProperty("ctb") ? "ctb" : (entry[8]["bound"].hasOwnProperty("nlb") ? "nlb" : "mtr-bus"));
                 let routeText = entry[0];
                 if (co == "ctb") {
                     routeText += " - " + (language == "en" ? "CTB" : "城巴");
                 } else if (co == "nlb") {
                     routeText += " - " + (language == "en" ? "NLB" : "嶼巴");
+                } else if (co == "mtr-bus") {
+                    routeText += " - " + (language == "en" ? "MTR-Bus" : "港鐵巴士");
                 }
                 let remark = entry[6];
                 if (entry[8].hasOwnProperty("jointOp")) {
@@ -3031,11 +3226,19 @@
                                             pointListRoute.push(new L.LatLng(position[0], position[1]));
                                         }
                                     }
+                                    let coStr = "";
+                                    if (co == "ctb") {
+                                        coStr = language == "en" ? " - CTB" : " - 城巴";
+                                    } else if (co == "nlb") {
+                                        coStr = language == "en" ? " - NLB" : " - 嶼巴";
+                                    } else if (co == "mtr-bus") {
+                                        coStr = language == "en" ? " - MTR-Bus" : " - 港鐵巴士";
+                                    }
                                     let desc;
                                     if (language == "en") {
-                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                                     } else {
-                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                                     }
                                     if (pointListBefore.length > 0) {
                                         new L.Polyline(pointListBefore, {
@@ -3068,7 +3271,7 @@
                             calculateTasks.splice(calculateTasks.indexOf(task2Id), 1);
                         }
                     });
-                } else if (co == "ctb" || co == "nlb") {
+                } else if (co == "ctb" || co == "nlb" || co == "mtr-bus") {
                     let pointListBefore = [];
                     let pointListRoute = [];
                     let pointListAfter = [];
@@ -3088,13 +3291,21 @@
                             }
                         }
                     }
+                    let coStr = "";
+                    if (co == "ctb") {
+                        coStr = language == "en" ? " - CTB" : " - 城巴";
+                    } else if (co == "nlb") {
+                        coStr = language == "en" ? " - NLB" : " - 嶼巴";
+                    } else if (co == "mtr-bus") {
+                        coStr = language == "en" ? " - MTR-Bus" : " - 港鐵巴士";
+                    }
                     let desc;
                     if (language == "en") {
-                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To</span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
+                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                     } else {
-                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
+                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                     }
-                    let color = co == "ctb" ? "gold" : "#4A8765";
+                    let color = co == "ctb" ? "gold" : (co == "nlb" ? "#4A8765" : "#003972");
                     if (pointListBefore.length > 0) {
                         new L.Polyline(pointListBefore, {
                             color: '#141414',
@@ -3139,7 +3350,7 @@
                     desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
                     icon = redIcon;
                     let table = 
-                        "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + (co == "nlb" ? (language == "en" ? "(NLB)" : "(嶼巴)") : "") + "</h5>" + 
+                        "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + (co == "nlb" ? (language == "en" ? "(NLB)" : "(嶼巴)") : "") + (co == "mtr-bus" ? (language == "en" ? "(MTR-Bus)" : "(港鐵巴士)") : "") + "</h5>" + 
                         "<table class=\"table\" style=\"word-break: keep-all;\">" +
                             "<tbody>" +
                                 "<tr>" +
@@ -3171,7 +3382,7 @@
                         desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo;
 
                         let table = 
-                            "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + changeTo + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + (co == "nlb" ? (language == "en" ? "(NLB)" : "(嶼巴)") : "") + "</h5>" + 
+                            "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + changeTo + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + (co == "nlb" ? (language == "en" ? "(NLB)" : "(嶼巴)") : "") + (co == "mtr-bus" ? (language == "en" ? "(MTR-Bus)" : "(港鐵巴士)") : "") + "</h5>" + 
                             "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                 "<tbody>" +
                                     "<tr>" +
@@ -3617,7 +3828,7 @@
             let parts = parameter.split(",");
             let co = parts[0];
             let s = 0;
-            if (co != "kmb" && co != "ctb" && co != "nlb") {
+            if (co != "kmb" && co != "ctb" && co != "nlb" && co != "mtr-bus") {
                 s = 1;
                 co = "kmb";
             }

@@ -274,6 +274,93 @@ def add_route_path(route_number, route_data):
     write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_paths\\" + route_number + ".json", route_paths)
 
 
+def resolve_mtr_bus_data():
+    routes_result = {}
+    stops_result = {}
+    stops_alias_result = {}
+    stop_entries = [[y[1:len(y) - 1] if y.startswith("\"") else y for y in x.split(",")] for x in mtr_bus_stop_list.splitlines()[1:]]
+    route_entries = [[y[1:len(y) - 1] if y.startswith("\"") else y for y in x.split(",")] for x in mtr_bus_route_list.splitlines()[1:]]
+    fares_entries = [[y[1:len(y) - 1] if y.startswith("\"") else y for y in x.split(",")] for x in mtr_bus_fare_list.splitlines()[1:]]
+
+    stops_map = {}
+    stops_by_route_bound = {}
+    for stop_entry in stop_entries:
+        position = stop_entry[4] + " " + stop_entry[5]
+        if position not in stops_map:
+            stops_map[position] = [stop_entry[3], stop_entry]
+            stops_alias_result[stop_entry[3]] = [stop_entry[3]]
+        else:
+            stops_alias_result[stops_map[position][0]].append(stop_entry[3])
+        route_number = stop_entry[0]
+        bound = stop_entry[1]
+        key = route_number + "_" + bound
+        if key in stops_by_route_bound:
+            stops_by_route_bound[key].append(stop_entry)
+        else:
+            stops_by_route_bound[key] = [stop_entry]
+
+    for key, stop_details in stops_map.items():
+        position = [float(stop_details[1][4]), float(stop_details[1][5])]
+        result = {
+            "location": {
+                "lat": position[0],
+                "lng": position[1]
+            },
+            "name": {
+                "en": stop_details[1][7].upper(),
+                "zh": stop_details[1][6]
+            }
+        }
+        stops_result[stop_details[1][3]] = result
+
+    for route_entry in route_entries:
+        route_number = route_entry[0]
+        for bound in ["O", "I"]:
+            key = route_number + "_" + bound
+            if key in stops_by_route_bound:
+                stop_list = stops_by_route_bound[key]
+                stop_list.sort(key=lambda x: float(x[2]))
+                stop_ids = []
+                for stop in stop_list:
+                    position = stop[4] + " " + stop[5]
+                    stop_ids.append(stops_map[position][0])
+                fares = [next(x for x in fares_entries if x[0] == route_number)[1]] * len(stop_ids)
+                result = {
+                    "bound": {
+                        "mtr-bus": bound
+                    },
+                    "co": [
+                        "mtr-bus"
+                    ],
+                    "dest": {
+                        "en": route_entry[2].split(" to ")[1].upper() if bound == "O" else stop_list[-1][7].upper(),
+                        "zh": route_entry[1].split("至")[1] if bound == "O" else stop_list[-1][6]
+                    },
+                    "fares": fares,
+                    "faresHoliday": None,
+                    "freq": None,
+                    "gtfsId": None,
+                    "jt": None,
+                    "nlbId": None,
+                    "orig": {
+                        "en": stop_list[0][7].upper(),
+                        "zh": stop_list[0][6]
+                    },
+                    "route": route_number,
+                    "seq": -1,
+                    "serviceType": 1,
+                    "stops": {
+                        "mtr-bus": stop_ids
+                    }
+                }
+                key = route_number + "+1+" + stop_list[0][7] + "+" + stop_list[-1][7]
+                routes_result[key] = result
+
+    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\mtr_bus_routes.json", routes_result)
+    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\mtr_bus_stops.json", stops_result)
+    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\mtr_bus_stop_alias.json", stops_alias_result)
+
+
 def write_dict_to_file(file, dictionary, indent=4):
     json_object = json.dumps(dictionary, indent=indent)
 
@@ -282,12 +369,15 @@ def write_dict_to_file(file, dictionary, indent=4):
 
 
 if __name__ == '__main__':
-    data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
-    paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
-    kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")
-    ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
-    ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
-    ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
+    #data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
+    #paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
+    #kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")
+    #ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
+    #ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
+    #ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
+    mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
+    mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
+    mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
 
     #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
@@ -309,4 +399,6 @@ if __name__ == '__main__':
     #        pass
 
     #read_ctb_bbi()
+
+    resolve_mtr_bus_data()
 
