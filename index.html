@@ -290,7 +290,7 @@
             </div>
         </div>
         <div class="div-only-mobile">
-            <div class="mobile-navbar unselectable">
+            <div class="mobile-navbar unselectable" id="mobile-bottom">
                 <a id="nav-anchor-route-input" onclick="jumpToAnchor('#anchor-route-input');" class="mobile-dav-item active" disabled>路線輸入</a>
                 <a id="nav-anchor-fare-table-mobile" onclick="jumpToAnchor('#anchor-fare-table-mobile');" class="mobile-dav-item">轉乘數據</a>
                 <a id="nav-anchor-eta-table" onclick="jumpToAnchor('#anchor-eta-table');" class="mobile-dav-item">預計到達</a>
@@ -299,6 +299,7 @@
                 <a id="nav-anchor-map" onclick="jumpToAnchor('#anchor-map');" class="mobile-dav-item">地圖</a>
                 <a id="nav-anchor-nearby-routes" onclick="jumpToAnchor('#anchor-nearby-routes');" class="mobile-dav-item">鄰近路線</a>
             </div>
+            <div id="mobile-bottom-padding"></div>
         </div>
     </section>
     <div class="loading style-2" id="loading-overlay"><div class="loading-wheel"></div></div>
@@ -350,6 +351,7 @@
                 element.classList.remove("active");
             }
         }
+        document.getElementById("mobile-bottom-padding").style.paddingBottom = document.getElementById("mobile-bottom").offsetHeight + "px";
     }, 100);
 
     const weekdayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
