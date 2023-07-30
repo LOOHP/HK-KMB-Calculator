@@ -139,6 +139,8 @@
         }
         .div-only-mobile {
         }
+        .div-mobile-max-width {
+        }
         @media screen and (max-width : 1920px) {
             .div-only-mobile {
                 display: none;
@@ -150,6 +152,9 @@
             }
             .div-only-mobile {
                 display: inline-block;
+            }
+            .div-mobile-max-width {
+                width: 100%;
             }
         }
         .leaflet-control-layers {
@@ -940,7 +945,7 @@
             document.getElementById("nearby-routes-prompt").innerHTML = "";
 
             let table = 
-                "<table class=\"table has-background-grey-lighter is-hoverable\" id=\"fare-table\" style=\"height: 100px;\">" +
+                "<table class=\"table has-background-grey-lighter is-hoverable div-mobile-max-width\" id=\"fare-table\" style=\"height: 100px; min-width: 40vw;\">" +
                 "<tbody>" +
                     "<colgroup class=\"div-only-mobile\">" +
                         "<col span=\"1\" style=\"width: 62%;\">" +
@@ -948,7 +953,7 @@
                     "</colgroup>" +
                     "<tr style=\"background-color: #DBDBDB; position: sticky; top: 0;\">" +
                         "<th style=\"position: sticky; top: 0; font-size: 18px;\">" + (language == "en" ? "Route" : "路線") + "</th>" +
-                        "<th style=\"position: sticky; top: 0; font-size: 18px; text-align: right;\">" + (language == "en" ? "ETA (Min.)" : "預計到達時間 (分鐘)") + "</th>" +
+                        "<th style=\"position: sticky; top: 0; font-size: 18px; text-align: right;\">" + (language == "en" ? "ETA" : "預計到達時間") + "</th>" +
                     "</tr>";
 
             let routes = [];
