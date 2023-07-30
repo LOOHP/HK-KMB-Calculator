@@ -510,6 +510,23 @@
         shadowSize: [20, 20]
     });
 
+    let openPopups = [];
+    map.on('popupopen', (evt) => {
+        let popup = evt.popup;
+        if (!openPopups.includes(popup)) {
+            openPopups.push(popup);
+        }
+    });
+    map.on('popupclose', (evt) => {
+        let popup = evt.popup;
+        setTimeout(() => {
+            let index = openPopups.indexOf(popup);
+            if (index !== -1) {
+                openPopups.splice(index, 1);
+            }
+        }, 100);
+    });
+
     let gpsMarker = null;
     let gpsWatchID = null;
     const getLocation = () => {
@@ -909,7 +926,6 @@
                     }
                 }
             }
-            console.log(nearbyRoutes);
 
             nearbyLines.clearLayers();
             nearbyStopsMarker.clearLayers();
@@ -1163,8 +1179,9 @@
                         "</tbody>" +
                     "</table>";
 
+                let popUpWidth = window.innerWidth - 200;
                 let location = stop["location"];
-                L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table).on('click', (e) => {
+                L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table, {maxWidth: popUpWidth}).on('click', (e) => {
                     map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                 }).on("popupopen", () => updateEta());
             }
@@ -1226,8 +1243,9 @@
                         "</tbody>" +
                     "</table>";
 
+                let popUpWidth = window.innerWidth - 200;
                 let location = stop["location"];
-                L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table).on('click', (e) => {
+                L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table, {maxWidth: popUpWidth}).on('click', (e) => {
                     map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                 }).on("popupopen", () => updateEta());
             }
@@ -1263,6 +1281,9 @@
             return;
         }
         if (gpsMarker != null) {
+            return;
+        }
+        if (openPopups.length > 0) {
             return;
         }
         if (droppedPin == null) {
@@ -1367,9 +1388,9 @@
                             let message = "";
                             if (language == "en") {
                                 if (mins > 0) {
-                                    message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                    message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
                                 } else if (mins > -60) {
-                                    message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                    message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
                                 }
                                 if (variant != "" && elementScheduledType != 2) {
                                     if (elementScheduledType > 0) {
@@ -1380,9 +1401,9 @@
                                 }
                             } else {
                                 if (mins > 0) {
-                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                 } else if (mins > -60) {
-                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                 }
                                 if (variant != "" && elementScheduledType != 2) {
                                     if (elementScheduledType > 0) {
@@ -1454,9 +1475,9 @@
                                 let message = "";
                                 if (language == "en") {
                                     if (mins > 0) {
-                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                        message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
                                     } else if (mins > -60) {
-                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                        message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
                                     }
                                     if (bus["rmk_en"] != "" && elementScheduledType != 2) {
                                         if (elementScheduledType > 0) {
@@ -1467,9 +1488,9 @@
                                     }
                                 } else {
                                     if (mins > 0) {
-                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                     } else if (mins > -60) {
-                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                     }
                                     if (bus["rmk_tc"] != "" && elementScheduledType != 2) {
                                         if (elementScheduledType > 0) {
@@ -1554,9 +1575,9 @@
                                     let message = "";
                                     if (language == "en") {
                                         if (mins > 0) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                            message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
                                         } else if (mins > -60) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                            message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
                                         }
                                         if (bus["rmk_en"] != "" && elementScheduledType != 2) {
                                             if (elementScheduledType > 0) {
@@ -1567,9 +1588,9 @@
                                         }
                                     } else {
                                         if (mins > 0) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         } else if (mins > -60) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         }
                                         if (bus["rmk_tc"] != "" && elementScheduledType != 2) {
                                             if (elementScheduledType > 0) {
