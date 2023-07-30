@@ -181,7 +181,7 @@
         a.anchor {
             display: block;
             position: relative;
-            top: -40px;
+            top: -30px;
             visibility: hidden;
         }
         tr.nearby-stop:hover th {
@@ -225,10 +225,10 @@
 
         <div class="hero-body" style="padding: 0px;">
             <div class="container has-text-centered" style="width: 100%;">
-               <div class="column is-12">
+               <div class="column is-12" style="padding: min(12px, 1%);">
                     <h3 class="title" id="title-label">九巴轉乘車費計算機</h3>
                     <h3 class="title" style="font-size: 15px;" id="subtitle-label">包含部分城巴及新大嶼山巴士路線轉乘數據</h3>
-                    <div class="box has-background-white-ter" style="width: 100%;">
+                    <div class="box has-background-white-ter" style="width: 100%; padding: min(20px, 2%);">
                         <a class="anchor" id="anchor-route-input"></a>
                         <div id="route-input"></div><br>
                         <div class="box">
@@ -275,13 +275,13 @@
                         <a class="anchor" id="anchor-special-announcements"></a>
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
                         <a class="anchor" id="anchor-map"></a>
-                        <div id="map" style="color: black; height: 50%; aspect-ratio: 7/6;"></div>
+                        <div id="map" style="color: black; height: 75vh;"></div>
                         <br>
                         <a class="anchor" id="anchor-nearby-routes"></a>
                         <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold; position: relative;">
                             <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
                             <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
-                            <div id="nearby-routes-content" style="display: none; max-height: 600px; overflow: auto;"></div>
+                            <div id="nearby-routes-content" style="display: none; max-height: min(600px, 80vh); overflow: auto;"></div>
                             <button class="button" id="pin-remove" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;" disabled>❌</button>
                         </div>
                         <h5 class="title is-5" style="color: #111770; font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://www.citybus.com.hk/" target="_blank">citybus.com.hk</a>, <a href="https://www.nlb.com.hk/" target="_blank">nlb.com.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
@@ -946,9 +946,9 @@
                         "<col span=\"1\" style=\"width: 62%;\">" +
                         "<col span=\"1\" style=\"width: 38%;\">" +
                     "</colgroup>" +
-                    "<tr>" +
-                        "<th>" + (language == "en" ? "Route" : "路線") + "</th>" +
-                        "<th style=\"text-align: right;\">" + (language == "en" ? "Min." : "分鐘") + "</th>" +
+                    "<tr style=\"background-color: #DBDBDB; position: sticky; top: 0;\">" +
+                        "<th style=\"position: sticky; top: 0; font-size: 18px;\">" + (language == "en" ? "Route" : "路線") + "</th>" +
+                        "<th style=\"position: sticky; top: 0; font-size: 18px; text-align: right;\">" + (language == "en" ? "ETA (Min.)" : "預計到達時間 (分鐘)") + "</th>" +
                     "</tr>";
 
             let routes = [];
