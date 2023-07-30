@@ -570,7 +570,7 @@
             updateNearestRoutes(position.coords.latitude, position.coords.longitude);
 
             let shareLink = getShareLink();
-            window.history.pushState(null, null, shareLink);
+            window.history.replaceState(null, null, shareLink);
             document.getElementById('language').href = getShareLink(true);
         }
         gpsMarker.setLatLng(L.latLng(position.coords.latitude, position.coords.longitude));
@@ -1386,7 +1386,7 @@
                 updateNearestRoutes(position.lat, position.lng);
 
                 let shareLink = getShareLink();
-                window.history.pushState(null, null, shareLink);
+                window.history.replaceState(null, null, shareLink);
                 document.getElementById('language').href = getShareLink(true);
             });
         } else {
@@ -1397,7 +1397,7 @@
         updateNearestRoutes(e.latlng.lat, e.latlng.lng);
 
         let shareLink = getShareLink();
-        window.history.pushState(null, null, shareLink);
+        window.history.replaceState(null, null, shareLink);
         document.getElementById('language').href = getShareLink(true);
     };
     map.on('click', onMapClick);
@@ -3464,7 +3464,7 @@
             document.getElementById('fare-table').style.display = "";
 
             let shareLink = getShareLink();
-            window.history.pushState(null, null, shareLink);
+            window.history.replaceState(null, null, shareLink);
             document.getElementById('language').href = getShareLink(true);
         } finally {
             calculateTasks.splice(calculateTasks.indexOf(taskId), 1);
@@ -3734,7 +3734,7 @@
             document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "Click on map to drop location pin or turn on GPS" : "點擊地圖以放置位置圖釘或打開定位位置";
 
             let shareLink = getShareLink();
-            window.history.pushState(null, null, shareLink);
+            window.history.replaceState(null, null, shareLink);
             document.getElementById('language').href = getShareLink(true);
         }
     };
@@ -3749,7 +3749,7 @@
             document.getElementById("nearby-routes-prompt").style.display = "";
             document.getElementById("nearby-routes-prompt").innerHTML = language == "en" ? "Click on map to drop location pin or turn on GPS" : "點擊地圖以放置位置圖釘或打開定位位置";
             let shareLink = getShareLink();
-            window.history.pushState(null, null, shareLink);
+            window.history.replaceState(null, null, shareLink);
             document.getElementById('language').href = getShareLink(true);
         }
     };
@@ -3782,7 +3782,7 @@
                         updateNearestRoutes(position.lat, position.lng);
 
                         let shareLink = getShareLink();
-                        window.history.pushState(null, null, shareLink);
+                        window.history.replaceState(null, null, shareLink);
                         document.getElementById('language').href = getShareLink(true);
                     });
                 } else {
