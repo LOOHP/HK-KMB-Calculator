@@ -255,7 +255,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div style="overflow: auto; width: 100%;" class="div-only-mobile" id="fare-table-mobile"></div>
+                        <div style="overflow: auto; width: 100%; display: none;" class="div-only-mobile" id="fare-table-mobile"></div>
                         <br>
                         <table class="table" id="fare-final-table">
                             <tbody>
@@ -288,7 +288,7 @@
         </div>
         <div class="div-only-mobile">
             <div class="mobile-navbar unselectable">
-                <a id="nav-anchor-route-input" onclick="jumpToAnchor('#anchor-route-input');" class="mobile-dav-item active">路線輸入</a>
+                <a id="nav-anchor-route-input" onclick="jumpToAnchor('#anchor-route-input');" class="mobile-dav-item active" disabled>路線輸入</a>
                 <a id="nav-anchor-fare-table-mobile" onclick="jumpToAnchor('#anchor-fare-table-mobile');" class="mobile-dav-item">轉乘數據</a>
                 <a id="nav-anchor-eta-table" onclick="jumpToAnchor('#anchor-eta-table');" class="mobile-dav-item">預計到達</a>
                 <a id="nav-anchor-time-table" onclick="jumpToAnchor('#anchor-time-table');" class="mobile-dav-item">時間表</a>
@@ -328,6 +328,11 @@
         for (let i = 0; i < collection.length; i++) {
             let element = collection[i];
             let anchor = document.getElementById(element.id.substring(element.id.lastIndexOf("nav-anchor-") + "nav-anchor-".length));
+            if (getComputedStyle(anchor).display == "none") {
+                element.style.display = "none";
+            } else {
+                element.style.display = "";
+            }
             let percentage = getPercentageInView(anchor);
             if (percentage > largestPercentage) {
                 mainElement = element;
@@ -2612,6 +2617,7 @@
             document.getElementById('eta-table').style.display = "none";
 
             document.getElementById('fare-table-mobile').innerHTML = "";
+            document.getElementById('fare-table-mobile').style.display = "none";
             document.getElementById('fare-table').style.display = "none";
 
             deleteRows(document.getElementById('fare-table'), 1);
@@ -3179,6 +3185,8 @@
 
             document.getElementById("eta-table").innerHTML += append;
 
+            document.getElementById("fare-table-mobile").style.display = "";
+
             map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
 
             document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + ")";
@@ -3418,7 +3426,9 @@
         document.getElementById('toggle-timetable').classList.remove("is-dark");
         if ((Number(toggleParameter) & 0x02) != 0) {
             document.getElementById('toggle-timetable').classList.add("is-info");
-            timetableElement.style.display = "";
+            if (timetableElement.innerHTML.length > 0) {
+                timetableElement.style.display = "";
+            }
             localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x02;
         } else {
             document.getElementById('toggle-timetable').classList.add("is-dark");
@@ -3433,7 +3443,9 @@
         document.getElementById('toggle-eta').classList.remove("is-dark");
         if ((Number(toggleParameter) & 0x01) != 0) {
             document.getElementById('toggle-eta').classList.add("is-info");
-            etaElement.style.display = "";
+            if (etaElement.innerHTML.length > 0) {
+                etaElement.style.display = "";
+            }
             localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x01;
         } else {
             document.getElementById('toggle-eta').classList.add("is-dark");
