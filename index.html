@@ -184,6 +184,9 @@
             top: -40px;
             visibility: hidden;
         }
+        tr.nearby-stop:hover th {
+            color: #777;
+        }
     </style>
 
     <section class="hero is-link is-fullheight has-background-danger">
@@ -278,7 +281,7 @@
                         <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold; position: relative;">
                             <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
                             <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
-                            <div id="nearby-routes-content" style="display: none; max-height: 400px; overflow: auto;"></div>
+                            <div id="nearby-routes-content" style="display: none; max-height: 600px; overflow: auto;"></div>
                             <button class="button" id="pin-remove" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;" disabled>❌</button>
                         </div>
                         <h5 class="title is-5" style="color: #111770; font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://www.citybus.com.hk/" target="_blank">citybus.com.hk</a>, <a href="https://www.nlb.com.hk/" target="_blank">nlb.com.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
@@ -320,7 +323,7 @@
         return Math.min(percentageHeightInView, percentageWidthInView);
     };
 
-    setInterval(() => {
+    setInterval(async () => {
         let collection = document.getElementsByClassName("mobile-dav-item");
         let flag = false;
         let mainElement = null;
@@ -904,6 +907,7 @@
                     }
                 }
             }
+            console.log(nearbyRoutes);
 
             nearbyLines.clearLayers();
             nearbyStopsMarker.clearLayers();
@@ -1057,7 +1061,7 @@
                 table += 
                     "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
                         "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumber + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
-                        "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,true\"></span></th>" +
+                        "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
                     "</tr>";
 
                 if (co == "kmb") {
@@ -1118,7 +1122,7 @@
                 let distance = Math.round(findDistance(stop["location"], gpsLocation) * 1000).toFixed(0);
                 let title = (language == "en" ? "Nearby " : "鄰近") + distance + (language == "en" ? "m" : "米");
 
-                let stopCo = /[0-9]{6}/g.test(stopId) ? "ctb" : (/[0-9]{1,4}/g.test(stopId) ? "nlb" : "kmb");
+                let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : "kmb");
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
@@ -1128,14 +1132,16 @@
                     if (language == "en") {
                         destName = capitalize(destName);
                     }
+                    let bound = co == "nlb" ? route["nlbId"] : route["bound"][co];
 
                     let allStops = route["stops"][co];
                     let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
 
                     let table = 
-                        "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
+                        "<tr class=\"nearby-stop\" style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
                             "<th><b style=\"font-size: 15px; text-align: center;\">" + routeNumber + "</b></th>" +
-                            "<th style=\"padding:0 0 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">" + (language == "en" ? "To " : "往") + "</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
+                            "<th width=\"99%\" style=\"padding:0 5px 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">" + (language == "en" ? "To " : "往") + "</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
+                            "<th style=\"text-align: right;\"><span class=\"eta-update\" id=\"nearbymap_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,15,2\">⠀⠀⠀⠀⠀⠀⠀</span></th>" +
                         "</tr>";
 
                     routesInfo.push(table);
@@ -1158,7 +1164,7 @@
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table).on('click', (e) => {
                     map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
-                });
+                }).on("popupopen", () => updateEta());
             }
 
             for (let stopId in allOtherStops) {
@@ -1169,7 +1175,7 @@
                     stopName = capitalize(stopName);
                 }
 
-                let stopCo = /[0-9]{6}/g.test(stopId) ? "ctb" : (/[0-9]{1,4}/g.test(stopId) ? "nlb" : "kmb");
+                let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : "kmb");
                 let routesInfo = [];
                 for (let i = 0; i < routes.length; i++) {
                     let route = routes[i];
@@ -1179,6 +1185,7 @@
                     if (language == "en") {
                         destName = capitalize(destName);
                     }
+                    let bound = co == "nlb" ? route["nlbId"] : route["bound"][co];
 
                     let allStops = route["stops"][co];
                     let startStopId;
@@ -1194,9 +1201,10 @@
                     let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + startStopId + "','" + stopId + "'";
 
                     let table = 
-                        "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
+                        "<tr class=\"nearby-stop\" style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
                             "<th><b style=\"font-size: 15px\">" + routeNumber + "</b></th>" +
-                            "<th style=\"padding:0 0 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">往</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
+                            "<th width=\"99%\" style=\"padding:0 5px 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">往</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
+                            "<th style=\"text-align: right;\"><span class=\"eta-update\" id=\"nearbymap_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,15,2\">⠀⠀⠀⠀⠀⠀⠀</span></th>" +
                         "</tr>";
 
                     routesInfo.push(table);
@@ -1219,7 +1227,7 @@
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table).on('click', (e) => {
                     map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
-                });
+                }).on("popupopen", () => updateEta());
             }
 
             table += "</tbody></table>";
@@ -1302,7 +1310,7 @@
             let bound = matches[3];
             let seq = matches[4];
             let fontSize = matches[5];
-            let noScheduledType = matches[6] == "true";
+            let noScheduledType = Number(matches[6]);
 
             if (co == "kmb") {
                 if (stops.hasOwnProperty(stopId)) {
@@ -1333,9 +1341,9 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                        entry[0].innerHTML = elementScheduledType ? "-" : "No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType ? "-" : "暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
                         }
                     } else {
                         entry[0].innerHTML = "-";
@@ -1357,12 +1365,12 @@
                             let message = "";
                             if (language == "en") {
                                 if (mins > 0) {
-                                    message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                    message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                 } else if (mins > -60) {
-                                    message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                    message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                 }
-                                if (variant != "") {
-                                    if (elementScheduledType) {
+                                if (variant != "" && elementScheduledType != 2) {
+                                    if (elementScheduledType > 0) {
                                         message += (message == "" ? variant : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + variant + ")</span><span class=\"desk\">(" + variant + ")</span>");
                                     } else {
                                         message += (message == "" ? variant : " (" + variant + ")");
@@ -1370,12 +1378,12 @@
                                 }
                             } else {
                                 if (mins > 0) {
-                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                 } else if (mins > -60) {
-                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                    message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                 }
-                                if (variant != "") {
-                                    if (elementScheduledType) {
+                                if (variant != "" && elementScheduledType != 2) {
+                                    if (elementScheduledType > 0) {
                                         message += (message == "" ? variant : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + variant + ")</span><span class=\"desk\">(" + variant + ")</span>");
                                     } else {
                                         message += (message == "" ? variant : " (" + variant + ")");
@@ -1386,9 +1394,9 @@
                             if (message == "") {
                                 if (elementSeq == 1) {
                                     if (language == "en") {
-                                        entry[0].innerHTML = elementScheduledType ? "🕒" : "No scheduled departures at this moment";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
                                     } else {
-                                        entry[0].innerHTML = elementScheduledType ? "🕒" : "暫時沒有預定班次";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
                                     }
                                 } else {
                                     entry[0].innerHTML = "-";
@@ -1421,9 +1429,9 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                        entry[0].innerHTML = elementScheduledType ? "-" : "No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType ? "-" : "暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
                         }
                     } else {
                         entry[0].innerHTML = "-";
@@ -1444,12 +1452,12 @@
                                 let message = "";
                                 if (language == "en") {
                                     if (mins > 0) {
-                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                     } else if (mins > -60) {
-                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                        message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                     }
-                                    if (bus["rmk_en"] != "") {
-                                        if (elementScheduledType) {
+                                    if (bus["rmk_en"] != "" && elementScheduledType != 2) {
+                                        if (elementScheduledType > 0) {
                                             message += (message == "" ? bus["rmk_en"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_en"] + ")</span><span class=\"desk\">(" + bus["rmk_en"] + ")</span>");
                                         } else {
                                             message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
@@ -1457,12 +1465,12 @@
                                     }
                                 } else {
                                     if (mins > 0) {
-                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                     } else if (mins > -60) {
-                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                        message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                     }
-                                    if (bus["rmk_tc"] != "") {
-                                        if (elementScheduledType) {
+                                    if (bus["rmk_tc"] != "" && elementScheduledType != 2) {
+                                        if (elementScheduledType > 0) {
                                             message += (message == "" ? bus["rmk_tc"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_tc"] + ")</span><span class=\"desk\">(" + bus["rmk_tc"] + ")</span>");
                                         } else {
                                             message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
@@ -1477,9 +1485,9 @@
                                 if (message == "") {
                                     if (elementSeq == 1) {
                                         if (language == "en") {
-                                            entry[0].innerHTML = elementScheduledType ? "🕒" : "No scheduled departures at this moment";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
                                         } else {
-                                            entry[0].innerHTML = elementScheduledType ? "🕒" : "暫時沒有預定班次";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
                                         }
                                     } else {
                                         entry[0].innerHTML = "-";
@@ -1503,6 +1511,24 @@
             let resolvedStopEtaUrl = kmbStopEtaUrl.replace("{stop}", stopId);
             getJSON(resolvedStopEtaUrl, (err, data) => {
                 if (err == null) {
+                    for (let m = 0; m < list.length; m++) {
+                        let entry = list[m];
+                        let elementRouteNumber = entry[2];
+                        let elementBound = entry[3];
+                        let elementSeq = entry[4];
+                        let elementFontSize = entry[5];
+                        let elementScheduledType = entry[6];
+                        if (elementSeq == 1) {
+                            if (language == "en") {
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                            } else {
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                            }
+                        } else {
+                            entry[0].innerHTML = "-";
+                        }
+                    }
+
                     let buses = data["data"];
                     for (let u = 0; u < buses.length; u++) {
                         let bus = buses[u];
@@ -1526,12 +1552,12 @@
                                     let message = "";
                                     if (language == "en") {
                                         if (mins > 0) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                         } else if (mins > -60) {
-                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " Min.";
+                                            message = "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " Min.";
                                         }
-                                        if (bus["rmk_en"] != "") {
-                                            if (elementScheduledType) {
+                                        if (bus["rmk_en"] != "" && elementScheduledType != 2) {
+                                            if (elementScheduledType > 0) {
                                                 message += (message == "" ? bus["rmk_en"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_en"] + ")</span><span class=\"desk\">(" + bus["rmk_en"] + ")</span>");
                                             } else {
                                                 message += (message == "" ? bus["rmk_en"] : " (" + bus["rmk_en"] + ")");
@@ -1539,12 +1565,12 @@
                                         }
                                     } else {
                                         if (mins > 0) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         } else if (mins > -60) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType > 0 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
                                         }
-                                        if (bus["rmk_tc"] != "") {
-                                            if (elementScheduledType) {
+                                        if (bus["rmk_tc"] != "" && elementScheduledType != 2) {
+                                            if (elementScheduledType > 0) {
                                                 message += (message == "" ? bus["rmk_tc"] : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + bus["rmk_tc"] + ")</span><span class=\"desk\">(" + bus["rmk_tc"] + ")</span>");
                                             } else {
                                                 message += (message == "" ? bus["rmk_tc"] : " (" + bus["rmk_tc"] + ")");
@@ -1559,9 +1585,9 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType ? "🕒" : "No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = elementScheduledType ? "🕒" : "暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
                                             }
                                         } else {
                                             entry[0].innerHTML = "-";
@@ -3093,13 +3119,13 @@
                                     "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,25,false\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,25,0\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",2,25,false\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",2,25,0\"></th>" +
                                 "</tr>" + 
                                 "<tr>" +
-                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",3,25,false\"></th>" +
+                                    "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",3,25,0\"></th>" +
                                 "</tr>" + 
                             "</tbody>" +
                         "</table>";
@@ -3125,13 +3151,13 @@
                                         "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]] + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",1,25,false\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",1,25,0\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",2,25,false\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",2,25,0\"></th>" +
                                     "</tr>" + 
                                     "<tr>" +
-                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",3,25,false\"></th>" +
+                                        "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",3,25,0\"></th>" +
                                     "</tr>" + 
                                 "</tbody>" +
                             "</table>";
@@ -3151,19 +3177,19 @@
                     let nextEntry = rowsData[stopMarker[4] + 1];
                     desc += 
                           "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[0] + "</b><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",2,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",3,15,false\"></span><br><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,15,0\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",2,15,0\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",3,15,0\"></span><br><br>"
 
                         + "<b style=\"font-size: 15px\">" + (language == "en" ? "Route " : "路線") + routes[1] + "</b><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",1,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",2,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",3,15,false\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",1,15,0\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",2,15,0\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[1] + "," + nextEntry[8]["bound"][co] + ",3,15,0\"></span><br>"
                 } else {
                     desc += 
-                          "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",2,15,false\"></span><br>"
-                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co]) + ",3,15,false\"></span><br>";
+                          "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,15,0\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",2,15,0\"></span><br>"
+                        + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co]) + ",3,15,0\"></span><br>";
                 }
 
                 let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170}).on('click', (e) => {
