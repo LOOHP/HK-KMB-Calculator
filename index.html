@@ -395,18 +395,19 @@
         xhr.send();
     };
 
-    const postJSON = (url, callback, body, retry = true) => {
+    const postJSON = (url, body, callback, retry = true) => {
         let xhr = new XMLHttpRequest();
         xhr.open('POST', url, true);
         xhr.responseType = 'json';
         xhr.overrideMimeType("application/json");
+        xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = () => {
             let status = xhr.status;
             if (status === 200) {
                 callback(null, xhr.response);
             } else {
                 if (retry) {
-                    setTimeout(() => getJSON(url, callback, false), 1000);
+                    setTimeout(() => postJSON(url, body, callback, false), 1000);
                 } else {
                     callback(status, xhr.response);
                 }
@@ -1432,8 +1433,6 @@
             } else if (co == "nlb") {
                 nlbEntries.push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
             } else if (co == "mtr-bus") {
-                nlbEntries.push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
-            } else if (co == "mtr-bus") {
                 if (mtrBusRoutes.hasOwnProperty(routeNumber)) {
                     mtrBusRoutes[routeNumber].push([element, stopId, routeNumber, bound, seq, fontSize, noScheduledType, co]);
                 } else {
@@ -1468,13 +1467,31 @@
                     for (let k = 0; k < busStops.length; k++) {
                         let busStop = busStops[k];
                         let buses = busStop["bus"];
+                        let stopId = busStop["busStopId"];
                         for (let u = 0; u < buses.length; u++) {
                             let bus = buses[u];
-                            let seq = u;
-                            let eta = bus["arrivalTimeInSecond"];
+                            let seq = u + 1;
+                            let eta = Number(bus["arrivalTimeInSecond"]);
+                            if (eta >= 108000) {
+                                eta = Number(bus["departureTimeInSecond"]);
+                            }
                             let remark = bus["busRemark"] == null ? "" : bus["busRemark"];
+                            let isScheduled = bus["isScheduled"] == "1";
+                            if (isScheduled) {
+                                if (remark != "") {
+                                    remark += "/";
+                                }
+                                remark += language == "en" ? "Scheduled Bus" : "預定班次";
+                            }
+                            let isDelayed = bus["isDelayed"] == "1";
+                            if (isDelayed) {
+                                if (remark != "") {
+                                    remark += "/";
+                                }
+                                remark += language == "en" ? "Bus Delayed" : "行車緩慢";
+                            }
 
-                            let mins = eta == null ? -999 : Math.round(Number(eta) / 60);
+                            let mins = eta == null ? -999 : Math.floor(eta / 60);
                             
                             for (let m = 0; m < list.length; m++) {
                                 let entry = list[m];
@@ -1538,7 +1555,7 @@
                         }
                     }
                 } else {
-                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                    alert("Unable to get response from " + mtrBusRouteEtaUrl + ". (Is it down?)");
                 }
             });
         }
@@ -2399,7 +2416,7 @@
                         } else {
                             note = "";
                         }
-                        note += (language == "en" ? "NLB Two-way Section Fare Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費(如有)");
+                        note += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
                     }
 
                     rowsData.push([routeNumber, startingName, endingName, null, null, null, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
@@ -2525,7 +2542,7 @@
                                                 } else {
                                                     note0 = "";
                                                 }
-                                                note0 += (language == "en" ? "NLB Two-way Section Fare Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費(如有)");
+                                                note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
                                             }
                                             lastFare = fare0;
                                             lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
@@ -2591,7 +2608,7 @@
                                         } else {
                                             note0 = "";
                                         }
-                                        note0 += (language == "en" ? "NLB Two-way Section Fare Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費(如有)");
+                                        note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
                                     }
 
                                     rowsData[i - 1][6] = note0;
@@ -2683,7 +2700,7 @@
                                             } else {
                                                 note0 = "";
                                             }
-                                            note0 += (language == "en" ? "NLB Two-way Section Fare Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費(如有)");
+                                            note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
                                         }
                                         lastFare = fare0;
                                         lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
@@ -2740,7 +2757,7 @@
                         } else {
                             note = "";
                         }
-                        note += (language == "en" ? "NLB Two-way Section Fare Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費(如有)");
+                        note += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
 
                         if (lastCo == "kmb" && lastRouteNumber.startsWith("E") && lastBound == "O") {
                             hasBbi = true;
@@ -2770,7 +2787,7 @@
                                     } else {
                                         note0 = "";
                                     }
-                                    note0 += (language == "en" ? "NLB Two-way Section Fare Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費(如有)");
+                                    note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
                                 }
                                 lastFare = fare0;
                                 lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
@@ -2825,7 +2842,7 @@
                                 } else {
                                     note0 = "";
                                 }
-                                note0 += (language == "en" ? "NLB Two-way Section Fare Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費(如有)");
+                                note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
                             }
                             lastFare = fare0;
                             lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
