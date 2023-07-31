@@ -1081,6 +1081,12 @@
                 let sb = b["route"]["route"][b["route"]["route"].length - 1];
                 let na = Number(a["route"]["route"].match(/[0-9]+/g));
                 let nb = Number(b["route"]["route"].match(/[0-9]+/g));
+                if (a["route"]["bound"].hasOwnProperty("gmb")) {
+                    na += 1000;
+                }
+                if (b["route"]["bound"].hasOwnProperty("gmb")) {
+                    nb += 1000;
+                }
                 if (isNight) {
                     if (pa == "N") {
                         na -= 10000;
