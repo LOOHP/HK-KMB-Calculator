@@ -375,9 +375,9 @@ if __name__ == '__main__':
     #ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
     #ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
     #ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
-    mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
-    mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
-    mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
+    #mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
+    #mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
+    #mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
 
     #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
@@ -400,5 +400,51 @@ if __name__ == '__main__':
 
     #read_ctb_bbi()
 
-    resolve_mtr_bus_data()
+    #resolve_mtr_bus_data()
 
+    #data = get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange.json")
+    #while True:
+    #    input_text = input()
+    #    print("GMB " + input_text)
+    #    if input_text == "done":
+    #        break
+    #    region = input()
+    #    print("Region " + region)
+    #    gmb_routes = [x.strip() for x in input_text.split(",")]
+    #    input_text = input()
+    #    print("KMB " + input_text)
+    #    kmb_routes = [x.strip() for x in input_text.split(",")]
+    #    for gmb in gmb_routes:
+    #        entry = []
+    #        for kmb in kmb_routes:
+    #            entry.append({
+    #                "route": kmb,
+    #                "bound": "O"
+    #            })
+    #            entry.append({
+    #                "route": kmb,
+    #                "bound": "I"
+    #            })
+    #        gmb_ex_data = get_json("https://data.etagmb.gov.hk/route/" + region + "/" + gmb)["data"]
+    #        if len(gmb_ex_data) > 0:
+    #            gmb_id = str(gmb_ex_data[0]["route_id"])
+    #            data["gmb"][gmb_id + "_O"] = entry
+    #            data["gmb"][gmb_id + "_I"] = entry
+    #    print("Added")
+    #
+    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange_1.json", data)
+
+    data = get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange.json")
+    inverted_data = {}
+    for key, value in data['gmb'].items():
+        for item in value:
+            route_key = item['route']
+            bound_value = item['bound']
+            if route_key not in inverted_data:
+                inverted_data[route_key] = {}
+            if bound_value not in inverted_data[route_key]:
+                inverted_data[route_key][bound_value] = []
+            inverted_data[route_key][bound_value].append(key)
+    data["kmb"] = inverted_data
+
+    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange_1.json", data)
