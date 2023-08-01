@@ -1561,72 +1561,74 @@
                         let routeData = data["data"][i];
                         let buses = routeData["eta"];
                         let routeNumber = Object.entries(dataSheet["routeList"]).filter(r => r[1]["bound"].hasOwnProperty("gmb") && r[1]["gtfsId"] == routeData["route_id"])[0][1]["route"];
-                        for (let u = 0; u < buses.length; u++) {
-                            let bus = buses[u];
-                            let seq = bus["eta_seq"];
-                            let eta = bus["timestamp"];
-                            let remark = language == "en" ? bus["remarks_en"] : bus["remarks_tc"];
-                            if (remark == null) {
-                                remark = "";
-                            }
+                        if (buses != undefined) {
+                            for (let u = 0; u < buses.length; u++) {
+                                let bus = buses[u];
+                                let seq = bus["eta_seq"];
+                                let eta = bus["timestamp"];
+                                let remark = language == "en" ? bus["remarks_en"] : bus["remarks_tc"];
+                                if (remark == null) {
+                                    remark = "";
+                                }
 
-                            let mins = eta == null ? -999 : Math.round((new Date(eta) - new Date()) / 1000 / 60);
-                            
-                            for (let m = 0; m < list.length; m++) {
-                                let entry = list[m];
-                                let elementRouteNumber = entry[2];
-                                let elementSeq = entry[4];
-                                let elementFontSize = entry[5];
-                                let elementScheduledType = entry[6];
+                                let mins = eta == null ? -999 : Math.round((new Date(eta) - new Date()) / 1000 / 60);
+                                
+                                for (let m = 0; m < list.length; m++) {
+                                    let entry = list[m];
+                                    let elementRouteNumber = entry[2];
+                                    let elementSeq = entry[4];
+                                    let elementFontSize = entry[5];
+                                    let elementScheduledType = entry[6];
 
-                                if (elementRouteNumber == routeNumber) {
-                                    let message = "";
-                                    if (language == "en") {
-                                        if (mins > 0) {
-                                            message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
-                                        } else if (mins > -60) {
-                                            message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
-                                        }
-                                        if (remark != "" && elementScheduledType != 2) {
-                                            if (elementScheduledType > 0) {
-                                                message += (message == "" ? remark : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + remark + ")</span><span class=\"desk\">(" + remark + ")</span>");
-                                            } else {
-                                                message += (message == "" ? remark : " (" + remark + ")");
+                                    if (elementRouteNumber == routeNumber) {
+                                        let message = "";
+                                        if (language == "en") {
+                                            if (mins > 0) {
+                                                message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
+                                            } else if (mins > -60) {
+                                                message = (elementScheduledType == 2 ? "<span style=\"white-space: nowrap\">" : "") + "<b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " Min." + (elementScheduledType == 2 ? "</span>" : "");
                                             }
-                                        }
-                                    } else {
-                                        if (mins > 0) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
-                                        } else if (mins > -60) {
-                                            message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
-                                        }
-                                        if (remark != "" && elementScheduledType != 2) {
-                                            if (elementScheduledType > 0) {
-                                                message += (message == "" ? remark : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + remark + ")</span><span class=\"desk\">(" + remark + ")</span>");
-                                            } else {
-                                                message += (message == "" ? remark : " (" + remark + ")");
-                                            }
-                                        }
-                                    }
-                                    message = message
-                                        .replaceAll("原定", "預定")
-                                        .replaceAll("最後班次", "尾班車")
-                                        .replaceAll("尾班車已過", "尾班車已過本站");
-
-                                    if (message == "") {
-                                        if (elementSeq == 1) {
-                                            if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
-                                            } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                            if (remark != "" && elementScheduledType != 2) {
+                                                if (elementScheduledType > 0) {
+                                                    message += (message == "" ? remark : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + remark + ")</span><span class=\"desk\">(" + remark + ")</span>");
+                                                } else {
+                                                    message += (message == "" ? remark : " (" + remark + ")");
+                                                }
                                             }
                                         } else {
+                                            if (mins > 0) {
+                                                message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">" + mins + "</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            } else if (mins > -60) {
+                                                message = "<span style=\"white-space: nowrap;\"><b style=\"font-size: " + elementFontSize + "px;\">-</b>" + (elementScheduledType == 1 ? "<br class=\"div-only-mobile\">" : "") + " <span style=\"word-break: keep-all;\">分鐘</span></span>";
+                                            }
+                                            if (remark != "" && elementScheduledType != 2) {
+                                                if (elementScheduledType > 0) {
+                                                    message += (message == "" ? remark : " <br class=\"div-only-mobile\"><span class=\"div-only-mobile\" style=\"font-size: 12px\">(" + remark + ")</span><span class=\"desk\">(" + remark + ")</span>");
+                                                } else {
+                                                    message += (message == "" ? remark : " (" + remark + ")");
+                                                }
+                                            }
+                                        }
+                                        message = message
+                                            .replaceAll("原定", "預定")
+                                            .replaceAll("最後班次", "尾班車")
+                                            .replaceAll("尾班車已過", "尾班車已過本站");
+
+                                        if (message == "") {
+                                            if (elementSeq == 1) {
+                                                if (language == "en") {
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                                } else {
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                                }
+                                            } else {
+                                                entry[0].innerHTML = "-";
+                                            }
+                                        } else if (elementSeq == seq) {
+                                            entry[0].innerHTML = message;
+                                        } else if (elementSeq > seq) {
                                             entry[0].innerHTML = "-";
                                         }
-                                    } else if (elementSeq == seq) {
-                                        entry[0].innerHTML = message;
-                                    } else if (elementSeq > seq) {
-                                        entry[0].innerHTML = "-";
                                     }
                                 }
                             }
