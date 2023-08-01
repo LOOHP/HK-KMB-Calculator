@@ -805,8 +805,25 @@
         if (err == null) {
             dataSheet = data;
             let kmbOps = new Set();
-            for (let key in dataSheet["routeList"]) {
+            outer: for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
+
+                let co = data["bound"].hasOwnProperty("kmb") ? "kmb" : (data["bound"].hasOwnProperty("ctb") ? "ctb" : (data["bound"].hasOwnProperty("nlb") ? "nlb" : (data["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                if (co != "ctb") {
+                    let stops = data["stops"][co];
+                    for (let key0 in dataSheet["routeList"]) {
+                        let data0 = dataSheet["routeList"][key0];
+                        let co0 = data0["bound"].hasOwnProperty("kmb") ? "kmb" : (data0["bound"].hasOwnProperty("ctb") ? "ctb" : (data0["bound"].hasOwnProperty("nlb") ? "nlb" : (data0["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                        if (data != data0 && co == co0 && data["route"] == data0["route"]) {
+                            let stops0 = data0["stops"][co0];
+                            if (stops != undefined && stops0 != undefined && testOrderedSubset(stops0, stops)) {
+                                delete dataSheet["routeList"][key];
+                                continue outer;
+                            }
+                        }
+                    }
+                }
+
                 if (data["bound"].hasOwnProperty("kmb")) {
                     if (data["co"].indexOf("ctb") >= 0) {
                         kmbOps.add(data["route"]);
@@ -842,6 +859,7 @@
                     }
                 }
             }
+            let ctbRouteDests = {};
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
                 let routeKey = data["route"] + "," + data["serviceType"];
@@ -849,6 +867,11 @@
                     let stops = data["stops"]["ctb"];
                     let longestStops = ctbStopSets[routeKey];
                     if (stops != longestStops && testOrderedSubset(longestStops, stops)) {
+                        if (ctbRouteDests.hasOwnProperty(routeKey)) {
+                            ctbRouteDests[routeKey].push(data["dest"]);
+                        } else {
+                            ctbRouteDests[routeKey] = [data["dest"]];
+                        }
                         delete dataSheet["routeList"][key];
                         continue;
                     }
@@ -865,6 +888,15 @@
                 let data = dataSheet["routeList"][key];
                 if (intersection.has(data["route"])) {
                     dataSheet["routeList"][key]["jointOp"] = true;
+                }
+                if (data["bound"].hasOwnProperty("ctb")) {
+                    let routeKey = data["route"] + "," + data["serviceType"];
+                    if (ctbRouteDests.hasOwnProperty(routeKey)) {
+                        let destList = ctbRouteDests[routeKey].filter(e => e["zh"] != data["dest"]["zh"] || e["en"] != data["dest"]["en"]);
+                        if (destList.length > 0) {
+                            data["ctbCircularDests"] = destList;
+                        }
+                    }
                 }
             }
 
@@ -2199,6 +2231,14 @@
                 let bound = co == "nlb" ? route["nlbId"] : route["bound"][co];
                 let type = route["serviceType"];
                 let name = language == "en" ? "To " + capitalize(route["dest"]["en"]) : "往" + route["dest"]["zh"];
+                if (route.hasOwnProperty("ctbCircularDests")) {
+                    let circularDests = route["ctbCircularDests"].map(e => e[language]).join(", ");
+                    if (language == "en") {
+                        name += " (" + circularDests + " Circular)";
+                    } else {
+                        name += " (" + circularDests + " 循環線)";
+                    }
+                }
                 if (co == "nlb") {
                     let mainRoute = null;
                     let currentNlbId = 9999;
