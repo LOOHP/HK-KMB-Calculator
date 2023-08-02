@@ -1145,33 +1145,31 @@
                 if (b["route"]["bound"].hasOwnProperty("gmb")) {
                     nb += 1000;
                 }
-                if (isNight) {
-                    if (pa == "N") {
-                        na -= 10000;
-                    }
-                    if (sa == "S") {
-                        na -= 8000;
-                    }
-                    if (pb == "N") {
-                        nb -= 10000;
-                    }
-                    if (sb == "S") {
-                        nb -= 8000;
-                    }
+                if (pa == "N") {
+                    na -= (isNight ? 1 : -1) * 10000;
+                }
+                if (pb == "N") {
+                    nb -= (isNight ? 1 : -1) * 10000;
+                }
+                if (sa == "S" && a["route"]["route"] != "89S" && a["route"]["route"] != "796S") {
+                    na += 1000;
+                }
+                if (sb == "S" && b["route"]["route"] != "89S" && b["route"]["route"] != "796S") {
+                    nb += 1000;
                 }
                 if (!isHoliday) {
-                    if (pa == "R" || sa == "R" || (sa == "S" && a["route"]["route"] != "89S" && a["route"]["route"] != "796S")) {
+                    if (pa == "R" || sa == "R") {
                         na += 100000;
                     }
-                    if (pb == "R" || sb == "R" || (sb == "S" && b["route"]["route"] != "89S" && b["route"]["route"] != "796S")) {
+                    if (pb == "R" || sb == "R") {
                         nb += 100000;
                     }
                 }
-                if (!/[0-9]/.test(pa)) {
-                    na += 1000;
+                if (!/[0-9]/.test(pa) && pa != "K") {
+                    na += 400;
                 }
-                if (!/[0-9]/.test(pb)) {
-                    nb += 1000;
+                if (!/[0-9]/.test(pb) && pb != "K") {
+                    nb += 400;
                 }
                 let diff = na - nb;
                 if (diff == 0) {
