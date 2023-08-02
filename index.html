@@ -1044,6 +1044,118 @@
 
     let updatingRouteTasks = [];
 
+    const getRouteNumberDisplay = (co, routeNumber, options = {}) => {
+        let emoji = options["emoji"] == true;
+        let background = options["background"] == true;
+        let inverted = options["inverted"] == true;
+
+        let routeNumberDisplay = routeNumber;
+        if (background) {
+            let color;
+            let backgroundColor;
+            if (co == "kmb") {
+                color = "black";
+                backgroundColor = "white";
+                if (routeNumber.startsWith("NA")) {
+                    color = "yellow";
+                    backgroundColor = "black";
+                } else if (routeNumber.startsWith("N")) {
+                    color = "white";
+                    backgroundColor = "black";
+                } else if (/[A-Z]*[1346][0-9]{2}[A-Z]?/g.test(routeNumber)) {
+                    color = "white";
+                    backgroundColor = "red";
+                } else if (routeNumber.startsWith("P")) {
+                    color = "white";
+                    backgroundColor = "#BC8F8F";
+                } else if (routeNumber.startsWith("E")) {
+                    color = "white";
+                    backgroundColor = "orange";
+                } else if (routeNumber.startsWith("S")) {
+                    color = "#0000ff";
+                    backgroundColor = "orange";
+                } else if (/[A-Z]*[9][0-9]{2}[A-Z]?/g.test(routeNumber)) {
+                    color = "white";
+                    backgroundColor = "green";
+                } else if (routeNumber.startsWith("A")) {
+                    color = "yellow";
+                    backgroundColor = "#000066";
+                } else if (routeNumber.startsWith("R")) {
+                    color = "white";
+                    backgroundColor = "#000066";
+                } else if (routeNumber.startsWith("X")) {
+                    color = "white";
+                    backgroundColor = "orange";
+                }
+            } else if (co == "ctb") {
+                color = "white";
+                backgroundColor = "#0066ff";
+                if (routeNumber.startsWith("B") || (routeNumber.startsWith("E") && !routeNumber.startsWith("E11"))) {
+                    color = "white";
+                    backgroundColor = "red";
+                } else if (routeNumber.startsWith("A")) {
+                    color = "white";
+                    backgroundColor = "#800000";
+                } else if (routeNumber.startsWith("E11") || routeNumber.startsWith("H")) {
+                    color = "white";
+                    backgroundColor = "green";
+                } else if (routeNumber.startsWith("R")) {
+                    color = "#0000ff";
+                    backgroundColor = "LightSkyBlue";
+                } else if (/[A-Z]*[1346][0-9]{2}[A-Z]?/g.test(routeNumber)) {
+                    color = "white";
+                    backgroundColor = "red";
+                } else if (/[A-Z]*[9][0-9]{2}[A-Z]?/g.test(routeNumber)) {
+                    color = "white";
+                    backgroundColor = "green";
+                } else if (routeNumber.startsWith("N")) {
+                    color = "yellow";
+                    backgroundColor = "black";
+                }
+            } else if (co == "nlb") {
+                color = "black";
+                backgroundColor = "white";
+                if (routeNumber.startsWith("A")) {
+                    color = "yellow";
+                    backgroundColor = "red";
+                } else if (routeNumber.startsWith("N")) {
+                    color = "yellow";
+                    backgroundColor = "black";
+                }
+            } else if (co == "mtr-bus") {
+                color = "#001F50";
+                backgroundColor = "white";
+            } else if (co == "gmb") {
+                color = "#00A067";
+                backgroundColor = "white";
+            }
+
+            if (inverted) {
+                if (backgroundColor == "white") {
+                    routeNumberDisplay = "<span style=\"color: " + color + ";\">" + routeNumberDisplay + "</span>";
+                } else {
+                    routeNumberDisplay = "<span style=\"color: " + backgroundColor + ";\">" + routeNumberDisplay + "</span>";
+                }
+            } else {
+                routeNumberDisplay = "<span style=\"color: " + color + "; background-color: " + backgroundColor + ";\">" + routeNumberDisplay + "</span>";
+            }
+        } else {
+            if (co == "kmb") {
+                if (routeNumber == "78A") {
+                    if (emoji) {
+                        routeNumberDisplay += "👑";
+                    }
+                } else if (routeNumber.startsWith("P")) {
+                    routeNumberDisplay = "<b style=\"color: #996247;\">" + routeNumberDisplay + "</b>";
+                    if (emoji) {
+                        routeNumberDisplay += "⭐";
+                    }
+                }
+            }
+        }
+        return routeNumberDisplay;
+    };
+
     const updateNearestRoutes = (lat, lng) => {
         if (calculateTasks.length > 0) {
             checkFlag(() => updatingRouteTasks.length == 0 && ready, updateNearestRoutes);
@@ -1145,10 +1257,10 @@
                 if (b["route"]["bound"].hasOwnProperty("gmb")) {
                     nb += 1000;
                 }
-                if (pa == "N") {
+                if (pa == "N" || a["route"]["route"] == "270S" || a["route"]["route"] == "271S" || a["route"]["route"] == "293S" || a["route"]["route"] == "701S" || a["route"]["route"] == "796S") {
                     na -= (isNight ? 1 : -1) * 10000;
                 }
-                if (pb == "N") {
+                if (pb == "N" || b["route"]["route"] == "270S" || b["route"]["route"] == "271S" || b["route"]["route"] == "293S" || b["route"]["route"] == "701S" || b["route"]["route"] == "796S") {
                     nb -= (isNight ? 1 : -1) * 10000;
                 }
                 if (sa == "S" && a["route"]["route"] != "89S" && a["route"]["route"] != "796S") {
@@ -1228,6 +1340,8 @@
                     stopName += language == "en" ? " (GMB)" : " (專線小巴)";
                 }
 
+                let routeNumberDisplay = getRouteNumberDisplay(entry["co"], routeNumber, {background: true});
+
                 let allStops = route["stops"][co];
 
                 for (let u = allStops.indexOf(stopId); u < allStops.length; u++) {
@@ -1257,7 +1371,7 @@
 
                 table += 
                     "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                        "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumber + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
+                        "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
                         "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
                     "</tr>";
 
@@ -1291,9 +1405,9 @@
                                     }
                                     let desc;
                                     if (language == "en") {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                                     } else {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                                     }
                                     let color = '#8a0101';
                                     if (routeNumber.startsWith("N")) {
@@ -1303,7 +1417,7 @@
                                     } else if (routeNumber.endsWith("S") && routeNumber != "89S" && routeNumber != "796S") {
                                         color = '#016166';
                                     } else if (routeNumber.startsWith("P")) {
-                                        color = '#7a4e01';
+                                        color = '#996247';
                                     }
                                     new L.Polyline(pointListRoute, {
                                         color: color,
@@ -1348,9 +1462,11 @@
                     let allStops = route["stops"][co];
                     let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
 
+                    let routeNumberDisplay = getRouteNumberDisplay(co, routeNumber, {background: true});
+
                     let table = 
                         "<tr class=\"nearby-stop\" style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                            "<th><b style=\"font-size: 15px; text-align: center;\">" + routeNumber + "</b></th>" +
+                            "<th><b style=\"font-size: 15px; text-align: center;\">" + routeNumberDisplay + "</b></th>" +
                             "<th width=\"99%\" style=\"padding:0 5px 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">" + (language == "en" ? "To " : "往") + "</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
                             "<th style=\"text-align: right;\"><span class=\"eta-update\" id=\"nearbymap_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,15,2\">⠀⠀⠀⠀⠀⠀⠀</span></th>" +
                         "</tr>";
@@ -1403,6 +1519,8 @@
                     }
                     let bound = co == "nlb" ? route["nlbId"] : route["bound"][co];
 
+                    let routeNumberDisplay = getRouteNumberDisplay(co, routeNumber, {background: true});
+
                     let allStops = route["stops"][co];
                     let startStopId;
                     let lastIndex = -1;
@@ -1418,7 +1536,7 @@
 
                     let table = 
                         "<tr class=\"nearby-stop\" style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                            "<th><b style=\"font-size: 15px\">" + routeNumber + "</b></th>" +
+                            "<th><b style=\"font-size: 15px\">" + routeNumberDisplay + "</b></th>" +
                             "<th width=\"99%\" style=\"padding:0 5px 0 5px;\"><b style=\"font-size: 15px\"><span style=\"font-size: 10px\">往</span><span style=\"font-size: 15px\">" + destName + "</span></b></th>" +
                             "<th style=\"text-align: right;\"><span class=\"eta-update\" id=\"nearbymap_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,15,2\">⠀⠀⠀⠀⠀⠀⠀</span></th>" +
                         "</tr>";
@@ -1588,8 +1706,9 @@
                     for (let i = 0; i < data["data"].length; i++) {
                         let routeData = data["data"][i];
                         let buses = routeData["eta"];
-                        let routeNumber = Object.entries(dataSheet["routeList"]).filter(r => r[1]["bound"].hasOwnProperty("gmb") && r[1]["gtfsId"] == routeData["route_id"])[0][1]["route"];
-                        if (buses != undefined) {
+                        let filteredEntry = Object.entries(dataSheet["routeList"]).filter(r => r[1]["bound"].hasOwnProperty("gmb") && r[1]["gtfsId"] == routeData["route_id"])[0];
+                        if (filteredEntry != undefined && buses != undefined) {
+                            let routeNumber = filteredEntry[1]["route"];
                             for (let u = 0; u < buses.length; u++) {
                                 let bus = buses[u];
                                 let seq = bus["eta_seq"];
@@ -3241,7 +3360,7 @@
             for (let i = 0; i < rowsData.length; i++) {
                 let entry = rowsData[i];
                 let co = entry[8]["bound"].hasOwnProperty("kmb") ? "kmb" : (entry[8]["bound"].hasOwnProperty("ctb") ? "ctb" : (entry[8]["bound"].hasOwnProperty("nlb") ? "nlb" : (entry[8]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
-                let routeText = entry[0];
+                let routeText = getRouteNumberDisplay(co, entry[0], {emoji: true});
                 if (co == "ctb") {
                     routeText += " - " + (language == "en" ? "CTB" : "城巴");
                 } else if (co == "nlb") {
@@ -3251,6 +3370,9 @@
                 } else if (co == "gmb") {
                     routeText += " - " + (language == "en" ? "GMB" : "專線小巴");
                 }
+
+                let routeNumberDisplay = getRouteNumberDisplay(co, entry[0]);
+
                 let remark = entry[6];
                 if (entry[8].hasOwnProperty("jointOp")) {
                     if (remark != "") {
@@ -3333,9 +3455,9 @@
                             if (messages.length > 0) {
                                 let html;
                                 if (language == "en") {
-                                    html = "[Route " + route["route"] + " Announcements]<br> " + messages.join("<br>");
+                                    html = "[Route " + routeNumberDisplay + " Announcements]<br> " + messages.join("<br>");
                                 } else {
-                                    html = "[路線" + route["route"] + "特別公告]<br> " + messages.join("<br>");
+                                    html = "[路線" + routeNumberDisplay + "特別公告]<br> " + messages.join("<br>");
                                 }
                                 if (document.getElementById('special-announcements').innerHTML == "") {
                                     document.getElementById('special-announcements').style.display = "";
@@ -3504,7 +3626,7 @@
                                 tables.push(language == "en" ? "On specific day only" : "於指定日期服務");
                             }
 
-                            let tableTableTitle = language == "en" ? ("Route " + route["route"] + " Timetable") : ("路線" + route["route"] + "時間表");
+                            let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " Timetable") : ("路線" + routeNumberDisplay + "時間表");
                             let append = 
                                 "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
                                 "<div class=\"columns\">" +
@@ -3533,9 +3655,9 @@
                             if (messages.length > 0) {
                                 let html;
                                 if (language == "en") {
-                                    html = "[Route " + route["route"] + " (CTB) Announcements]<br> " + messages.join("<br>");
+                                    html = "[Route " + routeNumberDisplay + " (CTB) Announcements]<br> " + messages.join("<br>");
                                 } else {
-                                    html = "[路線" + route["route"] + "(城巴)特別公告]<br> " + messages.join("<br>");
+                                    html = "[路線" + routeNumberDisplay + "(城巴)特別公告]<br> " + messages.join("<br>");
                                 }
                                 if (document.getElementById('special-announcements').innerHTML == "") {
                                     document.getElementById('special-announcements').style.display = "";
@@ -3560,13 +3682,13 @@
                     let positionArray = [stopPosition["lat"], stopPosition["lng"]];
                     let stopMarker;
                     if (u < entry[12] || u > entry[13]) {
-                        stopMarker = [[route["route"]], 4, desc, positionArray, i, u, co];
+                        stopMarker = [[route["route"]], 4, desc, positionArray, i, u, co, routeNumberDisplay];
                     } else if (u == entry[12]) {
-                        stopMarker = [[route["route"]], 0, desc, positionArray, i, u, co];
+                        stopMarker = [[route["route"]], 0, desc, positionArray, i, u, co, routeNumberDisplay];
                     } else if (u == entry[13]) {
-                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u, co];
+                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u, co, routeNumberDisplay];
                     } else {
-                        stopMarker = [[route["route"]], 3, desc, positionArray, i, u, co];
+                        stopMarker = [[route["route"]], 3, desc, positionArray, i, u, co, routeNumberDisplay];
                     }
                     if (stopMarkerData.hasOwnProperty(stopDetails[u][0])) {
                         stopMarkerData[stopDetails[u][0]][0].push(stopMarker[0][0]);
@@ -3613,9 +3735,9 @@
                                     }
                                     let desc;
                                     if (language == "en") {
-                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                                     } else {
-                                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                                     }
                                     if (pointListBefore.length > 0) {
                                         new L.Polyline(pointListBefore, {
@@ -3680,9 +3802,9 @@
                     }
                     let desc;
                     if (language == "en") {
-                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
+                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                     } else {
-                        desc = "<b style=\"font-size: 17px\">" + route["route"] + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
+                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                     }
                     let color = co == "ctb" ? "gold" : (co == "nlb" ? "#4A8765" : (co == "mtr-bus" ? "#003972" : "#00BC0C"));
                     if (pointListBefore.length > 0) {
@@ -3720,6 +3842,7 @@
                 let stopType = stopMarker[1];
                 let desc = stopMarker[2];
                 let co = stopMarker[6];
+                let routeNumberDisplay = stopMarker[7];
                 if (rowsData.length > 1) {
                     desc = "[" + routes.join("/") + "] " + desc;
                 }
@@ -3739,7 +3862,7 @@
                     desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
                     icon = redIcon;
                     let table = 
-                        "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routes[0] + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + (co == "nlb" ? (language == "en" ? "(NLB)" : "(嶼巴)") : "") + (co == "mtr-bus" ? (language == "en" ? "(MTR-Bus)" : "(港鐵巴士)") : "") + (co == "gmb" ? (language == "en" ? "(GMB)" : "(專線小巴)") : "") + "</h5>" + 
+                        "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + (language == "en" ? "Route " : "路線") + routeNumberDisplay + (language == "en" ? " ETA" : "預計到達時間") + (co == "ctb" ? (language == "en" ? "(CTB)" : "(城巴)") : "") + (co == "nlb" ? (language == "en" ? "(NLB)" : "(嶼巴)") : "") + (co == "mtr-bus" ? (language == "en" ? "(MTR-Bus)" : "(港鐵巴士)") : "") + (co == "gmb" ? (language == "en" ? "(GMB)" : "(專線小巴)") : "") + "</h5>" + 
                         "<table class=\"table\" style=\"word-break: keep-all;\">" +
                             "<tbody>" +
                                 "<tr>" +
