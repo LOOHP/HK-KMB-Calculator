@@ -3396,7 +3396,14 @@
                                                     timeRangeEndMinute = Number(matcher[4]);
                                                 } else {
                                                     timeRangeEndHour = timeRangeStartHour;
-                                                    timeRangeEndMinute = timeRangeStartMinute;
+                                                    timeRangeEndMinute = timeRangeStartMinute + 1;
+                                                    if (timeRangeEndMinute >= 60) {
+                                                        timeRangeEndHour = timeRangeEndHour + 1;
+                                                        timeRangeEndMinute = timeRangeEndMinute % 60;
+                                                        if (timeRangeEndHour >= 24) {
+                                                            timeRangeEndHour = timeRangeEndHour % 24;
+                                                        }
+                                                    }
                                                 }
                                             }
 
@@ -3404,14 +3411,14 @@
                                                 if (timeRangeStartHour > timeRangeEndHour) {
                                                     if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
                                                         isNow = true;
-                                                    } else if (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute) {
+                                                    } else if (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute) {
                                                         isNow = true;
                                                     } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
                                                         isNow = true;
                                                     }
                                                 } else {
                                                     if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
-                                                        isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute <= timeRangeEndMinute);
+                                                        isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute);
                                                     }
                                                 }
                                             }
