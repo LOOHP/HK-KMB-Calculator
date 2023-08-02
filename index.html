@@ -1296,10 +1296,14 @@
                                         desc = "<b style=\"font-size: 17px\">" + routeNumber + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                                     }
                                     let color = '#8a0101';
-                                    if (routeNumber.startsWith("N") || (routeNumber.endsWith("S") && routeNumber != "89S" && routeNumber != "796S")) {
+                                    if (routeNumber.startsWith("N")) {
                                         color = '#000000';
                                     } else if (routeNumber.startsWith("R") || routeNumber.endsWith("R")) {
                                         color = '#014c8a';
+                                    } else if (routeNumber.endsWith("S") && routeNumber != "89S" && routeNumber != "796S") {
+                                        color = '#016166';
+                                    } else if (routeNumber.startsWith("P")) {
+                                        color = '#7a4e01';
                                     }
                                     new L.Polyline(pointListRoute, {
                                         color: color,
