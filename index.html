@@ -1367,13 +1367,15 @@
                     }
                 }
 
-                let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+                if (co != "ctb" || route["co"].indexOf("kmb") < 0) {
+                    let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
 
-                table += 
-                    "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                        "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
-                        "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
-                    "</tr>";
+                    table += 
+                        "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
+                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
+                            "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
+                        "</tr>";
+                }
 
                 if (co == "kmb") {
                     let task0Id = makeId(10);
@@ -1424,7 +1426,7 @@
                                         weight: 2,
                                         opacity: 0.7,
                                         smoothFactor: 0.00001
-                                    }).addTo(nearbyLines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(nearbyLines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                 }
                             } else {
                                 alert("Unable to get response from ./route_paths/" + routeNumber + ".json. (Is it down?)");
@@ -1461,6 +1463,11 @@
 
                     let allStops = route["stops"][co];
                     let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+
+                    if (co == "ctb" && route["stops"].hasOwnProperty("kmb")) {
+                        let kmbAllStops = route["stops"]["kmb"];
+                        params = "'kmb','" + routeNumber + "','" + route["bound"]["kmb"] + "','" + route["serviceType"] + "','" + kmbAllStops[allStops.indexOf(kmbAllStops)] + "','" + kmbAllStops[kmbAllStops.length - 1] + "'";
+                    }
 
                     let routeNumberDisplay = getRouteNumberDisplay(co, routeNumber, {background: true});
 
@@ -1533,6 +1540,10 @@
                         }
                     }
                     let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + startStopId + "','" + stopId + "'";
+                    if (co == "ctb" && route["stops"].hasOwnProperty("kmb")) {
+                        let kmbAllStops = route["stops"]["kmb"];
+                        params = "'kmb','" + routeNumber + "','" + route["bound"]["kmb"] + "','" + route["serviceType"] + "','" + kmbAllStops[allStops.indexOf(startStopId)] + "','" + kmbAllStops[allStops.indexOf(stopId)] + "'";
+                    }
 
                     let table = 
                         "<tr class=\"nearby-stop\" style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
@@ -3745,21 +3756,21 @@
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     }
                                     new L.Polyline(pointListRoute, {
                                         color: 'red',
                                         weight: 4,
                                         opacity: 1,
                                         smoothFactor: 1
-                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     if (pointListAfter.length > 0) {
                                         new L.Polyline(pointListAfter, {
                                             color: '#141414',
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     }
                                 }
                                 map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
@@ -3813,21 +3824,21 @@
                             weight: 3,
                             opacity: 0.5,
                             smoothFactor: 1
-                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                     }
                     new L.Polyline(pointListRoute, {
                         color: color,
                         weight: 4,
                         opacity: 1,
                         smoothFactor: 1
-                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                     if (pointListAfter.length > 0) {
                         new L.Polyline(pointListAfter, {
                             color: '#141414',
                             weight: 3,
                             opacity: 0.5,
                             smoothFactor: 1
-                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                     }
                     map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
                 }
