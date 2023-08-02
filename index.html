@@ -4370,8 +4370,15 @@
                 if (data["bound"].hasOwnProperty(co) && (co != "kmb" || kmbRouteExists(data)) && data["route"] == routeNumber && (co == "nlb" ? data["nlbId"] == bound : (data["bound"][co] == bound)) && data["serviceType"] == type) {
                     startingStopIndex = data["stops"][co].indexOf(startingStop);
                     endingStopIndex = data["stops"][co].lastIndexOf(endingStop);
-                    if (startingStopIndex < 0 || endingStopIndex < 0 || startingStopIndex >= endingStopIndex) {
+                    if (startingStopIndex < 0 || endingStopIndex < 0 || startingStopIndex > endingStopIndex) {
                         continue;
+                    }
+                    if (startingStopIndex == endingStopIndex) {
+                        if ((startingStopIndex + 1) == data["stops"][co].length) {
+                            startingStopIndex--;
+                        } else {
+                            endingStopIndex++;
+                        }
                     }
                     routeKey = key + "_" + type;
                     route = data;
