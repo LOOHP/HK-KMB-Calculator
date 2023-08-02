@@ -476,7 +476,7 @@
 
     let linesName = language == "en" ? "Routes" : "路線";
     let markersName = language == "en" ? "Bus Stops" : "巴士站";
-    let nearbyLinesName = language == "en" ? "Nearby KMB Routes" : "鄰近九巴路線";
+    let nearbyLinesName = language == "en" ? "Nearby Routes (KMB)" : "鄰近路線(九巴)";
     let nearbyStopsMarkerName = language == "en" ? "Nearby Bus Stops" : "鄰近巴士站";
 
     let layerControl = L.control.layers({}, {}).addTo(map);
@@ -842,6 +842,7 @@
                 }
             }
             let ctbOps = new Set();
+            let ctbStopCircularSets = {};
             let ctbStopSets = {};
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
@@ -849,15 +850,27 @@
                     if (kmbOps.has(data["route"]) && !data["bound"].hasOwnProperty("kmb")) {
                         ctbOps.add(data["route"]);
                         delete dataSheet["routeList"][key];
-                    } else if (data["bound"]["ctb"].length > 1) {
-                        let routeKey = data["route"] + "," + data["serviceType"];
-                        let stops = data["stops"]["ctb"];
-                        if (ctbStopSets.hasOwnProperty(routeKey)) {
-                            if (ctbStopSets[routeKey].length < stops.length) {
-                                ctbStopSets[routeKey] = stops;
+                    } else {
+                        if (data["bound"]["ctb"].length > 1) {
+                            let routeKey = data["route"] + "," + data["serviceType"];
+                            let stops = data["stops"]["ctb"];
+                            if (ctbStopCircularSets.hasOwnProperty(routeKey)) {
+                                if (ctbStopCircularSets[routeKey].length < stops.length) {
+                                    ctbStopCircularSets[routeKey] = stops;
+                                }
+                            } else {
+                                ctbStopCircularSets[routeKey] = stops;
                             }
                         } else {
-                            ctbStopSets[routeKey] = stops;
+                            let routeKey = data["route"] + "," + data["bound"]["ctb"] + "," + data["serviceType"];
+                            let stops = data["stops"]["ctb"];
+                            if (ctbStopSets.hasOwnProperty(routeKey)) {
+                                if (ctbStopSets[routeKey].length < stops.length) {
+                                    ctbStopSets[routeKey] = stops;
+                                }
+                            } else {
+                                ctbStopSets[routeKey] = stops;
+                            }
                         }
                     }
                 }
@@ -865,24 +878,34 @@
             let ctbRouteDests = {};
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
-                let routeKey = data["route"] + "," + data["serviceType"];
-                if (data["bound"].hasOwnProperty("ctb") && ctbStopSets.hasOwnProperty(routeKey)) {
-                    let stops = data["stops"]["ctb"];
-                    let longestStops = ctbStopSets[routeKey];
-                    if (stops != longestStops && testOrderedSubset(longestStops, stops)) {
-                        if (ctbRouteDests.hasOwnProperty(routeKey)) {
-                            ctbRouteDests[routeKey].push(data["dest"]);
-                        } else {
-                            ctbRouteDests[routeKey] = [data["dest"]];
+                if (data["bound"].hasOwnProperty("ctb")) {
+                    let routeKey = data["route"] + "," + data["serviceType"];
+                    if (ctbStopCircularSets.hasOwnProperty(routeKey)) {
+                        let stops = data["stops"]["ctb"];
+                        let longestStops = ctbStopCircularSets[routeKey];
+                        if (stops != longestStops && testOrderedSubset(longestStops, stops)) {
+                            if (ctbRouteDests.hasOwnProperty(routeKey)) {
+                                ctbRouteDests[routeKey].push(data["dest"]);
+                            } else {
+                                ctbRouteDests[routeKey] = [data["dest"]];
+                            }
+                            delete dataSheet["routeList"][key];
+                            continue;
                         }
-                        delete dataSheet["routeList"][key];
-                        continue;
+                        if (data["bound"]["ctb"].length > 1) {
+                            data["bound"]["ctb"] = "O";
+                        }
+                        if (stops != longestStops && data["serviceType"] == 1) {
+                            data["ctbSpecial"] = "Any";
+                        }
                     }
-                    if (data["bound"]["ctb"].length > 1) {
-                        data["bound"]["ctb"] = "O";
-                    }
-                    if (stops != longestStops && data["serviceType"] == 1) {
-                        data["ctbSpecial"] = true;
+                    routeKey = data["route"] + "," + data["bound"]["ctb"] + "," + data["serviceType"];
+                    if (ctbStopSets.hasOwnProperty(routeKey)) {
+                        let stops = data["stops"]["ctb"];
+                        let longestStops = ctbStopSets[routeKey];
+                        if (stops != longestStops) {
+                            data["ctbSpecial"] = data["bound"]["ctb"];
+                        }
                     }
                 }
             }
@@ -2321,17 +2344,17 @@
                             }
                         }
                     }
-                } else if (type != 1 || route["ctbSpecial"] == true) {
+                } else if (type != 1 || route.hasOwnProperty("ctbSpecial")) {
                     for (let k = 0; k < routes.length; k++) {
                         let data = routes[k][1];
-                        if (data["bound"].hasOwnProperty(co) && (co != "kmb" || kmbRouteExists(data)) && (co == "ctb" ? (data["ctbSpecial"] != true) : (data["bound"][co] == bound)) && data["serviceType"] == 1) {
-                            if (data["dest"]["zh"] != route["dest"]["zh"]) {
+                        if (data["bound"].hasOwnProperty(co) && (co != "kmb" || kmbRouteExists(data)) && ((co == "ctb" && route["serviceType"] == 1) ? (route["ctbSpecial"] == "Any" ? !data.hasOwnProperty("ctbSpecial") : route["ctbSpecial"] == data["bound"][co]) : (data["bound"][co] == bound)) && data["serviceType"] == 1) {
+                            if (co != "ctb" && data["dest"]["zh"] != route["dest"]["zh"]) {
                                 if (language == "en") {
                                     name += " - Special To " + capitalize(route["dest"]["en"]);
                                 } else {
                                     name += " - 特別班 開往" + route["dest"]["zh"];
                                 }
-                            } else if (data["orig"]["zh"] != route["orig"]["zh"]) {
+                            } else if (co != "ctb" && data["orig"]["zh"] != route["orig"]["zh"]) {
                                 if (language == "en") {
                                     name += " - Special From " + capitalize(route["orig"]["en"]);
                                 } else {
