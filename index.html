@@ -898,13 +898,14 @@
                         if (stops != longestStops && data["serviceType"] == 1) {
                             data["ctbSpecial"] = "Any";
                         }
-                    }
-                    routeKey = data["route"] + "," + data["bound"]["ctb"] + "," + data["serviceType"];
-                    if (ctbStopSets.hasOwnProperty(routeKey)) {
-                        let stops = data["stops"]["ctb"];
-                        let longestStops = ctbStopSets[routeKey];
-                        if (stops != longestStops) {
-                            data["ctbSpecial"] = data["bound"]["ctb"];
+                    } else {
+                        routeKey = data["route"] + "," + data["bound"]["ctb"] + "," + data["serviceType"];
+                        if (ctbStopSets.hasOwnProperty(routeKey)) {
+                            let stops = data["stops"]["ctb"];
+                            let longestStops = ctbStopSets[routeKey];
+                            if (stops != longestStops) {
+                                data["ctbSpecial"] = data["bound"]["ctb"];
+                            }
                         }
                     }
                 }
