@@ -1010,6 +1010,16 @@
         }
     });
 
+    let ctbId = null;
+    const ctbIdUrl = "./ctb_route_ids.json";
+    getJSON(ctbIdUrl, (err, data) => {
+        if (err == null) {
+            ctbId = data;
+        } else {
+            alert("Unable to get response from " + ctbIdUrl + ". (Is it down?)");
+        }
+    });
+
     let ready = false;
     const waitLoadParameters = (condition) => {
         if (condition() === false) {
@@ -1034,6 +1044,7 @@
     let kmbStopRouteEtaUrl = "https://data.etabus.gov.hk/v1/transport/kmb/eta/{stop}/{route}/{type}";
 
     let ctbSpecialAnnouncementsUrl = "https://mobile.citybus.com.hk/nwp3/specialNote.php?r={route}"
+    let ctbTimeTableUrl = "https://mobile.citybus.com.hk/nwp3/gettimetable.php?info={id}&bound={bound}&l={lang}";
     let ctbStopEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/{stop}/{route}";
     let ctbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/route-stop/CTB/{route}/{bound}";
 
@@ -3679,9 +3690,35 @@
                                 }
                             }
                         } else {
-                            alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
+                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
+                    }]);
+
+                    let id = ctbId[route["route"]][route["bound"]["ctb"]]["id"];
+                    let resolvedTimeTableUrl = ctbTimeTableUrl.replace("{id}", id).replace("{bound}", route["bound"]["ctb"]).replace("{lang}", language == "en" ? 1 : 0);
+                    let task1Id = makeId(10);
+                    calculateTasks.push(task1Id);
+                    getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
+                        if (err == null) {
+                            let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " (CTB) Timetable") : ("路線" + routeNumberDisplay + "(城巴)時間表");
+                            let append = 
+                                "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
+                                "<div class=\"columns\">" +
+                                    "<div class=\"column\">" +
+                                        "<iframe src=\"" + resolvedTimeTableUrl + "\" width=\"100%\" height=\"400px\"></iframe>" +
+                                    "</div>" +
+                                "</div>";
+
+                            let toggleParameter = localStorage["toggle-options"];
+                            if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
+                                document.getElementById('time-table').style.display = "";
+                            }
+                            document.getElementById("time-table").innerHTML += append;
+                        } else {
+                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                        }
+                        calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
                 }
 
