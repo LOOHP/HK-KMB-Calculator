@@ -851,7 +851,7 @@
                         ctbOps.add(data["route"]);
                         delete dataSheet["routeList"][key];
                     } else {
-                        if (data["bound"]["ctb"].length > 1) {
+                        if (data["bound"]["ctb"].length > 1 && data["orig"]["zh"] == data["dest"]["zh"]) {
                             let routeKey = data["route"] + "," + data["serviceType"];
                             let stops = data["stops"]["ctb"];
                             if (ctbStopCircularSets.hasOwnProperty(routeKey)) {
@@ -862,6 +862,9 @@
                                 ctbStopCircularSets[routeKey] = stops;
                             }
                         } else {
+                            if (data["bound"]["ctb"].length > 1) {
+                                data["bound"]["ctb"] = "I";
+                            }
                             let routeKey = data["route"] + "," + data["bound"]["ctb"] + "," + data["serviceType"];
                             let stops = data["stops"]["ctb"];
                             if (ctbStopSets.hasOwnProperty(routeKey)) {
@@ -2392,7 +2395,12 @@
                 if (coA == 2) {
                     return Number(a[1]["nlbId"]) - Number(b[1]["nlbId"]);
                 } else {
-                    return Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]);
+                    let typeDiff = Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]);
+                    if (typeDiff == 0 && coA == 1) {
+                        return a[1].hasOwnProperty("ctbSpecial") - b[1].hasOwnProperty("ctbSpecial");
+                    } else {
+                        return typeDiff;
+                    }
                 }
             });
             let lastCo = null;
