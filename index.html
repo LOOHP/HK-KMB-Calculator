@@ -192,6 +192,14 @@
         tr.nearby-stop:hover th {
             color: #777;
         }
+        .disable-scrollbars::-webkit-scrollbar {
+            background: transparent;
+            width: 0px;
+        }
+        .disable-scrollbars {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
     </style>
 
     <section class="hero is-danger is-fullheight">
@@ -1508,17 +1516,33 @@
                 let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + stopName + "</b></div><br>";
 
                 let table =
-                    "<table>" +
-                        "<tbody>" +
-                            routesInfo.join("") +
-                        "</tbody>" +
-                    "</table>";
+                    "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
+                        "<table>" +
+                            "<tbody>" +
+                                routesInfo.join("") +
+                            "</tbody>" +
+                        "</table>" +
+                    "</div>";
 
                 let popUpWidth = window.innerWidth - 200;
                 let location = stop["location"];
-                L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table, {maxWidth: popUpWidth}).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();}).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
-                }).on("popupopen", () => updateEta());
+                L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table, {maxWidth: popUpWidth})
+                .on("mouseover", e => {
+                    if (!isClicked) {
+                        e.target.openPopup();
+                    }
+                }).on("mouseout", e => {
+                    if (!isClicked) {
+                        e.target.closePopup();
+                    }
+                }).on("click", e => {
+                    isClicked = true; 
+                    e.target.openPopup();
+                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200);
+                    map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
+                }).on("popupopen", (e) => {
+                    updateEta(); 
+                });
             }
 
             for (let stopId in allOtherStops) {
@@ -1582,17 +1606,33 @@
                 let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + stopName + "</b></div><br>";
 
                 let table =
-                    "<table>" +
-                        "<tbody>" +
-                            routesInfo.join("") +
-                        "</tbody>" +
-                    "</table>";
+                    "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
+                        "<table>" +
+                            "<tbody>" +
+                                routesInfo.join("") +
+                            "</tbody>" +
+                        "</table>" + 
+                    "</div>";
 
                 let popUpWidth = window.innerWidth - 200;
                 let location = stop["location"];
-                L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table, {maxWidth: popUpWidth}).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();}).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
-                }).on("popupopen", () => updateEta());
+                L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table, {maxWidth: popUpWidth})
+                .on("mouseover", e => {
+                    if (!isClicked) {
+                        e.target.openPopup();
+                    }
+                }).on("mouseout", e => {
+                    if (!isClicked) {
+                        e.target.closePopup();
+                    }
+                }).on("click", e => {
+                    isClicked = true; 
+                    e.target.openPopup();
+                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 40);
+                    map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
+                }).on("popupopen", (e) => {
+                    updateEta();
+                });
             }
 
             table += "</tbody></table>";
@@ -4061,8 +4101,20 @@
                         + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co]) + ",3,15,0\"></span><br>";
                 }
 
-                let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170}).on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();}).on('click', (e) => {
-                    map.flyTo([e.latlng.lat + 0.001, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
+                let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170})
+                .on("mouseover", e => {
+                    if (!isClicked) {
+                        e.target.openPopup();
+                    }
+                }).on("mouseout", e => {
+                    if (!isClicked) {
+                        e.target.closePopup();
+                    }
+                }).on("click", e => {
+                    isClicked = true; 
+                    e.target.openPopup();
+                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 40);
+                    map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                 }).on('popupopen', (e) => {
                     updateEta();
                 });
