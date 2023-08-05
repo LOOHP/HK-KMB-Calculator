@@ -3780,16 +3780,78 @@
                                             pointListRoute.push(new L.LatLng(position[0], position[1]));
                                         }
                                     }
-                                    let coStr = "";
-                                    if (co == "ctb") {
-                                        coStr = language == "en" ? " - CTB" : " - 城巴";
-                                    } else if (co == "nlb") {
-                                        coStr = language == "en" ? " - NLB" : " - 嶼巴";
-                                    } else if (co == "mtr-bus") {
-                                        coStr = language == "en" ? " - MTR-Bus" : " - 港鐵巴士";
-                                    } else if (co == "gmb") {
-                                        coStr = language == "en" ? " - GMB" : " - 專線小巴";
+                                    let desc;
+                                    if (language == "en") {
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
+                                    } else {
+                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
                                     }
+                                    if (pointListBefore.length > 0) {
+                                        new L.Polyline(pointListBefore, {
+                                            color: '#141414',
+                                            weight: 3,
+                                            opacity: 0.5,
+                                            smoothFactor: 1
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }
+                                    new L.Polyline(pointListRoute, {
+                                        color: 'red',
+                                        weight: 4,
+                                        opacity: 1,
+                                        smoothFactor: 1
+                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    if (pointListAfter.length > 0) {
+                                        new L.Polyline(pointListAfter, {
+                                            color: '#141414',
+                                            weight: 3,
+                                            opacity: 0.5,
+                                            smoothFactor: 1
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }
+                                }
+                                map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
+                            } else {
+                                alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
+                            }
+                        } finally {
+                            calculateTasks.splice(calculateTasks.indexOf(task2Id), 1);
+                        }
+                    });
+                } else if (false && co == "ctb") {
+                    let task2Id = makeId(10);
+                    calculateTasks.push(task2Id);
+                    getJSON("./route_paths_ctb/" + route["route"] + ".json", (err, data) => {
+                        try {
+                            if (err == null) {                
+                                let sections;
+                                if (route["bound"]["ctb"].length > 1) {
+                                    sections = {...data[route["bound"]["ctb"]]["O"], ...data[route["bound"]["ctb"]]["I"]};
+                                } else {
+                                    sections = data[route["bound"]["ctb"]];
+                                }
+                                let stops = route["stops"]["ctb"];
+                                for (let i = 0; i < stops.length - 1; i++) {
+                                    let key = stops[i] + "+" + stops[i + 1];
+                                    let path = sections[key];
+                                    if (path == undefined || path == null) {
+                                        let stop1 = dataSheet["stopList"][stops[i]]["location"];
+                                        let stop2 = dataSheet["stopList"][stops[i + 1]]["location"];
+                                        path = [[stop1["lat"], stop1["lng"]], [stop2["lat"], stop2["lng"]]];
+                                    }
+                                    let pointListBefore = [];
+                                    let pointListRoute = [];
+                                    let pointListAfter = [];
+                                    for (let u = 0; u < path.length; u++) {
+                                        let position = path[u];
+                                        if (i < entry[12]) {
+                                            pointListBefore.push(new L.LatLng(position[0], position[1]));
+                                        } else if (i > entry[13] - 1) {
+                                            pointListAfter.push(new L.LatLng(position[0], position[1]));
+                                        } else {
+                                            pointListRoute.push(new L.LatLng(position[0], position[1]));
+                                        }
+                                    }
+                                    let coStr = language == "en" ? " - CTB" : " - 城巴";
                                     let desc;
                                     if (language == "en") {
                                         desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
@@ -3805,7 +3867,7 @@
                                         }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     }
                                     new L.Polyline(pointListRoute, {
-                                        color: 'red',
+                                        color: 'gold',
                                         weight: 4,
                                         opacity: 1,
                                         smoothFactor: 1
