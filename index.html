@@ -1540,6 +1540,7 @@
                     e.target.openPopup();
                     let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
+                    updateEta();
                 }).on("popupopen", (e) => {
                     updateEta(); 
                 });
@@ -1630,6 +1631,7 @@
                     e.target.openPopup();
                     let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
+                    updateEta();
                 }).on("popupopen", (e) => {
                     updateEta();
                 });
@@ -4115,6 +4117,7 @@
                     e.target.openPopup();
                     let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
+                    updateEta();
                 }).on('popupopen', (e) => {
                     updateEta();
                 });
