@@ -1,10 +1,13 @@
 import concurrent.futures
 import math
+import traceback
+import urllib
 import zlib
 from urllib.request import urlopen, Request
 import json
 import re
 import chardet
+import urllib.parse
 
 
 def get_json(url):
@@ -12,10 +15,11 @@ def get_json(url):
     return json.loads(response.read())
 
 
-def get_text(url):
+def get_text(url, gzip=True):
     req = Request(url)
     req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36')
-    req.add_header('Accept-Encoding', 'gzip')
+    if gzip:
+        req.add_header('Accept-Encoding', 'gzip')
     req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7')
     req.add_header('Connection', 'keep-alive')
     response = urlopen(req)
@@ -361,6 +365,326 @@ def resolve_mtr_bus_data():
     write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\mtr_bus_stop_alias.json", stops_alias_result)
 
 
+def get_ctb_paths(data):
+    result = {}
+    for route_number, route_data in data.items():
+        print(route_number)
+        result[route_number] = {}
+        for bound, bound_data in route_data.items():
+            result[route_number][bound] = {}
+            for variant, variant_data in bound_data["variants"].items():
+                url = ctb_path_url + urllib.parse.quote(variant_data["longId"], safe='/', encoding=None, errors=None)
+                print(url)
+                route_path = get_text(url)
+                positions = []
+                for m in re.finditer(re.compile(r'[0-9.]+,([0-9.]+),([0-9.]+)'), route_path):
+                    positions.append([float(m.group(1)), float(m.group(2))])
+                result[route_number][bound][variant] = positions
+    return result
+
+
+def get_all_ctb_stop_pairs(route_number, bound):
+    result = set()
+    for key, data in data_sheet["routeList"].items():
+        if data["route"] == route_number and "ctb" in data["bound"] and (len(data["bound"]["ctb"]) > 1 or data["bound"]["ctb"] == bound):
+            stops = data["stops"]["ctb"]
+            for i in range(0, len(stops) - 1):
+                result.add(stops[i] + "+" + stops[i + 1])
+    return result
+
+
+def find_trim_closest_section(path, stop_1, stop_2):
+    shortest_distance_1 = -1
+    index_1 = -1
+    for i in range(0, len(path)):
+        point = path[i]
+        distance = haversine_distance(point[0], point[1], stop_1["location"]["lat"], stop_1["location"]["lng"])
+        if shortest_distance_1 < 0 or distance < shortest_distance_1:
+            shortest_distance_1 = distance
+            index_1 = i
+    shortest_distance_2 = -1
+    index_2 = -1
+    for i in range(index_1, len(path)):
+        point = path[i]
+        distance = haversine_distance(point[0], point[1], stop_2["location"]["lat"], stop_2["location"]["lng"])
+        if shortest_distance_2 < 0 or distance < shortest_distance_2:
+            shortest_distance_2 = distance
+            index_2 = i
+    section = []
+    for i in range(index_1, index_2 + 1):
+        section.append(path[i])
+    return section, shortest_distance_1 + shortest_distance_2
+
+
+def find_trim_closest_sections(paths, stop_1, stop_2):
+    shortest_distance = -1
+    result = None
+    for path in paths:
+        section, distance = find_trim_closest_section(path, stop_1, stop_2)
+        if len(section) > 1 and (shortest_distance < 0 or distance < shortest_distance):
+            result = section
+    return result
+
+
+def resolve_write_ctb_paths(data):
+    for route_number, route_data in data.items():
+        print(route_number)
+        result = {}
+        for bound, bound_data in route_data.items():
+            result[bound] = {}
+            stop_pairs = get_all_ctb_stop_pairs(route_number, bound)
+            for stop_pair in stop_pairs:
+                str_parts = stop_pair.split("+")
+                stop_1 = data_sheet["stopList"][str_parts[0]]
+                stop_2 = data_sheet["stopList"][str_parts[1]]
+                positions_list = []
+                for variant, positions in bound_data.items():
+                    positions_list.append(positions)
+                section = find_trim_closest_sections(positions_list, stop_1, stop_2)
+                if section is not None:
+                    result[bound][stop_pair] = section
+        write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_paths_ctb\\" + route_number + ".json", result)
+
+
+def convert_weekday_ranges(input_string):
+    numbers = sorted(map(int, input_string))
+    ranges = []
+    start = end = numbers[0]
+    for i in range(1, len(numbers)):
+        if numbers[i] == end + 1:
+            end = numbers[i]
+        else:
+            if start == end:
+                ranges.append(str(start))
+            elif start + 1 == end:
+                ranges.append(f"{start},{end}")
+            else:
+                ranges.append(f"{start}-{end}")
+            start = end = numbers[i]
+    if start == end:
+        ranges.append(str(start))
+    elif start + 1 == end:
+        ranges.append(f"{start},{end}")
+    else:
+        ranges.append(f"{start}-{end}")
+    return ",".join(ranges)
+
+
+def merge_gmb_timetable(timetable):
+    merged_timetable = {}
+    for i in range(1, 8):
+        weekday = str(i)
+        if weekday in timetable:
+            merged_weekday = weekday
+            entry = timetable[weekday]
+            for u in range(i + 1, 8):
+                weekday_compare = str(u)
+                if weekday_compare in timetable:
+                    entry_compare = timetable[weekday_compare]
+                    if entry == entry_compare:
+                        del timetable[weekday_compare]
+                        merged_weekday += weekday_compare
+            merged_timetable[merged_weekday] = entry
+    for weekday, entry in merged_timetable.items():
+        ranges = convert_weekday_ranges(weekday)
+        if ranges == "1-7":
+            zh = "每天"
+            en = "Daily"
+        else:
+            zh = "星期" + ranges.replace(",", "、").replace("-", "至")
+            for key, value in weekday_map_zh.items():
+                zh = zh.replace(key, value)
+            en = ranges.replace(",", ", ").replace("-", " to ")
+            for key, value in weekday_map_en.items():
+                en = en.replace(key, value)
+        entries = []
+        for a, b in entry.items():
+            entries.append({"period": a, "frequency": b})
+        merged_timetable[weekday] = {"weekday_zh": zh, "weekday_en": en, "entries": entries}
+    final_timetable = []
+    for a, b in merged_timetable.items():
+        final_timetable.append({"weekday": a, "weekday_zh": b["weekday_zh"], "weekday_en": b["weekday_en"], "times": b["entries"]})
+        del b["weekday_zh"]
+        del b["weekday_en"]
+    return final_timetable
+
+
+def write_gmb_data():
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = []
+        for region, route_list in gmb_route_list.items():
+            for route_number in route_list:
+                futures.append(executor.submit(write_gmb_data_0, region=region, route_number=route_number))
+        for future in concurrent.futures.as_completed(futures):
+            pass
+
+
+def write_gmb_data_0(region, route_number):
+    try:
+        print(region + " > " + route_number)
+        data = get_json(gmb_route_data_url.replace("{region}", region).replace("{route}", route_number))["data"]
+        for entry in data:
+            gtfs_id = str(entry["route_id"])
+            result = {"route": route_number, "region": region, "gtfsId": gtfs_id, "bound": {}}
+            for direction_entry in entry["directions"]:
+                bound = "O" if direction_entry["route_seq"] == 1 else "I"
+                timetable = {}
+                for timetable_entry in direction_entry["headways"]:
+                    for i in range(0, 7):
+                        weekday = str(i + 1)
+                        if timetable_entry["weekdays"][i]:
+                            start_time = timetable_entry["start_time"][:5]
+                            end_time = timetable_entry["end_time"][:5]
+                            if start_time == end_time:
+                                times = start_time
+                                frequency = ""
+                            else:
+                                times = start_time + "-" + end_time
+                                frequency = str(timetable_entry["frequency"])
+                                if timetable_entry["frequency_upper"] is not None and timetable_entry["frequency"] != timetable_entry["frequency_upper"]:
+                                    frequency += "-" + str(timetable_entry["frequency_upper"])
+                            if weekday not in timetable:
+                                timetable[weekday] = {}
+                            timetable[weekday][times] = frequency
+                result["bound"][bound] = {"timetable": merge_gmb_timetable(timetable)}
+            write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_data_gmb\\" + gtfs_id + ".json", result)
+    except Exception as e:
+        print(e)
+        print(traceback.format_exc())
+
+
+def write_mtr_bus_timetable():
+    route_entries = [[y[1:len(y) - 1] if y.startswith("\"") else y for y in x.split(",")] for x in mtr_bus_route_list.splitlines()[1:]]
+    for route_entry in route_entries:
+        route_number = route_entry[0]
+        print(route_number)
+        result = {"route": route_number, "bound": {}}
+        data = json.loads(re.search("populateSearchDetailResult_chi\((.*)\);", get_text(mtr_bus_info_url.replace("{route}", route_number), False))[1])[0]
+        for each in ["busServiceTime", "busServiceTimeSecond"]:
+            if each in data and data[each] is not None:
+                for service_time in data[each]:
+                    periods = service_time["firstLastTime"].split("<br>")
+                    for i in range(0, len(periods)):
+                        period = periods[i]
+                        periods[i] = re.sub("(?<![0-9])[0-9]:[0-9]{2}", lambda match: "0" + match[0], period)
+                    frequencies = service_time["frequency"].replace("~", "-").split("<br>")
+                    bound = "O" if service_time["direction"] == "1" else "I"
+                    day_frame_type = service_time["dayFrameType"]
+                    weekday = ""
+                    if day_frame_type == 1:
+                        weekday = "12345"
+                    elif day_frame_type == 2:
+                        weekday = "123456"
+                    elif day_frame_type == 3:
+                        weekday = "6"
+                    elif day_frame_type == 4:
+                        weekday = "7"
+                    ranges = convert_weekday_ranges(weekday)
+                    if ranges == "1-7":
+                        zh = "每天"
+                        en = "Daily"
+                    else:
+                        zh = "星期" + ranges.replace(",", "、").replace("-", "至")
+                        for key, value in weekday_map_zh.items():
+                            zh = zh.replace(key, value)
+                        en = ranges.replace(",", ", ").replace("-", " to ")
+                        for key, value in weekday_map_en.items():
+                            en = en.replace(key, value)
+                    if bound not in result["bound"]:
+                        result["bound"][bound] = {"timetable": []}
+                    times = []
+                    for i in range(0, len(periods)):
+                        times.append({"period": periods[i], "frequency": frequencies[i]})
+                    result["bound"][bound]["timetable"].append({"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": times})
+        write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_data_mtr_bus\\" + route_number + ".json", result)
+
+
+def write_nlb_timetable():
+    for route_entry in nlb_route_list:
+        route_id = route_entry["routeId"]
+        print(route_id)
+        result = {"id": route_id, "route": route_entry["routeNo"], "timetable": []}
+        html_text = "".join(get_text(nlb_info_url.replace("{id}", route_id), False).splitlines())
+        if "本路線只於指定日子提供服務" in html_text:
+            pass
+        elif re.search("(星期.*?)</tbody></table>", html_text):
+            for match in re.finditer("(星期.*?)</tbody></table>", html_text):
+                if re.search("(星期.*)</p>", match[1]):
+                    weekday_str = re.search("(星期.*)</p>", match[1])[1]
+                    school_holiday = "(學校假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str
+                    school_day_only = "(只於上課日服務)" in weekday_str
+                    no_school_day = "(上學日除外)" in weekday_str
+                    public_holiday = "(公眾假期除外)" not in weekday_str and "(星期日及公眾假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str
+                    weekday_str = weekday_str.replace("(上學日除外)", "").replace("(學校假期除外)", "").replace("(只於上課日服務)", "").replace("(公眾假期除外)", "").replace("(星期日及公眾假期除外)", "").replace("(學校假期及公眾假期除外)", "").replace("星期", "").strip()
+                    if weekday_str == "一至五":
+                        weekday = "12345"
+                    elif weekday_str == "一至六":
+                        weekday = "123456"
+                    elif weekday_str == "六":
+                        weekday = "6"
+                    elif weekday_str == "六、日及公眾假期":
+                        weekday = "67"
+                    elif weekday_str == "日及公眾假期":
+                        weekday = "7"
+                    else:
+                        raise Exception("What is weekday " + weekday_str)
+                    periods = []
+                    frequencies = []
+                    for period_match in re.finditer("([0-9]{2}:[0-9]{2} ?- ?[0-9]{2}:[0-9]{2}).*?</td>.*?<td>([0-9]+(?: ?- ?[0-9]+)?)</td>", match[1]):
+                        periods.append(period_match[1])
+                        frequencies.append(period_match[2])
+                    if len(periods) <= 0:
+                        single = []
+                        matches = re.findall("([0-9]{2}:[0-9]{2})", match[1])
+                        if len(matches) < 3:
+                            for i in range(0, len(matches)):
+                                single.append(matches[i])
+                        else:
+                            h1, m1 = (int(x) for x in matches[1].split(":"))
+                            h2, m2 = (int(x) for x in matches[2].split(":"))
+                            if h1 > h2 or (h1 == h2 and m1 > m2):
+                                for i in range(0, len(matches), 2):
+                                    single.append(matches[i])
+                                for i in range(1, len(matches), 2):
+                                    single.append(matches[i])
+                            else:
+                                for i in range(0, len(matches)):
+                                    single.append(matches[i])
+                        periods.append(", ".join(single))
+                        frequencies.append("")
+                    ranges = convert_weekday_ranges(weekday)
+                    if ranges == "1-7":
+                        zh = "每天"
+                        en = "Daily"
+                    else:
+                        zh = "星期" + ranges.replace(",", "、").replace("-", "至")
+                        for key, value in weekday_map_zh.items():
+                            zh = zh.replace(key, value)
+                        en = ranges.replace(",", ", ").replace("-", " to ")
+                        for key, value in weekday_map_en.items():
+                            en = en.replace(key, value)
+                    if not public_holiday and not school_holiday:
+                        zh += " (學校假期及公眾假期除外)"
+                        en += " (Except School & Public Holidays)"
+                    elif not public_holiday:
+                        zh += " (公眾假期除外)"
+                        en += " (Except Public Holidays)"
+                    elif not school_holiday:
+                        zh += " (學校假期除外)"
+                        en += " (Except School Holidays)"
+                    elif school_day_only:
+                        zh += " (只於上課日服務)"
+                        en += " (School Days Only)"
+                    elif no_school_day:
+                        zh += " (上學日除外)"
+                        en += " (Except School Days)"
+                    times = []
+                    for i in range(0, len(periods)):
+                        times.append({"period": periods[i], "frequency": frequencies[i], "school_holiday": school_holiday, "school_day_only": school_day_only, "public_holiday": public_holiday, "no_school_day": no_school_day})
+                    result["timetable"].append({"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": times})
+        write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_data_nlb\\" + route_id + ".json", result)
+
+
 def write_dict_to_file(file, dictionary, indent=4):
     json_object = json.dumps(dictionary, indent=indent)
 
@@ -369,15 +693,23 @@ def write_dict_to_file(file, dictionary, indent=4):
 
 
 if __name__ == '__main__':
+    weekday_map_zh = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '日及公眾假期'}
+    weekday_map_en = {'1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday & Public Holidays'}
     #data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
     #paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
     #kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")
     #ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
     #ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
     #ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
+    #ctb_path_url = "https://mobile.citybus.com.hk/nwp3/getline.php?info="
     #mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
     #mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
     #mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
+    #mtr_bus_info_url = "https://www.mtr.com.hk/ch/customer/services/searchBusRouteDetails.php?routeID={route}"
+    #gmb_route_list = get_json("https://data.etagmb.gov.hk/route/")["data"]["routes"]
+    #gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
+    nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
+    nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
 
     #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
@@ -434,17 +766,28 @@ if __name__ == '__main__':
     #
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange_1.json", data)
 
-    data = get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange.json")
-    inverted_data = {}
-    for key, value in data['gmb'].items():
-        for item in value:
-            route_key = item['route']
-            bound_value = item['bound']
-            if route_key not in inverted_data:
-                inverted_data[route_key] = {}
-            if bound_value not in inverted_data[route_key]:
-                inverted_data[route_key][bound_value] = []
-            inverted_data[route_key][bound_value].append(key)
-    data["kmb"] = inverted_data
+    #data = get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange.json")
+    #inverted_data = {}
+    #for key, value in data['gmb'].items():
+    #    for item in value:
+    #        route_key = item['route']
+    #        bound_value = item['bound']
+    #        if route_key not in inverted_data:
+    #            inverted_data[route_key] = {}
+    #        if bound_value not in inverted_data[route_key]:
+    #            inverted_data[route_key][bound_value] = []
+    #        inverted_data[route_key][bound_value].append(key)
+    #data["kmb"] = inverted_data
+    #
+    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange_1.json", data)
 
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange_1.json", data)
+    #raw_path = get_ctb_paths(get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\ctb_timeable_macro\\ctb_route_ids_test.json"))
+    #resolve_write_ctb_paths(raw_path)
+
+    #write_gmb_data()
+
+    #write_mtr_bus_timetable()
+
+    #print("".join(get_text("https://www.nlb.com.hk/route/detail/63").splitlines()))
+    write_nlb_timetable()
+

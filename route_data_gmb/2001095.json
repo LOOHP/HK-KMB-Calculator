@@ -1,0 +1,69 @@
+{
+    "route": "501C",
+    "region": "NT",
+    "gtfsId": "2001095",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "10:00-16:00",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "16:00-19:00",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "19:00-21:00",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "21:00-23:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "23:00-00:00",
+                            "frequency": "20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "06:30-09:00",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "09:00-16:00",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "16:00-19:00",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "19:00-21:00",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "21:00-23:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "23:00-00:00",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

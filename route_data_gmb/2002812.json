@@ -1,0 +1,42 @@
+{
+    "route": "51A",
+    "region": "HKI",
+    "gtfsId": "2002812",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "05:00-06:00",
+                            "frequency": "10-12"
+                        },
+                        {
+                            "period": "06:00-07:30",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "07:30-10:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "10:00-16:00",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "16:00-20:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "20:00-00:00",
+                            "frequency": "8"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

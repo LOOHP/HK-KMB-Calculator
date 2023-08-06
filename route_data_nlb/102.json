@@ -1,0 +1,51 @@
+{
+    "id": "102",
+    "route": "36",
+    "timetable": [
+        {
+            "weekday": "123456",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d (\u516c\u773e\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Saturday (Except Public Holidays)",
+            "times": [
+                {
+                    "period": "08:20, 10:35, 15:05, 17:20, 20:05",
+                    "frequency": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                }
+            ]
+        },
+        {
+            "weekday": "7",
+            "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+            "weekday_en": "Sunday & Public Holidays",
+            "times": [
+                {
+                    "period": "08:20, 10:35, 15:05, 17:50, 20:05",
+                    "frequency": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        },
+        {
+            "weekday": "123456",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d (\u516c\u773e\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Saturday (Except Public Holidays)",
+            "times": [
+                {
+                    "period": "07:58",
+                    "frequency": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

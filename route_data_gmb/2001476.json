@@ -1,0 +1,45 @@
+{
+    "route": "20T",
+    "region": "NT",
+    "gtfsId": "2001476",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "09:15-09:45",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "13:15-13:45",
+                            "frequency": "30"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "11:30-13:30",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "15:30-17:00",
+                            "frequency": "30"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

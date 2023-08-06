@@ -1059,10 +1059,13 @@
     let ctbStopEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/{stop}/{route}";
     let ctbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/route-stop/CTB/{route}/{bound}";
 
+    let nlbInfoUrl = "https://www.nlb.com.hk/route/detail/{id}";
     let nlbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/nlb/stop.php?action=estimatedArrivals&routeId={route}&stopId={stop}&language={lang}";
 
+    let mtrBusInfoUrl = "https://www.mtr.com.hk/{lang}/customer/services/searchBusRouteDetails.php?routeID={route}";
     let mtrBusRouteEtaUrl = "https://rt.data.gov.hk/v1/transport/mtr/bus/getSchedule";
 
+    let gmbInfoUrl = "https://www.16seats.net/{lang}/gmb/g{region}_{route}.html";
     let gmbStopEtaUrl = "https://data.etagmb.gov.hk/eta/stop/{stop}";
 
     let updatingRouteTasks = [];
@@ -1221,7 +1224,7 @@
                     let isGmb = data["bound"].hasOwnProperty("gmb") && data["stops"]["gmb"].indexOf(nearbyStop["stopId"]) >= 0;
                     if (isKmb || isCtb || isNlb || isMtrBus || isGmb) {
                         let co = isKmb ? "kmb" : (isCtb ? "ctb" : (isNlb ? "nlb" : (isMtrBus ? "mtr-bus" : "gmb")));
-                        let key = data["route"] + "," + data["bound"][co];
+                        let key = data["route"] + "," + (co == "nlb" ? data["nlbId"] : data["bound"][co]);
                         if (nearbyRoutes.hasOwnProperty(key)) {
                             if (nearbyRoutes[key]["stop"]["distance"] > nearbyStop["distance"]) {
                                 nearbyRoutes[key] = {"stop": nearbyStop, "route": data, "co": co};
@@ -1328,7 +1331,7 @@
                 let co = entry["co"];
 
                 let stopId = stop["stopId"];
-                let bound = route["bound"][co];
+                let bound = co == "nlb" ? route["nlbId"] : route["bound"][co];
 
                 if (allNearbyStops.hasOwnProperty(stopId)) {
                     allNearbyStops[stopId].push(route);
@@ -1998,7 +2001,7 @@
                         entry[0].innerHTML = "-";
                     }
 
-                    if (Object.keys(data) == 0) {
+                    if (Object.keys(data) == 0 || !data.hasOwnProperty("estimatedArrivals")) {
                         return;
                     }
                     let buses = data["estimatedArrivals"];
@@ -2437,6 +2440,12 @@
                 if (coA == 2) {
                     return Number(a[1]["nlbId"]) - Number(b[1]["nlbId"]);
                 } else {
+                    if (coA == 4) {
+                        let gtfsDiff = Number(a[1]["gtfsId"]) - Number(b[1]["gtfsId"]);
+                        if (gtfsDiff != 0) {
+                            return gtfsDiff;
+                        }
+                    }
                     let typeDiff = Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]);
                     if (typeDiff == 0 && coA == 1) {
                         return a[1].hasOwnProperty("ctbSpecial") - b[1].hasOwnProperty("ctbSpecial");
@@ -2850,6 +2859,13 @@
                             note = "";
                         }
                         note += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                    } else if (co == "gmb") {
+                        if (note != "-") {
+                            note += " / ";
+                        } else {
+                            note = "";
+                        }
+                        note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                     }
 
                     rowsData.push([routeNumber, startingName, endingName, null, null, null, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
@@ -2977,6 +2993,13 @@
                                                     note0 = "";
                                                 }
                                                 note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                                            } else if (lastCo == "gmb") {
+                                                if (note != "-") {
+                                                    note += " / ";
+                                                } else {
+                                                    note = "";
+                                                }
+                                                note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                                             }
                                             lastFare = fare0;
                                             lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
@@ -3043,6 +3066,13 @@
                                             note0 = "";
                                         }
                                         note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                                    } else if (lastCo == "gmb") {
+                                        if (note != "-") {
+                                            note += " / ";
+                                        } else {
+                                            note = "";
+                                        }
+                                        note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                                     }
 
                                     rowsData[i - 1][6] = note0;
@@ -3094,6 +3124,13 @@
                                                     note0 = "";
                                                 }
                                                 note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                                            } else if (lastCo == "gmb") {
+                                                if (note != "-") {
+                                                    note += " / ";
+                                                } else {
+                                                    note = "";
+                                                }
+                                                note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                                             }
 
                                             rowsData[i - 1][6] = note0;
@@ -3188,6 +3225,13 @@
                                                 note0 = "";
                                             }
                                             note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                                        } else if (lastCo == "gmb") {
+                                            if (note != "-") {
+                                                note += " / ";
+                                            } else {
+                                                note = "";
+                                            }
+                                            note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                                         }
                                         lastFare = fare0;
                                         lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
@@ -3275,6 +3319,13 @@
                                         note0 = "";
                                     }
                                     note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                                } else if (lastCo == "gmb") {
+                                    if (note != "-") {
+                                        note += " / ";
+                                    } else {
+                                        note = "";
+                                    }
+                                    note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                                 }
                                 lastFare = fare0;
                                 lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
@@ -3303,7 +3354,14 @@
                             rowsData.push([routeNumber, interchangeName2, endingName, discount_message, maxChanges, timeLimit, note, fare, route, stopNames, stopDetails, stops, startingStopIndex, endingStopIndex, displayStopNames]);
                         }
                     } else if (co == "gmb") {
-                        let key = route["gtfsId"] + "_" + bound;
+                        if (note != "-") {
+                            note += " / ";
+                        } else {
+                            note = "";
+                        }
+                        note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
+
+                        let key = route["gtfsId"] + "_" + route["bound"]["gmb"];
                         if (lastCo == "kmb" && bbiGmbKmb["gmb"].hasOwnProperty(key)) {
                             let kmbGmbList = bbiGmbKmb["gmb"][key];
                             if (kmbGmbList.filter(e => e["route"] == lastRouteNumber && e["bound"] == lastBound)) {
@@ -3329,6 +3387,13 @@
                                             note0 = "";
                                         }
                                         note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                                    } else if (lastCo == "gmb") {
+                                        if (note != "-") {
+                                            note += " / ";
+                                        } else {
+                                            note = "";
+                                        }
+                                        note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                                     }
 
                                     rowsData[i - 1][6] = note0;
@@ -3383,6 +3448,13 @@
                                     note0 = "";
                                 }
                                 note0 += (language == "en" ? "NLB Two-way Section Fares & Holiday Fares Not Taken Into Account (If Any)" : "未有計算嶼巴雙向分段收費及假日收費(如有)");
+                            } else if (lastCo == "gmb") {
+                                if (note != "-") {
+                                    note += " / ";
+                                } else {
+                                    note = "";
+                                }
+                                note += (language == "en" ? "GMB Two-way Section Fares Not Taken Into Account (If Any)" : "未有計算專線小巴雙向分段收費(如有)");
                             }
                             lastFare = fare0;
                             lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
@@ -3602,47 +3674,49 @@
                                         })) + 1;
 
                                         let isNow = false;
-                                        let timeSections = time.split(",");
+                                        let timeMatch = time;
+                                        if (timeMatch.includes(",")) {
+                                            let timeSections = time.split(",");
+                                            timeMatch = timeSections[0].trim() + "-" + timeSections[timeSections.length - 1].trim();
+                                        }
 
-                                        for (let i = 0; i < timeSections.length && !isNow; i++) {
-                                            let timeRangeStartHour = null;
-                                            let timeRangeStartMinute = null;
-                                            let timeRangeEndHour = null;
-                                            let timeRangeEndMinute = null;
-                                            let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeSections[i]);
-                                            if (matcher != null) {
-                                                timeRangeStartHour = Number(matcher[1]);
-                                                timeRangeStartMinute = Number(matcher[2]);
+                                        let timeRangeStartHour = null;
+                                        let timeRangeStartMinute = null;
+                                        let timeRangeEndHour = null;
+                                        let timeRangeEndMinute = null;
+                                        let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeMatch);
+                                        if (matcher != null) {
+                                            timeRangeStartHour = Number(matcher[1]);
+                                            timeRangeStartMinute = Number(matcher[2]);
 
-                                                if (matcher[3] != undefined) {
-                                                    timeRangeEndHour = Number(matcher[3]);
-                                                    timeRangeEndMinute = Number(matcher[4]);
-                                                } else {
-                                                    timeRangeEndHour = timeRangeStartHour;
-                                                    timeRangeEndMinute = timeRangeStartMinute + 1;
-                                                    if (timeRangeEndMinute >= 60) {
-                                                        timeRangeEndHour = timeRangeEndHour + 1;
-                                                        timeRangeEndMinute = timeRangeEndMinute % 60;
-                                                        if (timeRangeEndHour >= 24) {
-                                                            timeRangeEndHour = timeRangeEndHour % 24;
-                                                        }
+                                            if (matcher[3] != undefined) {
+                                                timeRangeEndHour = Number(matcher[3]);
+                                                timeRangeEndMinute = Number(matcher[4]);
+                                            } else {
+                                                timeRangeEndHour = timeRangeStartHour;
+                                                timeRangeEndMinute = timeRangeStartMinute + 1;
+                                                if (timeRangeEndMinute >= 60) {
+                                                    timeRangeEndHour = timeRangeEndHour + 1;
+                                                    timeRangeEndMinute = timeRangeEndMinute % 60;
+                                                    if (timeRangeEndHour >= 24) {
+                                                        timeRangeEndHour = timeRangeEndHour % 24;
                                                     }
                                                 }
                                             }
+                                        }
 
-                                            if (daysOfWeek.indexOf(weekday) >= 0) {
-                                                if (timeRangeStartHour > timeRangeEndHour) {
-                                                    if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
-                                                        isNow = true;
-                                                    } else if (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute) {
-                                                        isNow = true;
-                                                    } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
-                                                        isNow = true;
-                                                    }
-                                                } else {
-                                                    if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
-                                                        isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute);
-                                                    }
+                                        if (daysOfWeek.indexOf(weekday) >= 0) {
+                                            if (timeRangeStartHour > timeRangeEndHour) {
+                                                if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
+                                                    isNow = true;
+                                                } else if (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute) {
+                                                    isNow = true;
+                                                } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
+                                                    isNow = true;
+                                                }
+                                            } else {
+                                                if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
+                                                    isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute);
                                                 }
                                             }
                                         }
@@ -3728,9 +3802,9 @@
                             if (messages.length > 0) {
                                 let html;
                                 if (language == "en") {
-                                    html = "[Route " + routeNumberDisplay + " (CTB) Announcements]<br> " + messages.join("<br>");
+                                    html = "[Route " + routeNumberDisplay + " Announcements (CTB)]<br> " + messages.join("<br>");
                                 } else {
-                                    html = "[路線" + routeNumberDisplay + "(城巴)特別公告]<br> " + messages.join("<br>");
+                                    html = "[路線" + routeNumberDisplay + "特別公告(城巴)]<br> " + messages.join("<br>");
                                 }
                                 if (document.getElementById('special-announcements').innerHTML == "") {
                                     document.getElementById('special-announcements').style.display = "";
@@ -3751,7 +3825,7 @@
                     calculateTasks.push(task1Id);
                     getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
                         if (err == null) {
-                            let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " (CTB) Timetable") : ("路線" + routeNumberDisplay + "(城巴)時間表");
+                            let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " Timetable (CTB)") : ("路線" + routeNumberDisplay + "時間表(城巴)");
                             let append = 
                                 "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
                                 "<div class=\"columns\">" +
@@ -3767,6 +3841,531 @@
                             document.getElementById("time-table").innerHTML += append;
                         } else {
                             alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                        }
+                        calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
+                    }]);
+                } else if (co == "gmb") {
+                    let resolvedSpecialUrl = "./route_data_gmb/" + route["gtfsId"] + ".json";
+                    let task0Id = makeId(10);
+                    calculateTasks.push(task0Id);
+                    getJSONTasksQueue.push([resolvedSpecialUrl, (err, data) => {
+                        if (err == null) {
+                            let region = data["region"][0].toLowerCase();
+                            let url = gmbInfoUrl.replace("{route}", route["route"].toLowerCase()).replace("{region}", region).replace("{lang}", language == "en" ? "eng" : "chi");
+                            let messages = ["<a href=\"" + url + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
+                            if (messages.length > 0) {
+                                let html;
+                                if (language == "en") {
+                                    html = "[Route " + routeNumberDisplay + " Additional Info (GMB)]<br> " + messages.join("<br>");
+                                } else {
+                                    html = "[路線" + routeNumberDisplay + "詳細資料(專線小巴)]<br> " + messages.join("<br>");
+                                }
+                                if (document.getElementById('special-announcements').innerHTML == "") {
+                                    document.getElementById('special-announcements').style.display = "";
+                                    document.getElementById('special-announcements').innerHTML = html;
+                                } else {
+                                    document.getElementById('special-announcements').innerHTML += "<br><br>" + html
+                                }
+                            }
+                        } else {
+                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                        }
+                        calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
+                    }]);
+
+                    let resolvedTimeTableUrl = "./route_data_gmb/" + route["gtfsId"] + ".json";
+                    let task1Id = makeId(10);
+                    calculateTasks.push(task1Id);
+                    getJSONTasksQueue.push([resolvedTimeTableUrl, (err, data) => {
+                        if (err == null) {
+                            let timeTableData = data["bound"][route["bound"]["gmb"]]["timetable"];
+                            let times = {};
+                            for (let k = 0; k < timeTableData.length; k++) {
+                                let timeEntry = timeTableData[k];
+                                let dayType = timeEntry["weekday"];
+                                let entry = timeEntry["times"];
+                                let dayTypeName = timeEntry["weekday_" + language];
+                                for (let j = 0; j < entry.length; j++) {
+                                    let periodEntry = entry[j];
+                                    let time = periodEntry["period"];
+                                    let frequency = periodEntry["frequency"];
+                                    if (frequency == "") {
+                                        frequency = "-";
+                                    }
+
+                                    let daysOfWeek = dayType.split("").map(Number);
+
+                                    let now = new Date();
+                                    let nowHour = (now.getUTCHours() + 8) % 24;
+                                    let nowMinute = now.getUTCMinutes();
+                                    let weekday = weekdayNames.indexOf(new Date().toLocaleDateString("en-US", {
+                                        timeZone: "Asia/Hong_Kong",
+                                        weekday: "long"
+                                    })) + 1;
+
+                                    let isNow = false;
+                                    let timeMatch = time;
+                                    if (timeMatch.includes(",")) {
+                                        let timeSections = time.split(",");
+                                        timeMatch = timeSections[0].trim() + "-" + timeSections[timeSections.length - 1].trim();
+                                    }
+
+                                    let timeRangeStartHour = null;
+                                    let timeRangeStartMinute = null;
+                                    let timeRangeEndHour = null;
+                                    let timeRangeEndMinute = null;
+                                    let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeMatch);
+                                    if (matcher != null) {
+                                        timeRangeStartHour = Number(matcher[1]);
+                                        timeRangeStartMinute = Number(matcher[2]);
+
+                                        if (matcher[3] != undefined) {
+                                            timeRangeEndHour = Number(matcher[3]);
+                                            timeRangeEndMinute = Number(matcher[4]);
+                                        } else {
+                                            timeRangeEndHour = timeRangeStartHour;
+                                            timeRangeEndMinute = timeRangeStartMinute + 1;
+                                            if (timeRangeEndMinute >= 60) {
+                                                timeRangeEndHour = timeRangeEndHour + 1;
+                                                timeRangeEndMinute = timeRangeEndMinute % 60;
+                                                if (timeRangeEndHour >= 24) {
+                                                    timeRangeEndHour = timeRangeEndHour % 24;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (daysOfWeek.indexOf(weekday) >= 0) {
+                                        if (timeRangeStartHour > timeRangeEndHour) {
+                                            if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
+                                                isNow = true;
+                                            } else if (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute) {
+                                                isNow = true;
+                                            } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
+                                                isNow = true;
+                                            }
+                                        } else {
+                                            if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
+                                                isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute);
+                                            }
+                                        }
+                                    }
+
+                                    if (!times.hasOwnProperty(dayTypeName)) {
+                                        times[dayTypeName] = [];
+                                    }
+                                    times[dayTypeName].push([time, frequency, daysOfWeek, isNow]);
+                                }
+                            }
+
+                            let tables = [];
+                            for (let dayTypeName in times) {
+                                let entries = times[dayTypeName];
+                                let rows = [];
+                                for (let u = 0; u < entries.length; u++) {
+                                    let entry = entries[u];
+                                    let daysOfWeek = entry[2];
+                                    let isNow = entry[3];
+
+                                    let fontWeight = isNow ? "bold" : "normal";
+                                    if (daysOfWeek.length == 0) {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                            "</tr>"
+                                        );
+                                    } else {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                            "</tr>"
+                                        );
+                                    }
+                                }
+                                let table = 
+                                    "<table class=\"table\" style=\"word-break: keep-all;\">" +
+                                        "<tbody>" +
+                                            "<tr>" +
+                                                "<th>" + dayTypeName + "</th>" +
+                                                "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
+                                            "</tr>" + 
+                                            rows.join("") +
+                                        "</tbody>" +
+                                    "</table>";
+
+                                tables.push(table);
+                            }
+
+                            if (tables.length == 0) {
+                                tables.push(language == "en" ? "On specific day only" : "於指定日期服務");
+                            }
+
+                            let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " Timetable (GMB)") : ("路線" + routeNumberDisplay + "時間表(專線小巴)");
+                            let append = 
+                                "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
+                                "<div class=\"columns\">" +
+                                    "<div class=\"column\">" +
+                                        tables.join("</div><div class=\"column\">") +
+                                    "</div>" +
+                                "</div>";
+
+                            let toggleParameter = localStorage["toggle-options"];
+                            if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
+                                document.getElementById('time-table').style.display = "";
+                            }
+                            document.getElementById("time-table").innerHTML += append;
+                        } else {
+                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                        }
+                        calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
+                    }]);
+                } else if (co == "nlb") {
+                    let resolvedSpecialUrl = nlbInfoUrl.replace("{id}", route["nlbId"]);
+                    let task0Id = makeId(10);
+                    calculateTasks.push(task0Id);
+                    getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
+                        if (err == null) {
+                            let messages = ["<a href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
+                            if (messages.length > 0) {
+                                let html;
+                                if (language == "en") {
+                                    html = "[Route " + routeNumberDisplay + " Additional Info (NLB)]<br> " + messages.join("<br>");
+                                } else {
+                                    html = "[路線" + routeNumberDisplay + "詳細資料(嶼巴)]<br> " + messages.join("<br>");
+                                }
+                                if (document.getElementById('special-announcements').innerHTML == "") {
+                                    document.getElementById('special-announcements').style.display = "";
+                                    document.getElementById('special-announcements').innerHTML = html;
+                                } else {
+                                    document.getElementById('special-announcements').innerHTML += "<br><br>" + html
+                                }
+                            }
+                        } else {
+                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                        }
+                        calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
+                    }]);
+
+                    let resolvedTimeTableUrl = "./route_data_nlb/" + route["nlbId"] + ".json";
+                    let task1Id = makeId(10);
+                    calculateTasks.push(task1Id);
+                    getJSONTasksQueue.push([resolvedTimeTableUrl, (err, data) => {
+                        if (err == null) {
+                            let timeTableData = data["timetable"];
+                            let times = {};
+                            for (let k = 0; k < timeTableData.length; k++) {
+                                let timeEntry = timeTableData[k];
+                                let dayType = timeEntry["weekday"];
+                                let entry = timeEntry["times"];
+                                let dayTypeName = timeEntry["weekday_" + language];
+                                for (let j = 0; j < entry.length; j++) {
+                                    let periodEntry = entry[j];
+                                    let time = periodEntry["period"];
+                                    let frequency = periodEntry["frequency"];
+                                    if (frequency == "") {
+                                        frequency = "-";
+                                    }
+
+                                    let daysOfWeek = dayType.split("").map(Number);
+
+                                    let now = new Date();
+                                    let nowHour = (now.getUTCHours() + 8) % 24;
+                                    let nowMinute = now.getUTCMinutes();
+                                    let weekday = weekdayNames.indexOf(new Date().toLocaleDateString("en-US", {
+                                        timeZone: "Asia/Hong_Kong",
+                                        weekday: "long"
+                                    })) + 1;
+
+                                    let isNow = false;
+                                    let timeMatch = time;
+                                    if (timeMatch.includes(",")) {
+                                        let timeSections = time.split(",");
+                                        timeMatch = timeSections[0].trim() + "-" + timeSections[timeSections.length - 1].trim();
+                                    }
+
+                                    let timeRangeStartHour = null;
+                                    let timeRangeStartMinute = null;
+                                    let timeRangeEndHour = null;
+                                    let timeRangeEndMinute = null;
+                                    let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeMatch);
+                                    if (matcher != null) {
+                                        timeRangeStartHour = Number(matcher[1]);
+                                        timeRangeStartMinute = Number(matcher[2]);
+
+                                        if (matcher[3] != undefined) {
+                                            timeRangeEndHour = Number(matcher[3]);
+                                            timeRangeEndMinute = Number(matcher[4]);
+                                        } else {
+                                            timeRangeEndHour = timeRangeStartHour;
+                                            timeRangeEndMinute = timeRangeStartMinute + 1;
+                                            if (timeRangeEndMinute >= 60) {
+                                                timeRangeEndHour = timeRangeEndHour + 1;
+                                                timeRangeEndMinute = timeRangeEndMinute % 60;
+                                                if (timeRangeEndHour >= 24) {
+                                                    timeRangeEndHour = timeRangeEndHour % 24;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (daysOfWeek.indexOf(weekday) >= 0) {
+                                        if (timeRangeStartHour > timeRangeEndHour) {
+                                            if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
+                                                isNow = true;
+                                            } else if (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute) {
+                                                isNow = true;
+                                            } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
+                                                isNow = true;
+                                            }
+                                        } else {
+                                            if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
+                                                isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute);
+                                            }
+                                        }
+                                    }
+
+                                    if (!times.hasOwnProperty(dayTypeName)) {
+                                        times[dayTypeName] = [];
+                                    }
+                                    times[dayTypeName].push([time, frequency, daysOfWeek, isNow]);
+                                }
+                            }
+
+                            let tables = [];
+                            for (let dayTypeName in times) {
+                                let entries = times[dayTypeName];
+                                let rows = [];
+                                for (let u = 0; u < entries.length; u++) {
+                                    let entry = entries[u];
+                                    let daysOfWeek = entry[2];
+                                    let isNow = entry[3];
+
+                                    let fontWeight = isNow ? "bold" : "normal";
+                                    if (daysOfWeek.length == 0) {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                            "</tr>"
+                                        );
+                                    } else {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                            "</tr>"
+                                        );
+                                    }
+                                }
+                                let table = 
+                                    "<table class=\"table\" style=\"word-break: keep-all;\">" +
+                                        "<tbody>" +
+                                            "<tr>" +
+                                                "<th>" + dayTypeName + "</th>" +
+                                                "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
+                                            "</tr>" + 
+                                            rows.join("") +
+                                        "</tbody>" +
+                                    "</table>";
+
+                                tables.push(table);
+                            }
+
+                            if (tables.length == 0) {
+                                tables.push(language == "en" ? "On specific day only" : "於指定日期服務");
+                            }
+
+                            let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " Timetable (NLB)") : ("路線" + routeNumberDisplay + "時間表(嶼巴)");
+                            let append = 
+                                "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
+                                "<div class=\"columns\">" +
+                                    "<div class=\"column\">" +
+                                        tables.join("</div><div class=\"column\">") +
+                                    "</div>" +
+                                "</div>";
+
+                            let toggleParameter = localStorage["toggle-options"];
+                            if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
+                                document.getElementById('time-table').style.display = "";
+                            }
+                            document.getElementById("time-table").innerHTML += append;
+                        } else {
+                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                        }
+                        calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
+                    }]);
+                } else if (co == "mtr-bus") {
+                    let resolvedSpecialUrl = mtrBusInfoUrl.replace("{route}", route["route"]).replace("{lang}", language == "en" ? "en" : "ch");
+                    let task0Id = makeId(10);
+                    calculateTasks.push(task0Id);
+                    getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
+                        if (err == null) {
+                            let messages = ["<a href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
+                            if (messages.length > 0) {
+                                let html;
+                                if (language == "en") {
+                                    html = "[Route " + routeNumberDisplay + " Additional Info (MTR-Bus)]<br> " + messages.join("<br>");
+                                } else {
+                                    html = "[路線" + routeNumberDisplay + "詳細資料(港鐵巴士)]<br> " + messages.join("<br>");
+                                }
+                                if (document.getElementById('special-announcements').innerHTML == "") {
+                                    document.getElementById('special-announcements').style.display = "";
+                                    document.getElementById('special-announcements').innerHTML = html;
+                                } else {
+                                    document.getElementById('special-announcements').innerHTML += "<br><br>" + html
+                                }
+                            }
+                        } else {
+                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                        }
+                        calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
+                    }]);
+
+                    let resolvedTimeTableUrl = "./route_data_mtr_bus/" + route["route"] + ".json";
+                    let task1Id = makeId(10);
+                    calculateTasks.push(task1Id);
+                    getJSONTasksQueue.push([resolvedTimeTableUrl, (err, data) => {
+                        if (err == null) {
+                            let timeTableData = data["bound"][route["bound"]["mtr-bus"]]["timetable"];
+                            let times = {};
+                            for (let k = 0; k < timeTableData.length; k++) {
+                                let timeEntry = timeTableData[k];
+                                let dayType = timeEntry["weekday"];
+                                let entry = timeEntry["times"];
+                                let dayTypeName = timeEntry["weekday_" + language];
+                                for (let j = 0; j < entry.length; j++) {
+                                    let periodEntry = entry[j];
+                                    let time = periodEntry["period"];
+                                    let frequency = periodEntry["frequency"];
+                                    if (frequency == "") {
+                                        frequency = "-";
+                                    }
+
+                                    let daysOfWeek = dayType.split("").map(Number);
+
+                                    let now = new Date();
+                                    let nowHour = (now.getUTCHours() + 8) % 24;
+                                    let nowMinute = now.getUTCMinutes();
+                                    let weekday = weekdayNames.indexOf(new Date().toLocaleDateString("en-US", {
+                                        timeZone: "Asia/Hong_Kong",
+                                        weekday: "long"
+                                    })) + 1;
+
+                                    let isNow = false;
+                                    let timeSections = time.split(",");
+
+                                    for (let i = 0; i < timeSections.length && !isNow; i++) {
+                                        let timeRangeStartHour = null;
+                                        let timeRangeStartMinute = null;
+                                        let timeRangeEndHour = null;
+                                        let timeRangeEndMinute = null;
+                                        let matcher = /\*?([0-9]{2}):([0-9]{2})(?: *- *([0-9]{2}):([0-9]{2}))?/g.exec(timeSections[i]);
+                                        if (matcher != null) {
+                                            timeRangeStartHour = Number(matcher[1]);
+                                            timeRangeStartMinute = Number(matcher[2]);
+
+                                            if (matcher[3] != undefined) {
+                                                timeRangeEndHour = Number(matcher[3]);
+                                                timeRangeEndMinute = Number(matcher[4]);
+                                            } else {
+                                                timeRangeEndHour = timeRangeStartHour;
+                                                timeRangeEndMinute = timeRangeStartMinute + 1;
+                                                if (timeRangeEndMinute >= 60) {
+                                                    timeRangeEndHour = timeRangeEndHour + 1;
+                                                    timeRangeEndMinute = timeRangeEndMinute % 60;
+                                                    if (timeRangeEndHour >= 24) {
+                                                        timeRangeEndHour = timeRangeEndHour % 24;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (daysOfWeek.indexOf(weekday) >= 0) {
+                                            if (timeRangeStartHour > timeRangeEndHour) {
+                                                if (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute) {
+                                                    isNow = true;
+                                                } else if (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute) {
+                                                    isNow = true;
+                                                } else if (nowHour > timeRangeStartHour || nowHour < timeRangeEndHour) {
+                                                    isNow = true;
+                                                }
+                                            } else {
+                                                if (nowHour > timeRangeStartHour || (nowHour == timeRangeStartHour && nowMinute >= timeRangeStartMinute)) {
+                                                    isNow = nowHour < timeRangeEndHour || (nowHour == timeRangeEndHour && nowMinute < timeRangeEndMinute);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (!times.hasOwnProperty(dayTypeName)) {
+                                        times[dayTypeName] = [];
+                                    }
+                                    times[dayTypeName].push([time, frequency, daysOfWeek, isNow]);
+                                }
+                            }
+
+                            let tables = [];
+                            for (let dayTypeName in times) {
+                                let entries = times[dayTypeName];
+                                let rows = [];
+                                for (let u = 0; u < entries.length; u++) {
+                                    let entry = entries[u];
+                                    let daysOfWeek = entry[2];
+                                    let isNow = entry[3];
+
+                                    let fontWeight = isNow ? "bold" : "normal";
+                                    if (daysOfWeek.length == 0) {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                            "</tr>"
+                                        );
+                                    } else {
+                                        rows.push(
+                                            "<tr>" +
+                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                            "</tr>"
+                                        );
+                                    }
+                                }
+                                let table = 
+                                    "<table class=\"table\" style=\"word-break: keep-all;\">" +
+                                        "<tbody>" +
+                                            "<tr>" +
+                                                "<th>" + dayTypeName + "</th>" +
+                                                "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
+                                            "</tr>" + 
+                                            rows.join("") +
+                                        "</tbody>" +
+                                    "</table>";
+
+                                tables.push(table);
+                            }
+
+                            if (tables.length == 0) {
+                                tables.push(language == "en" ? "On specific day only" : "於指定日期服務");
+                            }
+
+                            let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " Timetable (MTR-Bus)") : ("路線" + routeNumberDisplay + "時間表(港鐵巴士)");
+                            let append = 
+                                "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
+                                "<div class=\"columns\">" +
+                                    "<div class=\"column\">" +
+                                        tables.join("</div><div class=\"column\">") +
+                                    "</div>" +
+                                "</div>";
+
+                            let toggleParameter = localStorage["toggle-options"];
+                            if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
+                                document.getElementById('time-table').style.display = "";
+                            }
+                            document.getElementById("time-table").innerHTML += append;
+                        } else {
+                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
