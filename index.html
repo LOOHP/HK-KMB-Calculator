@@ -3498,7 +3498,7 @@
 
             deleteRows(document.getElementById('fare-table'), 1);
 
-            let stopMarkerData = {};
+            let stopMarkerData = new Map();
             let getJSONTasksQueue = [];
 
             let totalFare = 0;
@@ -4388,11 +4388,11 @@
                     } else {
                         stopMarker = [[route["route"]], 3, desc, positionArray, i, u, co, routeNumberDisplay];
                     }
-                    if (stopMarkerData.hasOwnProperty(stopDetails[u][0])) {
-                        stopMarkerData[stopDetails[u][0]][0].push(stopMarker[0][0]);
-                        stopMarkerData[stopDetails[u][0]][2] = stopMarker[2];
+                    if (stopMarkerData.has(stopDetails[u][0])) {
+                        stopMarkerData.get([stopDetails[u][0]][0]).push(stopMarker[0][0]);
+                        stopMarkerData.set([stopDetails[u][0]][2], stopMarker[2]);
                     } else {
-                        stopMarkerData[stopDetails[u][0]] = stopMarker;
+                        stopMarkerData.set([stopDetails[u][0]], stopMarker);
                     }
                 }
 
@@ -4597,8 +4597,8 @@
 
             let etaTables = [];
             let tableKeys = [];
-            for (let key in stopMarkerData) {
-                let stopMarker = stopMarkerData[key];
+            for (let key of stopMarkerData.keys()) {
+                let stopMarker = stopMarkerData.get(key);
                 let routes = stopMarker[0];
                 let stopType = stopMarker[1];
                 let desc = stopMarker[2];
