@@ -40,7 +40,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link rel="stylesheet" href="Control.FullScreen.css" />
-    <script src="Control.FullScreen.js"></script>
+    <script src="./Control.FullScreen.js"></script>
 </head>
 
 <body>
@@ -338,6 +338,19 @@
     };
 
     setInterval(() => {
+        document.querySelectorAll('.eta-table-stop-title').forEach(element => {
+            let targetWidth = element.parentElement.parentElement.parentElement.parentElement.parentElement.offsetWidth - 76.52;
+            let fontSize = element.style.fontSize.replaceAll("px", "");
+            while (fontSize == "" || targetWidth < element.offsetWidth) {
+                if (fontSize == "") {
+                    fontSize = 26;
+                }
+                let newFontSize = Number(fontSize) - 1;
+                element.style.fontSize = newFontSize + "px";
+                fontSize = newFontSize;
+            }
+        });
+
         let collection = document.getElementsByClassName("mobile-dav-item");
         let flag = false;
         let mainElement = null;
@@ -1765,12 +1778,12 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
-                            entry[0].innerHTML = "-";
+                            entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                         }
                     }
 
@@ -1835,17 +1848,17 @@
                                         if (message == "") {
                                             if (elementSeq == 1) {
                                                 if (language == "en") {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                                 } else {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                                 }
                                             } else {
-                                                entry[0].innerHTML = "-";
+                                                entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                             }
                                         } else if (elementSeq == seq) {
-                                            entry[0].innerHTML = message;
+                                            entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>" + message;
                                         } else if (elementSeq > seq) {
-                                            entry[0].innerHTML = "-";
+                                            entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                         }
                                     }
                                 }
@@ -1871,12 +1884,12 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
-                            entry[0].innerHTML = "-";
+                            entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                         }
                     }
 
@@ -1955,17 +1968,17 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                             }
                                         } else {
-                                            entry[0].innerHTML = "-";
+                                            entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                         }
                                     } else if (elementSeq == seq) {
-                                        entry[0].innerHTML = message;
+                                        entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>" + message;
                                     } else if (elementSeq > seq) {
-                                        entry[0].innerHTML = "-";
+                                        entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                     }
                                 }
                             }
@@ -1993,12 +2006,12 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                         }
                     } else {
-                        entry[0].innerHTML = "-";
+                        entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                     }
 
                     if (Object.keys(data) == 0 || !data.hasOwnProperty("estimatedArrivals")) {
@@ -2046,17 +2059,17 @@
                             if (message == "") {
                                 if (elementSeq == 1) {
                                     if (language == "en") {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                     } else {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                     }
                                 } else {
-                                    entry[0].innerHTML = "-";
+                                    entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                 }
                             } else if (elementSeq == seq) {
-                                entry[0].innerHTML = message;
+                                entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>" + message;
                             } else if (elementSeq > seq) {
-                                entry[0].innerHTML = "-";
+                                entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                             }
                         }
                     }
@@ -2081,12 +2094,12 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                         }
                     } else {
-                        entry[0].innerHTML = "-";
+                        entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                     }
 
                     let buses = data["data"];
@@ -2137,17 +2150,17 @@
                                 if (message == "") {
                                     if (elementSeq == 1) {
                                         if (language == "en") {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                         } else {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                         }
                                     } else {
-                                        entry[0].innerHTML = "-";
+                                        entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                     }
                                 } else if (elementSeq == seq) {
-                                    entry[0].innerHTML = message;
+                                    entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>" + message;
                                 } else if (elementSeq > seq) {
-                                    entry[0].innerHTML = "-";
+                                    entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                 }
                             }
                         }
@@ -2172,12 +2185,12 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
-                            entry[0].innerHTML = "-";
+                            entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                         }
                     }
 
@@ -2237,17 +2250,17 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                             }
                                         } else {
-                                            entry[0].innerHTML = "-";
+                                            entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                         }
                                     } else if (elementSeq == seq) {
-                                        entry[0].innerHTML = message;
+                                        entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>" + message;
                                     } else if (elementSeq > seq) {
-                                        entry[0].innerHTML = "-";
+                                        entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                     }
                                 }
                             }
@@ -2271,10 +2284,11 @@
         }
         return false;
     };
-    const matchTwoWaySectionFareStop = (stops, name, invert) => {
+    const matchTwoWaySectionFareStop = (stops, name, invert = false) => {
+        name = name.replaceAll("巿", "市");
         let task = (i) => {
-            let stop = stops[i];
-            if (stop.toUpperCase() === name.toUpperCase()) {
+            let stop = stops[i].replaceAll("巿", "市");
+            if (stop.toUpperCase() == name.toUpperCase()) {
                 return i;
             } else if (stop.toUpperCase().includes(name.toUpperCase())) {
                 return i;
@@ -2315,17 +2329,22 @@
     };
     const checkTwoWaySectionFare = (routeNumber, stops, startingName, endingName) => {
         let routes = regionalTwoWaySectionFare["routes"];
+        let result = null;
+        let fare = -1000;
         for (let i = 0; i < routes.length; i++) {
             let data = routes[i];
             if (data["route_number"] == routeNumber) {
                 let sectionStartIndex = matchTwoWaySectionFareStop(stops, data["start"]);
                 let sectionEndIndex = matchTwoWaySectionFareStop(stops, data["end"], true);
-                if (sectionStartIndex < sectionEndIndex && stops.indexOf(startingName) >= sectionStartIndex && stops.indexOf(endingName) <= sectionEndIndex) {
-                    return [sectionStartIndex, sectionEndIndex, data["fare"]];
+                if (sectionStartIndex >= 0 && sectionEndIndex >= 0 && sectionStartIndex < sectionEndIndex && stops.indexOf(startingName) >= sectionStartIndex && stops.indexOf(endingName) <= sectionEndIndex) {
+                    if (fare <= -999 || fare > data["fare"]) {
+                        result = [sectionStartIndex, sectionEndIndex, data["fare"]];
+                        fare = data["fare"];
+                    }
                 }
             }
         }
-        return null;
+        return result;
     };
     const stopIdsToNames = (stops, lang = "zh") => {
         let names = [];
@@ -3742,15 +3761,15 @@
                                     if (daysOfWeek.length == 0) {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">-</th>" +
                                             "</tr>"
                                         );
                                     } else {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">" + entry[1] + "</th>" +
                                             "</tr>"
                                         );
                                     }
@@ -3785,8 +3804,10 @@
                             let toggleParameter = localStorage["toggle-options"];
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
+                                document.getElementById("time-table").innerHTML = append;
+                            } else {
+                                document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
-                            document.getElementById("time-table").innerHTML += append;
                         } else {
                             alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
@@ -3830,15 +3851,17 @@
                                 "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\">" + tableTableTitle + "</h5>" + 
                                 "<div class=\"columns\">" +
                                     "<div class=\"column\">" +
-                                        "<iframe src=\"" + resolvedTimeTableUrl + "\" width=\"100%\" height=\"400px\"></iframe>" +
+                                        "<iframe src=\"" + resolvedTimeTableUrl + "\" width=\"100%\" height=\"350px\"></iframe>" +
                                     "</div>" +
                                 "</div>";
 
                             let toggleParameter = localStorage["toggle-options"];
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
+                                document.getElementById("time-table").innerHTML = append;
+                            } else {
+                                document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
-                            document.getElementById("time-table").innerHTML += append;
                         } else {
                             alert("Unable to get response from ./dummy.txt. (Is it down?)");
                         }
@@ -3971,15 +3994,15 @@
                                     if (daysOfWeek.length == 0) {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">-</th>" +
                                             "</tr>"
                                         );
                                     } else {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">" + entry[1] + "</th>" +
                                             "</tr>"
                                         );
                                     }
@@ -4014,8 +4037,10 @@
                             let toggleParameter = localStorage["toggle-options"];
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
+                                document.getElementById("time-table").innerHTML = append;
+                            } else {
+                                document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
-                            document.getElementById("time-table").innerHTML += append;
                         } else {
                             alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
@@ -4146,15 +4171,15 @@
                                     if (daysOfWeek.length == 0) {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">-</th>" +
                                             "</tr>"
                                         );
                                     } else {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">" + entry[1] + "</th>" +
                                             "</tr>"
                                         );
                                     }
@@ -4189,8 +4214,10 @@
                             let toggleParameter = localStorage["toggle-options"];
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
+                                document.getElementById("time-table").innerHTML = append;
+                            } else {
+                                document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
-                            document.getElementById("time-table").innerHTML += append;
                         } else {
                             alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
@@ -4319,15 +4346,15 @@
                                     if (daysOfWeek.length == 0) {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">-</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">-</th>" +
                                             "</tr>"
                                         );
                                     } else {
                                         rows.push(
                                             "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + ";\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; text-align: right;\">" + entry[1] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">" + entry[1] + "</th>" +
                                             "</tr>"
                                         );
                                     }
@@ -4362,8 +4389,10 @@
                             let toggleParameter = localStorage["toggle-options"];
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
+                                document.getElementById("time-table").innerHTML = append;
+                            } else {
+                                document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
-                            document.getElementById("time-table").innerHTML += append;
                         } else {
                             alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
@@ -4629,7 +4658,7 @@
                             "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                 "<tbody>" +
                                     "<tr>" +
-                                        "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
+                                        "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
                                         "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,25,0\"></th>" +
@@ -4665,7 +4694,7 @@
                                 "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                     "<tbody>" +
                                         "<tr>" +
-                                            "<th style=\"text-align: center;\"><b style=\"font-size: " + (language == "en" ? "20" : "25") + "px;\">" + rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]] + "</b></th>" +
+                                            "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]] + "</b></th>" +
                                         "</tr>" + 
                                         "<tr>" +
                                             "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",1,25,0\"></th>" +
@@ -4735,9 +4764,9 @@
             }
 
             let append = 
-                "<div class=\"columns\">" +
-                    "<div class=\"column\">" +
-                        etaTables.join("</div><div class=\"column\">") +
+                "<div class=\"columns is-multiline is-centered\">" +
+                    "<div class=\"column\" style=\"min-width: 350px;\">" +
+                        etaTables.join("</div><div class=\"column\" style=\"min-width: 350px;\">") +
                     "</div>" +
                 "</div>";
 
