@@ -340,12 +340,10 @@
     setInterval(() => {
         document.querySelectorAll('.eta-table-stop-title').forEach(element => {
             let targetWidth = element.parentElement.parentElement.parentElement.parentElement.parentElement.offsetWidth - 76.52;
-            let fontSize = element.style.fontSize.replaceAll("px", "");
-            while (fontSize == "" || targetWidth < element.offsetWidth) {
-                if (fontSize == "") {
-                    fontSize = 26;
-                }
-                let newFontSize = Number(fontSize) - 1;
+            element.style.fontSize = "26px";
+            let fontSize = 26;
+            while (targetWidth < element.offsetWidth) {
+                let newFontSize = fontSize - 1;
                 element.style.fontSize = newFontSize + "px";
                 fontSize = newFontSize;
             }
@@ -3560,7 +3558,7 @@
                     "$" + entry[7].toFixed(1));
 
                 let mobileText = 
-                "<table class=\"table\">" +
+                "<table class=\"table\" style=\"width: 100%;\">" +
                     "<tbody>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Route" : "路線") + "</th>" +
@@ -4765,8 +4763,8 @@
 
             let append = 
                 "<div class=\"columns is-multiline is-centered\">" +
-                    "<div class=\"column\" style=\"min-width: 350px;\">" +
-                        etaTables.join("</div><div class=\"column\" style=\"min-width: 350px;\">") +
+                    "<div class=\"column\" style=\"min-width: min(350px, 75vw);\">" +
+                        etaTables.join("</div><div class=\"column\" style=\"min-width: min(350px, 75vw);\">") +
                     "</div>" +
                 "</div>";
 
