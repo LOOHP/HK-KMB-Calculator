@@ -1084,7 +1084,7 @@
             for (let i = 0; i < bbiNameDataList.length; i++) {
                 let bbiNameData = bbiNameDataList[i];
                 let url = kmbBbiMapUrl.replace("{id}", bbiId);
-                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" class=\"bbi-map-href\">🔄$1</a>";
+                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" class=\"bbi-map-href\">$1</a>";
                 let patternZh = new RegExp("(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
                 let patternEn = new RegExp("(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
