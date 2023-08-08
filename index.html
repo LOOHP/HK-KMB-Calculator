@@ -489,25 +489,67 @@
 
     let activeRouteMarker = new L.FeatureGroup();
 
+
+    let googleAttribution = '&copy; <a href="https://www.google.com/intl/en_uk/help/terms_maps/">Map data ©' + new Date().getUTCFullYear() + ' Google</a>';
+
+    let googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+        maxZoom: 22,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: googleAttribution
+    });
+
+    let googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+        maxZoom: 22,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: googleAttribution
+    });
+
+    let googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+        maxZoom: 22,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: googleAttribution
+    });
+
+    let googleTerrain = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
+        maxZoom: 22,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: googleAttribution
+    });
+
+    let openStreet = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    });
+
     let map = L.map('map', {
-        layers: [lines, markers, nearbyStopsMarker],
+        layers: [googleStreets, lines, markers, nearbyStopsMarker],
         fullscreenControl: true,
         fullscreenControlOptions: {
             position: 'topleft'
         }
     }).setView([22.3622764, 114.1508789], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+
+    let layerControl = L.control.layers({}, {}).addTo(map);
+
     map.addLayer(gps);
     map.addLayer(pin);
+
+    let googleStreetsName = language == "en" ? "Streets" : "街道";
+    let openStreetName = language == "en" ? "Streets (OpenStreetMap)" : "街道(OpenStreetMap)";
+    let googleHybridName = language == "en" ? "Satellite Streets" : "衛星(街道)";
+    let googleSatName = language == "en" ? "Satellite" : "衛星";
+    let googleTerrainName = language == "en" ? "Terrain Streets" : "地形(街道)";
+
+    layerControl.addBaseLayer(googleStreets, googleStreetsName);
+    layerControl.addBaseLayer(openStreet, openStreetName);
+    layerControl.addBaseLayer(googleHybrid, googleHybridName);
+    layerControl.addBaseLayer(googleSat, googleSatName);
+    layerControl.addBaseLayer(googleTerrain, googleTerrainName);
 
     let linesName = language == "en" ? "Routes" : "路線";
     let markersName = language == "en" ? "Bus Stops" : "巴士站";
     let nearbyLinesName = language == "en" ? "Nearby Routes (KMB)" : "鄰近路線(九巴)";
     let nearbyStopsMarkerName = language == "en" ? "Nearby Bus Stops" : "鄰近巴士站";
-
-    let layerControl = L.control.layers({}, {}).addTo(map);
 
     layerControl.addOverlay(lines, linesName);
     layerControl.addOverlay(markers, markersName);
