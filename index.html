@@ -1071,12 +1071,15 @@
     const kmbBbiMapUrl = "https://app.kmb.hk/app1933/BBI/map/{id}.jpg";
     const applyBbiStopHref = (stopName) => {
         for (let bbiId in bbiStopId) {
-            let bbiNameData = bbiStopId[bbiId];
-            let url = kmbBbiMapUrl.replace("{id}", bbiId);
-            let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" style=\"color: #C11E2F;\" class=\"bbi-map-href\">$1</a>";
-            let patternZh = new RegExp("(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
-            let patternEn = new RegExp("(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
-            stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
+            let bbiNameDataList = bbiStopId[bbiId];
+            for (let i = 0; i < bbiNameDataList.length; i++) {
+                let bbiNameData = bbiNameDataList[i];
+                let url = kmbBbiMapUrl.replace("{id}", bbiId);
+                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" style=\"color: #C11E2F;\" class=\"bbi-map-href\">$1</a>";
+                let patternZh = new RegExp("(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
+                let patternEn = new RegExp("(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
+                stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
+            }
         }
         document.querySelectorAll('.bbi-map-href').forEach(element => {
             element.addEventListener('click', bbiStopHandler);
