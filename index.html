@@ -1002,6 +1002,16 @@
         }
     });
 
+    let bbiStopId = null;
+    const bbiStopIdUrl = "./kmb_bbi_stop_id.json";
+    getJSON(bbiStopIdUrl, (err, data) => {
+        if (err == null) {
+            bbiStopId = data;
+        } else {
+            alert("Unable to get response from " + bbiStopIdUrl + ". (Is it down?)");
+        }
+    });
+
     let bbiGmbKmb = null;
     const bbiGmbKmbUrl = "./kmb_gmb_interchange.json";
     getJSON(bbiGmbKmbUrl, (err, data) => {
@@ -1057,6 +1067,23 @@
         }
     }
     waitLoadParameters(() => dataSheet != null && kmbRouteList != null && nlbRouteList != null && mtrBusRouteList != null && busRouteListOptions != "" && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
+
+    const kmbBbiMapUrl = "https://app.kmb.hk/app1933/BBI/map/{id}.jpg";
+    const applyBbiStopHref = (stopName) => {
+        for (let bbiId in bbiStopId) {
+            let bbiNameData = bbiStopId[bbiId];
+            let url = kmbBbiMapUrl.replace("{id}", bbiId);
+            let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" style=\"color: #C11E2F;\" class=\"bbi-map-href\">$1</a>";
+            let patternZh = new RegExp("(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
+            let patternEn = new RegExp("(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
+            stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
+        }
+        document.querySelectorAll('.bbi-map-href').forEach(element => {
+            element.addEventListener('click', bbiStopHandler);
+        });
+        return stopName;
+    };
+    const bbiStopHandler = (event) => event.stopPropagation();
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
@@ -1409,7 +1436,7 @@
 
                     table += 
                         "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + stopName + "</span></th>" +
+                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + applyBbiStopHref(stopName) + "</span></th>" +
                             "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
                         "</tr>";
                 }
@@ -1527,7 +1554,7 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + stopName + "</b></div><br>";
+                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + applyBbiStopHref(stopName) + "</b></div><br>";
 
                 let table =
                     "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
@@ -1618,7 +1645,7 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + stopName + "</b></div><br>";
+                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + applyBbiStopHref(stopName) + "</b></div><br>";
 
                 let table =
                     "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
@@ -3549,12 +3576,12 @@
 
                 addRows(document.getElementById('fare-table'), 
                     routeText, 
-                    entry[14][entry[12]], 
-                    entry[14][entry[13]], 
+                    applyBbiStopHref(entry[14][entry[12]]), 
+                    applyBbiStopHref(entry[14][entry[13]]), 
                     entry[3] == null ? "-" : entry[3], 
                     entry[4] == null ? "-" : entry[4], 
                     entry[5] == null ? "-" : entry[5] + (language == "en" ? " Min." : "分鐘"), 
-                    remark, 
+                    applyBbiStopHref(remark), 
                     "$" + entry[7].toFixed(1));
 
                 let mobileText = 
@@ -3566,11 +3593,11 @@
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Suggested Boarding Stop" : "建議上車巴士站") + "</th>" +
-                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[14][entry[12]] + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + applyBbiStopHref(entry[14][entry[12]]) + "</th>" +
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Suggested Alighting Stop" : "建議落車巴士站") + "</th>" +
-                            "<th style=\"text-align: right; font-weight: normal;\">" + entry[14][entry[13]] + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + applyBbiStopHref(entry[14][entry[13]]) + "</th>" +
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Discount" : "優惠") + "</th>" +
@@ -3586,7 +3613,7 @@
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Remarks" : "備註") + "</th>" +
-                            "<th style=\"text-align: right; font-weight: normal;\">" + remark + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + applyBbiStopHref(remark) + "</th>" +
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Fare" : "車費") + "</th>" +
@@ -4656,7 +4683,7 @@
                             "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                 "<tbody>" +
                                     "<tr>" +
-                                        "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]] + "</b></th>" +
+                                        "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + applyBbiStopHref(rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]]) + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
                                         "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,25,0\"></th>" +
@@ -4692,7 +4719,7 @@
                                 "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                     "<tbody>" +
                                         "<tr>" +
-                                            "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]] + "</b></th>" +
+                                            "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + applyBbiStopHref(rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]]) + "</b></th>" +
                                         "</tr>" + 
                                         "<tr>" +
                                             "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",1,25,0\"></th>" +

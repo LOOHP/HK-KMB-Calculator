@@ -1,0 +1,126 @@
+{
+	"0028": {
+        "zh": "上水",
+        "en": "Sheung Shui"
+    },
+	"0007": {
+        "zh": "粉嶺站",
+        "en": "Fanling Station"
+    },
+	"0027": {
+        "zh": "華明",
+        "en": "Wah Ming"
+    },
+	"0009": {
+        "zh": "粉嶺公路",
+        "en": "Fanling Highway"
+    },
+	"0030": {
+        "zh": "廣福道",
+        "en": "Kwong Fuk Road"
+    },
+	"0006": {
+        "zh": "石門",
+        "en": "Shek Mun"
+    },
+	"0025": {
+        "zh": "大欖隧道",
+        "en": "Tai Lam Tunnel"
+    },
+	"0018": {
+        "zh": "大圍",
+        "en": "Tai Wai"
+    },
+	"0013": {
+        "zh": "城門隧道",
+        "en": "Shing Mun Tunnels"
+    },
+	"0023": {
+        "zh": "青沙公路",
+        "en": "Tsing Sha Highway"
+    },
+	"0024": {
+        "zh": "大老山隧道",
+        "en": "Tate's Cairn Tunnel"
+    },
+	"0020": {
+        "zh": "寶田",
+        "en": "Po Tin"
+    },
+	"0001": {
+        "zh": "黃大仙",
+        "en": "Wong Tai Sin"
+    },
+	"0005": {
+        "zh": "屯門公路",
+        "en": "Tuen Mun Road"
+    },
+	"0021": {
+        "zh": "屯赤隧道",
+        "en": "Tuen Mun Chek Lap Kok Tunnel"
+    },
+	"0016": {
+        "zh": "彩虹",
+        "en": "Choi Hung"
+    },
+	"0029": {
+        "zh": "寶達",
+        "en": "Po Tat"
+    },
+	"0017": {
+        "zh": "牛池灣",
+        "en": "Ngau Chi Wan"
+    },
+	"0011": {
+        "zh": "大窩口",
+        "en": "Tai Wo Hau"
+    },
+	"0003": {
+        "zh": "美孚",
+        "en": "Mei Foo"
+    },
+	"0031": {
+        "zh": "青衣",
+        "en": "Tsing Yi"
+    },
+	"0022": {
+        "zh": "青嶼幹線",
+        "en": "Lantau Link"
+    },
+	"0008": {
+        "zh": "九龍城",
+        "en": "Kowloon City"
+    },
+	"0026": {
+        "zh": "觀塘",
+        "en": "Kwun Tong"
+    },
+	"0004": {
+        "zh": "將軍澳隧道",
+        "en": "Tseung Kwan O Tunnel"
+    },
+	"0002": {
+        "zh": "啟德隧道",
+        "en": "Kai Tak Tunnel"
+    },
+	"0012": {
+        "zh": "將藍隧道",
+        "en": "Tseung Kwan O - Lam Tin Tunnel"
+    },
+	"0019": {
+        "zh": "尖沙咀",
+        "en": "Tsim Sha Tsui"
+    },
+	"0015": {
+        "zh": "西隧",
+        "en": "Western Harbour Tunnel"
+    },
+	"0014": {
+        "zh": "紅隧",
+        "en": "Cross Harbour Tunnel"
+    },
+	"0010": {
+        "zh": "東隧",
+        "en": "Eastern Harbour Tunnel"
+    }
+}
