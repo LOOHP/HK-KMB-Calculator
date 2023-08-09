@@ -34,7 +34,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="#E41F31">
     <meta name="apple-mobile-web-app-title" content="九巴轉乘車費計算機 KMB BBI Calculator">
 
-    <title id="title">九巴轉乘車費計算機 KMB BBI Calculator</title>
+    <title id="title">九巴轉乘車費計算機 HK KMB BBI Calculator</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -45,6 +45,9 @@
 
 <body>
     <style>
+        body:has(.requires-no-scroll) {
+            position: fixed;
+        }
         .loading {
             z-index: 999999;
             width: 100%;
@@ -209,6 +212,12 @@
         .bbi-map-href:hover {
             color: #FF001D !important;
         }
+        .data-source {
+            color: #111770 !important;
+        }
+        .data-source a:hover {
+            color: #222ED8 !important;
+        }
     </style>
 
     <section class="hero is-danger is-fullheight">
@@ -254,13 +263,13 @@
                         <a class="anchor" id="anchor-route-input"></a>
                         <div id="route-input"></div><br>
                         <div class="box">
-                            <button class="button is-success" id="route-add" disabled>➕</button>
-                            <button class="button" id="route-clear" style="background-color: #ad0e0e;">🗑️</button>
+                            <button class="button is-success" id="route-add" title="新增路線" disabled>➕</button>
+                            <button class="button" id="route-clear" title="清除所有路線" style="background-color: #ad0e0e;">🗑️</button>
                             <br><br>
-                            <button class="button is-info" id="toggle-eta">⏳</button>
-                            <button class="button is-info" id="toggle-timetable">🕒</button>
-                            <button class="button is-info" id="toggle-map">🗺️</button>
-                            <button class="button is-link" id="share-link">🔗</button>
+                            <button class="button is-info" id="toggle-eta" title="顯示/隱藏預計到達時間">⏳</button>
+                            <button class="button is-info" id="toggle-timetable" title="顯示/隱藏時間表">🕒</button>
+                            <button class="button is-info" id="toggle-map" title="顯示/隱藏地圖">🗺️</button>
+                            <button class="button is-link" id="share-link" title="獲取分享鏈結">🔗</button>
                         </div>
                         <a class="anchor" id="anchor-fare-table-mobile"></a>
                         <div style="overflow: auto; width: 100%;" class="desk">
@@ -303,10 +312,10 @@
                             <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
                             <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
                             <div id="nearby-routes-content" style="display: none; max-height: min(600px, 80vh); overflow: auto;"></div>
-                            <button class="button is-dark" id="toggle-gps" style="position: absolute; top: 10px; right: 63px;" disabled>🧭</button>
-                            <button class="button" id="pin-remove" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;" disabled>❌</button>
+                            <button class="button is-dark" id="toggle-gps" title="打開/關閉定位位置" style="position: absolute; top: 10px; right: 63px;" disabled>🧭</button>
+                            <button class="button" id="pin-remove" title="清除位置圖釘" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;" disabled>❌</button>
                         </div>
-                        <h5 class="title is-5" style="color: #111770; font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://www.citybus.com.hk/" target="_blank">citybus.com.hk</a>, <a href="https://www.nlb.com.hk/" target="_blank">nlb.com.hk</a>, <a href="https://www.mtr.com.hk/" target="_blank">mtr.com.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
+                        <h5 class="title is-5 data-source" style="font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://www.citybus.com.hk/" target="_blank">citybus.com.hk</a>, <a href="https://www.nlb.com.hk/" target="_blank">nlb.com.hk</a>, <a href="https://www.mtr.com.hk/" target="_blank">mtr.com.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
                     </div>
                 </div>
             </div>
@@ -452,8 +461,15 @@
         document.getElementById('language').href = "./?language=zh";
 
         document.getElementById('language').innerHTML = "中文";
-        document.getElementById('title-label').innerHTML = "KMB Bus Interchange (BBI) Fare Calculator";
+        document.getElementById('title-label').innerHTML = "HK KMB Bus Interchange (BBI) Fare Calculator";
         document.getElementById('subtitle-label').innerHTML = "Contains CityBus / New Lantao Bus / MTR Bus / GMB routes partial interchange data";
+
+        document.getElementById('route-add').title = "Add New Route";
+        document.getElementById('route-clear').title = "Clear All Routes";
+        document.getElementById('toggle-eta').title = "Show/Hide ETA";
+        document.getElementById('toggle-timetable').title = "Show/Hide Timetable";
+        document.getElementById('toggle-map').title = "Show/Hide Interactive Map";
+        document.getElementById('share-link').title = "Get Share Link";
 
         document.getElementById('route-label').innerHTML = "Route";
         document.getElementById('board-label').innerHTML = "Suggested Boarding Stop";
@@ -478,6 +494,9 @@
         document.getElementById('nav-anchor-special-announcements').innerHTML = "Special Ann.";
         document.getElementById('nav-anchor-map').innerHTML = "Route Map";
         document.getElementById('nav-anchor-nearby-routes').innerHTML = "Nearby Routes";
+
+        document.getElementById('toggle-gps').title = "Enable/Disable GPS";
+        document.getElementById('pin-remove').title = "Clear Dropped Pin";
     }
 
     let lines = new L.FeatureGroup();
@@ -1114,6 +1133,7 @@
             document.getElementById("toggle-gps").disabled = false;
             document.getElementById("route-add").disabled = false;
             document.getElementById("loading-overlay").style.display = "none";
+            document.getElementById("loading-overlay").style.display = "none";
             ready = true;
         }
     }
@@ -1126,7 +1146,8 @@
             for (let i = 0; i < bbiNameDataList.length; i++) {
                 let bbiNameData = bbiNameDataList[i];
                 let url = kmbBbiMapUrl.replace("{id}", bbiId);
-                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" class=\"bbi-map-href\">$1</a>";
+                let tooltip = language == "en" ? "Open BBI location map" : "展示轉車站位置圖";
+                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\">$1</a>";
                 let patternZh = new RegExp("(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
                 let patternEn = new RegExp("(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
@@ -4876,39 +4897,39 @@
     let routeInputHtml = 
         "<div class=\"box has-background-grey-lighter route-input-element\" id=\"route-%s-element\" style=\"position: relative;\">" + 
             "<div class=\"columns\">" + 
-                "<div class=\"column\">" + 
+                "<div class=\"column is-one-quarter\">" + 
                     "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\" id=\"route-%s-title\">第%c程路線</h5>" + 
                     "<input list=\"bus-routes\" class=\"input\" type=\"text\" autocomplete=\"off\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes(); calculate();\">" + 
                     "<datalist id=\"bus-routes\">{BusRouteOptions}</datalist>" +
                 "</div>" + 
-                "<div class=\"column\">" + 
+                "<div class=\"column is-one-quarter\">" + 
                     "<h5 class=\"title is-5 has-text-black\">路線類型</h5>" + 
-                    "<div class=\"select\">" + 
+                    "<div class=\"select\" style=\"width: 100%;\">" + 
                         "<select id=\"route-%s-type\" onChange=\"updateStartingStops(); calculate();\" style=\"width: 100%;\">" + 
                             "<option id=\"route-%s-type-n\" value=\"-1\">請選擇路線類型</option>" + 
                         "</select>" + 
                     "</div>" + 
                 "</div>" + 
-                "<div class=\"column\">" + 
+                "<div class=\"column is-one-quarter\">" + 
                     "<h5 class=\"title is-5 has-text-black\">上車巴士站</h5>" + 
-                    "<div class=\"select\">" + 
+                    "<div class=\"select\" style=\"width: 100%;\">" + 
                         "<select id=\"route-%s-start\" onChange=\"updateDestinationStops(); calculate();\" style=\"width: 100%;\">" + 
                             "<option id=\"route-%s-start-n\" value=\"-1\">請選擇上車巴士站</option>" + 
                         "</select>" + 
                     "</div>" + 
                 "</div>" + 
-                "<div class=\"column\">" + 
+                "<div class=\"column is-one-quarter\">" + 
                     "<h5 class=\"title is-5 has-text-black\">落車巴士站</h5>" + 
-                    "<div class=\"select\">" + 
+                    "<div class=\"select\" style=\"width: 100%;\">" + 
                         "<select id=\"route-%s-end\" onChange=\"calculate();\" style=\"width: 100%;\">" + 
                             "<option id=\"route-%s-end-n\" value=\"-1\">請選擇落車巴士站</option>" + 
                         "</select>" + 
                     "</div>" + 
                 "</div>" + 
             "</div>" + 
-            "<button class=\"button\" id=\"route-%s-remove\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px; background-color: #fac7c3;\">❌</button>" +
-            "<button class=\"button\" id=\"route-%s-up\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\">⬆️</button>" +
-            "<button class=\"button\" id=\"route-%s-down\" onClick=\"let index = %s; moveDown(index);\">⬇️</button>" +
+            "<button class=\"button\" id=\"route-%s-remove\" title=\"清除路線\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px; background-color: #fac7c3;\">❌</button>" +
+            "<button class=\"button\" id=\"route-%s-up\" title=\"向上移動\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\">⬆️</button>" +
+            "<button class=\"button\" id=\"route-%s-down\" title=\"向下移動\" onClick=\"let index = %s; moveDown(index);\">⬇️</button>" +
         "</div>";
     if (language == "en") {
         routeInputHtml = routeInputHtml
@@ -4919,7 +4940,10 @@
                 .replace("上車巴士站", "Boarding Stop")
                 .replace("請選擇上車巴士站", "Please Select Boarding Stop")
                 .replace("落車巴士站", "Alighting Stop")
-                .replace("請選擇落車巴士站", "Please Select Alighting Stop");
+                .replace("請選擇落車巴士站", "Please Select Alighting Stop")
+                .replace("清除路線", "Remove Route")
+                .replace("向上移動", "Move Upwards")
+                .replace("向下移動", "Move Downwards");
     }
 
     const moveUp = (leg) => {
@@ -5068,7 +5092,11 @@
         }
     };
     const routeClear = () => {
-        window.location.href = getShareLinkWith("");
+        let collection = [...document.getElementsByClassName("route-input-element")];
+        for (let i = 0; i < collection.length; i++) {
+            collection[i].remove();
+        }
+        routeAdd();
     };
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
