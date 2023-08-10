@@ -1234,6 +1234,51 @@
             if (!loadUrlParameters()) {
                 routeAdd();
             }
+
+            let firstClockRun = true;
+            setInterval(() => {
+                let now = new Date();
+                let monthOption = language == "en" ? "numeric" : "long";
+                let date = now.toLocaleString(language == "en" ? "en-UK" : "zh-HK", {
+                    timeZone: "Asia/Hong_Kong", 
+                    year: 'numeric', 
+                    month: monthOption, 
+                    day: 'numeric'
+                });
+                let weekday = now.toLocaleString(language + "-HK", {
+                    timeZone: "Asia/Hong_Kong", 
+                    weekday: 'long'
+                });
+                let time = now.toLocaleTimeString("en-UK", {
+                    timeZone: "Asia/Hong_Kong",
+                    hour: '2-digit', 
+                    minute:'2-digit',
+                    second: '2-digit'
+                });
+                let timezone = language == "en" ? "HKT" : "香港時間";
+
+                let holidayFormatted = new Date().toLocaleString("en-ZA", {timeZone: "Asia/Hong_Kong", year: 'numeric', month: 'numeric', day: 'numeric'}).replaceAll("/", "");
+                let weekdayFormatted = new Date().toLocaleString("en-US", {timeZone: "Asia/Hong_Kong", weekday: 'long'});
+                let isPublicHoliday = weekdayFormatted == "Sunday" || dataSheet["holidays"].indexOf(holidayFormatted) >= 0;
+                let publicHoliday = language == "en" ? "(Public Holiday)" : "(公眾假期)"; 
+
+                let complete;
+                if (language == "en") {
+                    complete = date + " " + weekday + "<br>" + time + " " + timezone;
+                } else {
+                    complete = timezone + " " + date + "<br>" + weekday + " " + time;
+                }
+                if (isPublicHoliday) {
+                    complete += " " + (language == "en" ? "(Public Holiday)" : "(公眾假期)");
+                }
+
+                document.getElementById("map-clock").innerHTML = complete;
+                if (firstClockRun) {
+                    document.getElementById("map-clock-container").style.display = "";
+                    firstClockRun = false;
+                }
+            }, 500);
+
             document.getElementById("toggle-gps").disabled = false;
             document.getElementById("route-add").disabled = false;
             document.getElementById("loading-overlay").style.display = "none";
@@ -1242,6 +1287,26 @@
         }
     }
     waitLoadParameters(() => dataSheet != null && kmbRouteList != null && nlbRouteList != null && mtrBusRouteList != null && busRouteListOptions != "" && bbiF1 != null && bbiB1 != null && regionalTwoWaySectionFare != null);
+
+    document.getElementById("map-clock").addEventListener('mouseover', e => {
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+    });
+    document.getElementById("map-clock").addEventListener('touchstart', e => {
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+    });
+    document.getElementById("map-clock").addEventListener('mouseout', e => {
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
+    });
+    document.getElementById("map-clock").addEventListener('touchend', e => {
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
+    });
+    document.getElementById("map-clock").addEventListener('click', e => {
+        e.stopPropagation();
+    });
 
     const kmbBbiMapUrl = "https://app.kmb.hk/app1933/BBI/map/{id}.jpg";
     const applyBbiStopHref = (stopName) => {
@@ -1263,68 +1328,6 @@
         return stopName;
     };
     const bbiStopHandler = (event) => event.stopPropagation();
-
-    let firstClockRun = true;
-    setInterval(() => {
-        let now = new Date();
-        let monthOption = language == "en" ? "numeric" : "long";
-        let date = now.toLocaleString(language == "en" ? "en-UK" : "zh-HK", {
-            timeZone: "Asia/Hong_Kong", 
-            year: 'numeric', 
-            month: monthOption, 
-            day: 'numeric'
-        });
-        let weekday = now.toLocaleString(language + "-HK", {
-            timeZone: "Asia/Hong_Kong", 
-            weekday: 'long'
-        });
-        let time = now.toLocaleTimeString("en-UK", {
-            timeZone: "Asia/Hong_Kong",
-            hour: '2-digit', 
-            minute:'2-digit',
-            second: '2-digit'
-        });
-        let timezone = language == "en" ? "HKT" : "香港時間";
-
-        let holidayFormatted = new Date().toLocaleString("en-ZA", {timeZone: "Asia/Hong_Kong", year: 'numeric', month: 'numeric', day: 'numeric'}).replaceAll("/", "");
-        let isPublicHoliday = weekday == "Sunday" || dataSheet["holidays"].indexOf(holidayFormatted) >= 0;
-        let publicHoliday = language == "en" ? "(Public Holiday)" : "(公眾假期)"; 
-
-        let complete;
-        if (language == "en") {
-            complete = date + " " + weekday + "<br>" + time + " " + timezone;
-        } else {
-            complete = timezone + " " + date + "<br>" + weekday + " " + time;
-        }
-        if (isPublicHoliday) {
-            complete += " " + (language == "en" ? "(Public Holiday)" : "(公眾假期)");
-        }
-
-        document.getElementById("map-clock").innerHTML = complete;
-        if (firstClockRun) {
-            document.getElementById("map-clock-container").style.display = "";
-            firstClockRun = false;
-        }
-    }, 500);
-    document.getElementById("map-clock").addEventListener('mouseover', e => {
-        map.dragging.disable();
-        map.doubleClickZoom.disable();
-    });
-    document.getElementById("map-clock").addEventListener('touchstart', e => {
-        map.dragging.disable();
-        map.doubleClickZoom.disable();
-    });
-    document.getElementById("map-clock").addEventListener('mouseout', e => {
-        map.dragging.enable();
-        map.doubleClickZoom.enable();
-    });
-    document.getElementById("map-clock").addEventListener('touchend', e => {
-        map.dragging.enable();
-        map.doubleClickZoom.enable();
-    });
-    document.getElementById("map-clock").addEventListener('click', e => {
-        e.stopPropagation();
-    });
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
