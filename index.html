@@ -144,9 +144,15 @@
         }
         .div-mobile-max-width {
         }
+        .map {
+            height: 75vh;
+        }
         @media screen and (max-width : 1920px) {
             .div-only-mobile {
                 display: none;
+            }
+            .leaflet-popup-content p {
+                font-size: 17px;
             }
         }
         @media screen and (max-width : 906px) {
@@ -158,6 +164,24 @@
             }
             .div-mobile-max-width {
                 width: 100%;
+            }
+            .map {
+                height: 80vh;
+            }
+            .leaflet-popup-content {
+                overflow: hidden;
+            }
+            .leaflet-popup-content p {
+                margin: 0 0;
+            }
+            .leaflet-popup-content a.leaflet-popup-close-button {
+                display: none;
+            }
+            .mobile-map-action-disable {
+                max-height: 25vh !important;
+            }
+            .leaflet-popup-content p {
+                font-size: 15px;
             }
         }
         .leaflet-control-layers {
@@ -217,6 +241,10 @@
         }
         .data-source a:hover {
             color: #222ED8 !important;
+        }
+        .map-mobile-popup p {
+            margin-bottom: 10px;
+            font-size: 17px;
         }
     </style>
 
@@ -305,7 +333,18 @@
                         <a class="anchor" id="anchor-special-announcements"></a>
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
                         <a class="anchor" id="anchor-map"></a>
-                        <div id="map" style="color: black; height: 75vh;"></div>
+                        <div class="map" id="map" style="color: black; position: relative;">
+                            <div id="map-mobile-popup-container" style="display: none; max-height: 35%;">
+                                <div id="map-mobile-popup-leaflet-div" class="leaflet-bottom leaflet-left div-only-mobile" style="width: 97%; z-index: 1100;">
+                                    <div class="leaflet-control-layers leaflet-control" style="width: 100%; text-align: center;">
+                                        <div class="box map-mobile-popup" id="map-mobile-popup"></div>
+                                    </div>
+                                    <a id="map-mobile-popup-close" class="leaflet-popup-close-button" role="button" aria-label="Close popup" href="#close" style="z-index: 901; top: 2px; right: -7px; pointer-events: auto;">
+                                        <span aria-hidden="true">×</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                         <br>
                         <a class="anchor" id="anchor-nearby-routes"></a>
                         <div class="box has-background-grey-lighter" id="nearby-routes" style="font-weight: bold; position: relative;">
@@ -509,7 +548,7 @@
     let activeRouteMarker = new L.FeatureGroup();
 
 
-    let googleAttribution = '&copy; <a href="https://www.google.com/intl/en_uk/help/terms_maps/">Map data ©' + new Date().getUTCFullYear() + ' Google</a>';
+    let googleAttribution = '<a href="https://www.google.com/intl/en_uk/help/terms_maps/">Map data &copy;' + new Date().getUTCFullYear() + ' Google</a>';
 
     let googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
         maxZoom: 22,
@@ -625,14 +664,38 @@
         shadowSize: [20, 20]
     });
 
+    const isPopupMobile = () => {
+        return getComputedStyle(document.getElementById('map-mobile-popup-leaflet-div')).display != "none";
+    };
+
+    let style = document.createElement("style");
+    document.head.appendChild(style);
+    let stylesheet = style.sheet;
+
     let isClicked = false;
     let openPopups = [];
     map.on('popupopen', (evt) => {
         let popup = evt.popup;
         openPopups.push(popup);
+        document.getElementById("map-mobile-popup-container").style.display = "";
+        document.getElementById("map-mobile-popup").innerHTML = popup.getContent();
+        if (isPopupMobile()) {
+            const f = () => {
+                let height = document.querySelector('.leaflet-popup-content').querySelector('p').offsetHeight;
+                if (stylesheet.cssRules.length > 0) {
+                    stylesheet.deleteRule(0);
+                }
+                stylesheet.insertRule("@media screen and (max-width : 906px) {.leaflet-popup-content {height: " + height + "px;}}", 0);
+            };
+            f();
+            setTimeout(f, 500);
+        }
     });
     map.on('popupclose', (evt) => {
         isClicked = false;
+        document.getElementById("map-mobile-popup-container").style.display = "none";
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
         let popup = evt.popup;
         setTimeout(() => {
             let index = openPopups.indexOf(popup);
@@ -645,6 +708,24 @@
         isClicked = false;
     });
 
+    document.getElementById("map-mobile-popup-leaflet-div").addEventListener('touchstart', e => {
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+    });
+    document.getElementById("map-mobile-popup-leaflet-div").addEventListener('touchend', e => {
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
+    });
+    document.getElementById("map-mobile-popup-leaflet-div").addEventListener('click', e => {
+        e.stopPropagation();
+    });
+    document.getElementById("map-mobile-popup-close").addEventListener('click', e => {
+        map.closePopup();
+    });
+    window.addEventListener('resize', e => {
+        map.closePopup();
+    }, true);
+
     let gpsMarker = null;
     let gpsWatchID = null;
     const getLocation = () => {
@@ -656,7 +737,7 @@
         if (gpsMarker == null) {
             document.getElementById("pin-remove").disabled = true;
 
-            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "<b>Your Location</b>" : "<b>你的位置</b>").on("mouseover", e => {if (!isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "<p style=\"font-weight: bold;\">Your Location</p>" : "<p style=\"font-weight: bold;\">你的位置</p>").on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
             droppedPin = null;
             pin.clearLayers();
             map.flyTo(new L.LatLng(position.coords.latitude, position.coords.longitude), Math.max(17, map.getZoom()), {"duration": 1});
@@ -1565,7 +1646,7 @@
                                         weight: 2,
                                         opacity: 0.7,
                                         smoothFactor: 0.00001
-                                    }).addTo(nearbyLines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(nearbyLines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                 }
                             } else {
                                 alert("Unable to get response from ./route_paths/" + routeNumber + ".json. (Is it down?)");
@@ -1629,10 +1710,10 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">[" + title + "] " + applyBbiStopHref(stopName) + "</b></div><br>";
+                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">[" + title + "] " + applyBbiStopHref(stopName) + "</p></div><br>";
 
                 let table =
-                    "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
+                    "<div class=\"disable-scrollbars mobile-map-action-disable map-route-eta-table\" style=\"max-height: 400px; overflow-y: scroll;\">" +
                         "<table>" +
                             "<tbody>" +
                                 routesInfo.join("") +
@@ -1644,7 +1725,7 @@
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: orangeIcon}).addTo(nearbyStopsMarker).bindPopup(info + table, {maxWidth: popUpWidth})
                 .on("mouseover", e => {
-                    if (!isClicked) {
+                    if (!isPopupMobile() && !isClicked) {
                         e.target.openPopup();
                     }
                 }).on("mouseout", e => {
@@ -1654,7 +1735,7 @@
                 }).on("click", e => {
                     isClicked = true; 
                     e.target.openPopup();
-                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200);
+                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                     updateEta();
                 }).on("popupopen", (e) => {
@@ -1720,7 +1801,7 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><b style=\"font-size: 15px;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + applyBbiStopHref(stopName) + "</b></div><br>";
+                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + applyBbiStopHref(stopName) + "</p></div><br>";
 
                 let table =
                     "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
@@ -1735,7 +1816,7 @@
                 let location = stop["location"];
                 L.marker([location["lat"], location["lng"]], {icon: blackIcon}).addTo(nearbyLines).bindPopup(info + table, {maxWidth: popUpWidth})
                 .on("mouseover", e => {
-                    if (!isClicked) {
+                    if (!isPopupMobile() && !isClicked) {
                         e.target.openPopup();
                     }
                 }).on("mouseout", e => {
@@ -1745,7 +1826,7 @@
                 }).on("click", e => {
                     isClicked = true; 
                     e.target.openPopup();
-                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200);
+                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                     updateEta();
                 }).on("popupopen", (e) => {
@@ -4518,10 +4599,10 @@
                         stopMarker = [[route["route"]], 3, desc, positionArray, i, u, co, routeNumberDisplay];
                     }
                     if (stopMarkerData.has(stopDetails[u][0])) {
-                        stopMarkerData.get([stopDetails[u][0]][0]).push(stopMarker[0][0]);
-                        stopMarkerData.set([stopDetails[u][0]][2], stopMarker[2]);
+                        stopMarkerData.get(stopDetails[u][0])[0].push(stopMarker[0][0]);
+                        stopMarkerData.get(stopDetails[u][0])[2] = stopMarker[2];
                     } else {
-                        stopMarkerData.set([stopDetails[u][0]], stopMarker);
+                        stopMarkerData.set(stopDetails[u][0], stopMarker);
                     }
                 }
 
@@ -4562,21 +4643,21 @@
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     }
                                     new L.Polyline(pointListRoute, {
                                         color: 'red',
                                         weight: 4,
                                         opacity: 1,
                                         smoothFactor: 1
-                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     if (pointListAfter.length > 0) {
                                         new L.Polyline(pointListAfter, {
                                             color: '#141414',
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     }
                                 }
                                 map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
@@ -4634,21 +4715,21 @@
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     }
                                     new L.Polyline(pointListRoute, {
                                         color: 'gold',
                                         weight: 4,
                                         opacity: 1,
                                         smoothFactor: 1
-                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     if (pointListAfter.length > 0) {
                                         new L.Polyline(pointListAfter, {
                                             color: '#141414',
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                     }
                                 }
                                 map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
@@ -4702,21 +4783,21 @@
                             weight: 3,
                             opacity: 0.5,
                             smoothFactor: 1
-                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                     }
                     new L.Polyline(pointListRoute, {
                         color: color,
                         weight: 4,
                         opacity: 1,
                         smoothFactor: 1
-                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                     if (pointListAfter.length > 0) {
                         new L.Polyline(pointListAfter, {
                             color: '#141414',
                             weight: 3,
                             opacity: 0.5,
                             smoothFactor: 1
-                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                     }
                     map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
                 }
@@ -4842,7 +4923,7 @@
 
                 let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170})
                 .on("mouseover", e => {
-                    if (!isClicked) {
+                    if (!isPopupMobile() && !isClicked) {
                         e.target.openPopup();
                     }
                 }).on("mouseout", e => {
@@ -4852,7 +4933,7 @@
                 }).on("click", e => {
                     isClicked = true; 
                     e.target.openPopup();
-                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200);
+                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                     updateEta();
                 }).on('popupopen', (e) => {
