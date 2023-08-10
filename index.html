@@ -335,6 +335,11 @@
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
                         <a class="anchor" id="anchor-map"></a>
                         <div class="map" id="map" style="color: black; position: relative;">
+                            <div id="map-clock-container" class="leaflet-top leaflet-left" style="z-index: 1100; left: 42px; display: none;">
+                                <div class="leaflet-control-layers leaflet-control">
+                                    <p style="color: black; padding: 1px 3px 0px 3px; text-align: left; vertical-align: middle;" id="map-clock"></p>
+                                </div>
+                            </div>
                             <div id="map-mobile-popup-container" style="display: none; max-height: 35%;">
                                 <div id="map-mobile-popup-leaflet-div" class="leaflet-bottom leaflet-left div-only-mobile" style="width: 97%; z-index: 1100;">
                                     <div class="leaflet-control-layers leaflet-control" style="width: 100%; text-align: center;">
@@ -395,6 +400,27 @@
         return Math.min(percentageHeightInView, percentageWidthInView);
     };
 
+    const weekdayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    const getUrlParameter = (sParam) => {
+        let sPageURL = window.location.search.substring(1);
+        let sURLVariables = sPageURL.split('&');
+        let sParameterName;
+        for (let i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+        return null;
+    };
+
+    let language = getUrlParameter("language");
+    if (language == null) {
+        language = "zh"
+    }
+
     setInterval(() => {
         document.querySelectorAll('.eta-table-stop-title').forEach(element => {
             let targetWidth = element.parentElement.parentElement.parentElement.parentElement.parentElement.offsetWidth - 76.52;
@@ -435,22 +461,6 @@
         }
         document.getElementById("mobile-bottom-padding").style.paddingBottom = document.getElementById("mobile-bottom").offsetHeight + "px";
     }, 100);
-
-    const weekdayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-    const getUrlParameter = (sParam) => {
-        let sPageURL = window.location.search.substring(1);
-        let sURLVariables = sPageURL.split('&');
-        let sParameterName;
-        for (let i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-            }
-        }
-        return null;
-    };
 
     const getJSON = (url, callback, retry = true) => {
         let xhr = new XMLHttpRequest();
@@ -493,10 +503,6 @@
         xhr.send(JSON.stringify(body));
     };
 
-    let language = getUrlParameter("language");
-    if (language == null) {
-        language = "zh"
-    }
     if (language == "en") {
         document.getElementById('language').href = "./?language=zh";
 
@@ -1257,6 +1263,68 @@
         return stopName;
     };
     const bbiStopHandler = (event) => event.stopPropagation();
+
+    let firstClockRun = true;
+    setInterval(() => {
+        let now = new Date();
+        let monthOption = language == "en" ? "numeric" : "long";
+        let date = now.toLocaleString(language == "en" ? "en-UK" : "zh-HK", {
+            timeZone: "Asia/Hong_Kong", 
+            year: 'numeric', 
+            month: monthOption, 
+            day: 'numeric'
+        });
+        let weekday = now.toLocaleString(language + "-HK", {
+            timeZone: "Asia/Hong_Kong", 
+            weekday: 'long'
+        });
+        let time = now.toLocaleTimeString("en-UK", {
+            timeZone: "Asia/Hong_Kong",
+            hour: '2-digit', 
+            minute:'2-digit',
+            second: '2-digit'
+        });
+        let timezone = language == "en" ? "HKT" : "香港時間";
+
+        let holidayFormatted = new Date().toLocaleString("en-ZA", {timeZone: "Asia/Hong_Kong", year: 'numeric', month: 'numeric', day: 'numeric'}).replaceAll("/", "");
+        let isPublicHoliday = weekday == "Sunday" || dataSheet["holidays"].indexOf(holidayFormatted) >= 0;
+        let publicHoliday = language == "en" ? "(Public Holiday)" : "(公眾假期)"; 
+
+        let complete;
+        if (language == "en") {
+            complete = date + " " + weekday + "<br>" + time + " " + timezone;
+        } else {
+            complete = timezone + " " + date + "<br>" + weekday + " " + time;
+        }
+        if (isPublicHoliday) {
+            complete += " " + (language == "en" ? "(Public Holiday)" : "(公眾假期)");
+        }
+
+        document.getElementById("map-clock").innerHTML = complete;
+        if (firstClockRun) {
+            document.getElementById("map-clock-container").style.display = "";
+            firstClockRun = false;
+        }
+    }, 500);
+    document.getElementById("map-clock").addEventListener('mouseover', e => {
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+    });
+    document.getElementById("map-clock").addEventListener('touchstart', e => {
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+    });
+    document.getElementById("map-clock").addEventListener('mouseout', e => {
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
+    });
+    document.getElementById("map-clock").addEventListener('touchend', e => {
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
+    });
+    document.getElementById("map-clock").addEventListener('click', e => {
+        e.stopPropagation();
+    });
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
