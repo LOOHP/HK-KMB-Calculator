@@ -1876,46 +1876,73 @@
         window.location.href = link;
     };
 
+    let openedLayerSelector = false;
+    setInterval(() => {
+        if (document.querySelector(".leaflet-control-layers-expanded")) {
+            openedLayerSelector = true;
+        } else if (openedLayerSelector) {
+            setTimeout(() => {
+                openedLayerSelector = false;
+            }, 700);
+        }
+    }, 200);
+
+    let _dblClickTimer = null;
     let droppedPin = null;
     const onMapClick = (e) => {
-        if (dataSheet == null) {
+        if (_dblClickTimer !== null) {
             return;
         }
-        if (gpsMarker != null) {
-            return;
-        }
-        if (openPopups.length > 0) {
-            return;
-        }
-        if (droppedPin == null) {
-            document.getElementById("pin-remove").disabled = false;
-            droppedPin = new L.marker(e.latlng, {draggable:'true'}).on('click', (e) => {
-                map.panTo(e.latlng, {"duration": 1})
-            });
-            pin.addLayer(droppedPin);
-            droppedPin.on('dragend', (event) => {
-                droppedPin = event.target;
-                let position = droppedPin.getLatLng();
-                droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
-                map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
-                updateNearestRoutes(position.lat, position.lng);
+        _dblClickTimer = setTimeout(() => {
+            try {
+                if (openedLayerSelector) {
+                    return;
+                }
+                if (dataSheet == null) {
+                    return;
+                }
+                if (gpsMarker != null) {
+                    return;
+                }
+                if (openPopups.length > 0) {
+                    return;
+                }
+                if (droppedPin == null) {
+                    document.getElementById("pin-remove").disabled = false;
+                    droppedPin = new L.marker(e.latlng, {draggable:'true'}).on('click', (e) => {
+                        map.panTo(e.latlng, {"duration": 1})
+                    });
+                    pin.addLayer(droppedPin);
+                    droppedPin.on('dragend', (event) => {
+                        droppedPin = event.target;
+                        let position = droppedPin.getLatLng();
+                        droppedPin.setLatLng(new L.LatLng(position.lat, position.lng), {draggable:'true'});
+                        map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
+                        updateNearestRoutes(position.lat, position.lng);
+
+                        let shareLink = getShareLink();
+                        window.history.replaceState(null, null, shareLink);
+                        document.getElementById('language').href = getShareLink(true);
+                    });
+                } else {
+                    droppedPin.setLatLng(e.latlng, {draggable:'true'});
+                    let position = droppedPin.getLatLng();
+                    map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
+                }
+                updateNearestRoutes(e.latlng.lat, e.latlng.lng);
 
                 let shareLink = getShareLink();
                 window.history.replaceState(null, null, shareLink);
                 document.getElementById('language').href = getShareLink(true);
-            });
-        } else {
-            droppedPin.setLatLng(e.latlng, {draggable:'true'});
-            let position = droppedPin.getLatLng();
-            map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
-        }
-        updateNearestRoutes(e.latlng.lat, e.latlng.lng);
-
-        let shareLink = getShareLink();
-        window.history.replaceState(null, null, shareLink);
-        document.getElementById('language').href = getShareLink(true);
+            } finally {
+                _dblClickTimer = null;
+            }
+        }, 500);
     };
-    map.on('click', onMapClick);
+    map.on('click', onMapClick).on('dblclick', (e) => {
+        clearTimeout(_dblClickTimer);
+        _dblClickTimer = null;
+    });
 
     const updateEta = () => {
         let collection = document.getElementsByClassName("eta-update");
