@@ -41,6 +41,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link rel="stylesheet" href="Control.FullScreen.css" />
     <script src="./Control.FullScreen.js"></script>
+    <script src="./L.TileLayer.NoGap.js"></script>
 </head>
 
 <body>
@@ -547,7 +548,6 @@
 
     let activeRouteMarker = new L.FeatureGroup();
 
-
     let googleAttribution = '<a href="https://www.google.com/intl/en_uk/help/terms_maps/">Map data &copy;' + new Date().getUTCFullYear() + ' Google</a>';
 
     let googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
@@ -556,7 +556,19 @@
         attribution: googleAttribution
     });
 
+    let googleStreetsTraffic = L.tileLayer('http://{s}.google.com/vt/lyrs=m@221097413,traffic&x={x}&y={y}&z={z}',{
+        maxZoom: 22,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: googleAttribution
+    });
+
     let googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+        maxZoom: 22,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: googleAttribution
+    });
+
+    let googleHybridTraffic = L.tileLayer('http://{s}.google.com/vt/lyrs=s@221097413,traffic,h&x={x}&y={y}&z={z}',{
         maxZoom: 22,
         subdomains:['mt0','mt1','mt2','mt3'],
         attribution: googleAttribution
@@ -584,7 +596,8 @@
         fullscreenControl: true,
         fullscreenControlOptions: {
             position: 'topleft'
-        }
+        },
+        zoomSnap: 0.1,
     }).setView([22.3622764, 114.1508789], 11);
 
     let layerControl = L.control.layers({}, {}).addTo(map);
@@ -593,14 +606,18 @@
     map.addLayer(pin);
 
     let googleStreetsName = language == "en" ? "Streets" : "街道";
+    let googleStreetsTrafficName = language == "en" ? "Streets (Traffic)" : "街道(路況)";
     let openStreetName = language == "en" ? "Streets (OpenStreetMap)" : "街道(OpenStreetMap)";
     let googleHybridName = language == "en" ? "Satellite Streets" : "衛星(街道)";
+    let googleHybridTrafficName = language == "en" ? "Satellite Traffic" : "衛星(路況)";
     let googleSatName = language == "en" ? "Satellite" : "衛星";
     let googleTerrainName = language == "en" ? "Terrain Streets" : "地形(街道)";
 
     layerControl.addBaseLayer(googleStreets, googleStreetsName);
     layerControl.addBaseLayer(openStreet, openStreetName);
+    layerControl.addBaseLayer(googleStreetsTraffic, googleStreetsTrafficName);
     layerControl.addBaseLayer(googleHybrid, googleHybridName);
+    layerControl.addBaseLayer(googleHybridTraffic, googleHybridTrafficName);
     layerControl.addBaseLayer(googleSat, googleSatName);
     layerControl.addBaseLayer(googleTerrain, googleTerrainName);
 
