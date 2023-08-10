@@ -3814,6 +3814,7 @@
             let getJSONTasksQueue = [];
 
             let totalFare = 0;
+            let nanInFare = false;
             for (let i = 0; i < rowsData.length; i++) {
                 let entry = rowsData[i];
                 let co = entry[8]["bound"].hasOwnProperty("kmb") ? "kmb" : (entry[8]["bound"].hasOwnProperty("ctb") ? "ctb" : (entry[8]["bound"].hasOwnProperty("nlb") ? "nlb" : (entry[8]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
@@ -3850,7 +3851,7 @@
                     entry[4] == null ? "-" : entry[4], 
                     entry[5] == null ? "-" : entry[5] + (language == "en" ? " Min." : "分鐘"), 
                     applyBbiStopHref(remark), 
-                    "$" + entry[7].toFixed(1));
+                    isNaN(entry[7]) ? ("<span style=\"font-style: italic;\">" + (language == "en" ? "*Not Available" : "*未能提供") + "</span>") : ("<span style=\"text-align: right; display: block;\">$" + entry[7].toFixed(1)) + "</span>");
 
                 let mobileText = 
                 "<table class=\"table\" style=\"width: 100%;\">" +
@@ -3885,13 +3886,17 @@
                         "</tr>" +
                         "<tr>" +
                             "<th>" + (language == "en" ? "Fare" : "車費") + "</th>" +
-                            "<th style=\"text-align: right; font-weight: normal;\">" + "$" + entry[7].toFixed(1) + "</th>" +
+                            "<th style=\"text-align: right; font-weight: normal;\">" + (isNaN(entry[7]) ? ("<span style=\"font-style: italic;\">" + (language == "en" ? "*Not Available" : "*未能提供") + "</span>") : ("<span style=\"text-align: right; display: block;\">$" + entry[7].toFixed(1)) + "</span>") + "</th>" +
                         "</tr>" +
                     "</tbody>" +
                 "</table>";
                 document.getElementById('fare-table-mobile').innerHTML += mobileText;
 
-                totalFare += entry[7];
+                if (isNaN(entry[7])) {
+                    nanInFare = true;
+                } else {
+                    totalFare += entry[7];
+                }
 
                 let route = entry[8];
 
@@ -5069,7 +5074,7 @@
 
             map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
 
-            document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + ")";
+            document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + (nanInFare ? "*" : "") + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + (nanInFare ? "*" : "") + ")";
 
             updateEta();
 
