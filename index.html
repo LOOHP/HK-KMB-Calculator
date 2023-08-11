@@ -39,9 +39,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <link rel="stylesheet" href="Control.FullScreen.css" />
+    <link rel="stylesheet" href="./Control.FullScreen.css" />
     <script src="./Control.FullScreen.js"></script>
     <script src="./L.TileLayer.NoGap.js"></script>
+    <link rel="stylesheet" href="./bus_route_keyboard.css" />
+    <script src="./bus_route_keyboard.js"></script>
 </head>
 
 <body>
@@ -155,6 +157,9 @@
             .leaflet-popup-content p {
                 font-size: 17px;
             }
+            .bottom-mobile-div {
+                width: initial;
+            }
         }
         @media screen and (max-width : 906px) {
             .desk {
@@ -183,6 +188,9 @@
             }
             .leaflet-popup-content p {
                 font-size: 15px;
+            }
+            .bottom-mobile-div {
+                width: 100%;
             }
         }
         .leaflet-control-layers {
@@ -249,7 +257,7 @@
         }
     </style>
 
-    <section class="hero is-danger is-fullheight">
+    <section id="main-section" class="hero is-danger is-fullheight">
         <nav class="navbar">
             <div class="container">
                 <div class="navbar-brand">
@@ -365,17 +373,19 @@
                 </div>
             </div>
         </div>
-        <div class="div-only-mobile">
-            <div class="mobile-navbar unselectable" id="mobile-bottom">
-                <a id="nav-anchor-route-input" onclick="jumpToAnchor('#anchor-route-input');" class="mobile-dav-item active" disabled>路線輸入</a>
-                <a id="nav-anchor-fare-table-mobile" onclick="jumpToAnchor('#anchor-fare-table-mobile');" class="mobile-dav-item">轉乘數據</a>
-                <a id="nav-anchor-eta-table" onclick="jumpToAnchor('#anchor-eta-table');" class="mobile-dav-item">預計到達</a>
-                <a id="nav-anchor-time-table" onclick="jumpToAnchor('#anchor-time-table');" class="mobile-dav-item">時間表</a>
-                <a id="nav-anchor-special-announcements" onclick="jumpToAnchor('#anchor-special-announcements');" class="mobile-dav-item">特別公告</a>
-                <a id="nav-anchor-map" onclick="jumpToAnchor('#anchor-map');" class="mobile-dav-item">地圖</a>
-                <a id="nav-anchor-nearby-routes" onclick="jumpToAnchor('#anchor-nearby-routes');" class="mobile-dav-item">鄰近路線</a>
+        <div class="bottom-mobile-div" id="bottom-mobile-div" style="position: fixed; bottom: 0px; z-index: 2000;">
+            <div class="div-only-mobile" style="vertical-align: top;">
+                <div class="mobile-navbar unselectable " id="mobile-bottom">
+                    <a id="nav-anchor-route-input" onclick="jumpToAnchor('#anchor-route-input');" class="mobile-dav-item active" disabled>路線輸入</a>
+                    <a id="nav-anchor-fare-table-mobile" onclick="jumpToAnchor('#anchor-fare-table-mobile');" class="mobile-dav-item">轉乘數據</a>
+                    <a id="nav-anchor-eta-table" onclick="jumpToAnchor('#anchor-eta-table');" class="mobile-dav-item">預計到達</a>
+                    <a id="nav-anchor-time-table" onclick="jumpToAnchor('#anchor-time-table');" class="mobile-dav-item">時間表</a>
+                    <a id="nav-anchor-special-announcements" onclick="jumpToAnchor('#anchor-special-announcements');" class="mobile-dav-item">特別公告</a>
+                    <a id="nav-anchor-map" onclick="jumpToAnchor('#anchor-map');" class="mobile-dav-item">地圖</a>
+                    <a id="nav-anchor-nearby-routes" onclick="jumpToAnchor('#anchor-nearby-routes');" class="mobile-dav-item">鄰近路線</a>
+                </div>
+                <div id="mobile-bottom-padding"></div>
             </div>
-            <div id="mobile-bottom-padding"></div>
         </div>
     </section>
     <div class="loading style-2" id="loading-overlay"><div class="loading-wheel"></div></div>
@@ -748,6 +758,12 @@
     window.addEventListener('resize', e => {
         map.closePopup();
     }, true);
+
+    document.querySelectorAll(".mobile-dav-item").forEach(element => {
+        element.addEventListener('click', e => {
+            e.stopPropagation();
+        });
+    });
 
     let gpsMarker = null;
     let gpsWatchID = null;
@@ -2747,8 +2763,10 @@
             removeOptions(document.getElementById('route-' + leg + '-type'));
 
             routes.sort((a, b) => {
-                let coA = a[1]["bound"].hasOwnProperty("kmb") ? 0 : (a[1]["bound"].hasOwnProperty("ctb") ? 1 : (a[1]["bound"].hasOwnProperty("nlb") ? 2 : (a[1]["bound"].hasOwnProperty("mtr-bus") ? 3 : 4)));
-                let coB = b[1]["bound"].hasOwnProperty("kmb") ? 0 : (b[1]["bound"].hasOwnProperty("ctb") ? 1 : (b[1]["bound"].hasOwnProperty("nlb") ? 2 : (b[1]["bound"].hasOwnProperty("mtr-bus") ? 3 : 4)));
+                let coAStr = a[1]["bound"].hasOwnProperty("kmb") ? "kmb" : (a[1]["bound"].hasOwnProperty("ctb") ? "ctb" : (a[1]["bound"].hasOwnProperty("nlb") ? "nlb" : (a[1]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                let coBStr = b[1]["bound"].hasOwnProperty("kmb") ? "kmb" : (b[1]["bound"].hasOwnProperty("ctb") ? "ctb" : (b[1]["bound"].hasOwnProperty("nlb") ? "nlb" : (b[1]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                let coA = coAStr == "kmb" ? 0 : (coAStr == "ctb" ? 1 : (coAStr == "nlb" ? 2 : (coAStr == "mtr-bus" ? 3 : 4)));
+                let coB = coBStr == "kmb" ? 0 : (coBStr == "ctb" ? 1 : (coBStr == "nlb" ? 2 : (coBStr == "mtr-bus" ? 3 : 4)));
                 if (coA != coB) {
                     return coA - coB;
                 }
@@ -2762,8 +2780,11 @@
                         }
                     }
                     let typeDiff = Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]);
-                    if (typeDiff == 0 && coA == 1) {
-                        return a[1].hasOwnProperty("ctbSpecial") - b[1].hasOwnProperty("ctbSpecial");
+                    if (typeDiff == 0) {
+                        if (coA == 1) {
+                            return a[1].hasOwnProperty("ctbSpecial") - b[1].hasOwnProperty("ctbSpecial");
+                        }
+                        return -a[1]["bound"][coAStr].localeCompare(b[1]["bound"][coBStr]);
                     } else {
                         return typeDiff;
                     }
@@ -5100,7 +5121,7 @@
             "<div class=\"columns\">" + 
                 "<div class=\"column is-one-quarter\">" + 
                     "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\" id=\"route-%s-title\">第%c程路線</h5>" + 
-                    "<input list=\"bus-routes\" class=\"input\" type=\"text\" autocomplete=\"off\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes(); calculate();\">" + 
+                    "<input {list} class=\"input bus-route-input\" inputmode=\"none\" type=\"text\" autocomplete=\"off\" id=\"route-%s\" placeholder=\"請輸入巴士路線\" onKeyUp=\"updateRoutes(); calculate();\">" + 
                     "<datalist id=\"bus-routes\">{BusRouteOptions}</datalist>" +
                 "</div>" + 
                 "<div class=\"column is-one-quarter\">" + 
@@ -5145,6 +5166,11 @@
                 .replace("清除路線", "Remove Route")
                 .replace("向上移動", "Move Upwards")
                 .replace("向下移動", "Move Downwards");
+    }
+    if (isPopupMobile()) {
+        routeInputHtml = routeInputHtml.replace("{list}", "");
+    } else {
+        routeInputHtml = routeInputHtml.replace("{list}", "list=\"bus-routes\"");
     }
 
     const moveUp = (leg) => {
@@ -5223,6 +5249,78 @@
 
         calculate();
     };
+    const openVirtualKeyboard = (event) => {
+        let element = event.target;
+        createBusRouteKeyboard(busRouteList, element, text => {
+            if (text == "") {
+                return language == "en" ? "Please Enter Bus Route" : "請輸入巴士路線";
+            }
+            let routes = new Map();
+            for (let key in dataSheet["routeList"]) {
+                let data = dataSheet["routeList"][key];
+                if (data["route"] == text && (!data["bound"].hasOwnProperty("kmb") || kmbRouteExists(data)) && data["serviceType"] == 1) {
+                    let dest = data["dest"][language].trim();
+                    let orig = data["orig"][language].trim();
+                    if (language == "en") {
+                        dest = capitalize(dest);
+                        orig = capitalize(orig);
+                    }
+                    routes.set(dest, data);
+                    routes.set(orig, data);
+                }
+            }
+            if (routes.size == 0) {
+                return language == "en" ? "Please Enter Bus Route" : "請輸入巴士路線";
+            }
+            let array = [...routes].sort((a, b) => {
+                let coAStr = a[1]["bound"].hasOwnProperty("kmb") ? "kmb" : (a[1]["bound"].hasOwnProperty("ctb") ? "ctb" : (a[1]["bound"].hasOwnProperty("nlb") ? "nlb" : (a[1]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                let coBStr = b[1]["bound"].hasOwnProperty("kmb") ? "kmb" : (b[1]["bound"].hasOwnProperty("ctb") ? "ctb" : (b[1]["bound"].hasOwnProperty("nlb") ? "nlb" : (b[1]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                let coA = coAStr == "kmb" ? 0 : (coAStr == "ctb" ? 1 : (coAStr == "nlb" ? 2 : (coAStr == "mtr-bus" ? 3 : 4)));
+                let coB = coBStr == "kmb" ? 0 : (coBStr == "ctb" ? 1 : (coBStr == "nlb" ? 2 : (coBStr == "mtr-bus" ? 3 : 4)));
+                if (coA != coB) {
+                    return coA - coB;
+                }
+                if (coA == 2) {
+                    return Number(a[1]["nlbId"]) - Number(b[1]["nlbId"]);
+                } else {
+                    if (coA == 4) {
+                        let gtfsDiff = Number(a[1]["gtfsId"]) - Number(b[1]["gtfsId"]);
+                        if (gtfsDiff != 0) {
+                            return gtfsDiff;
+                        }
+                    }
+                    let typeDiff = Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]);
+                    if (typeDiff == 0) {
+                        if (coA == 1) {
+                            return a[1].hasOwnProperty("ctbSpecial") - b[1].hasOwnProperty("ctbSpecial");
+                        }
+                        let boundDiff = -a[1]["bound"][coAStr].localeCompare(b[1]["bound"][coBStr]);
+                        if (boundDiff != 0) {
+                            return boundDiff;
+                        }
+                        return Number(a[1]["dest"][language] == a[0]) - Number(b[1]["dest"][language] == b[0]);
+                    } else {
+                        return typeDiff;
+                    }
+                }
+            });
+            return "<b>" + text + "</b>&nbsp;-&nbsp;" + array.map(a => {
+                let color;
+                if (a[1]["bound"].hasOwnProperty("kmb")) {
+                    color = "#C60000";
+                } else if (a[1]["bound"].hasOwnProperty("ctb")) {
+                    color = "#E5BF00";
+                } else if (a[1]["bound"].hasOwnProperty("nlb")) {
+                    color = "#4A8765";
+                } else if (a[1]["bound"].hasOwnProperty("mtr-bus")) {
+                    color = "#003972";
+                } else {
+                    color = "#00BC0C";
+                }
+                return "<span style=\"color: " + color + ";\">" + a[0].replaceAll("／", " ") + "</span>";
+            }).join(" / ");
+        }, document.getElementById("bottom-mobile-div"));
+    };
     const routeAdd = () => {
         let div = document.getElementById('route-input');
         let collection = document.getElementsByClassName("route-input-element");
@@ -5243,6 +5341,11 @@
             }
         }
         document.getElementById('route-' + index + '-down').disabled = true;
+
+        document.querySelectorAll(".bus-route-input").forEach(element => {
+            element.addEventListener('focus', openVirtualKeyboard);
+        });
+
         calculate();
     };
     const routeRemove = (leg) => {
