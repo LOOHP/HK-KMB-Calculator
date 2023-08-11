@@ -1823,7 +1823,7 @@
                 }).on("click", e => {
                     isClicked = true; 
                     e.target.openPopup();
-                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0);
+                    let offset = (0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0)) * Math.pow(Math.max(1, map.getZoom() - 17), -2);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                     updateEta();
                 }).on("popupopen", (e) => {
@@ -1914,7 +1914,7 @@
                 }).on("click", e => {
                     isClicked = true; 
                     e.target.openPopup();
-                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0);
+                    let offset = (0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0)) * Math.pow(Math.max(1, map.getZoom() - 17), -2);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                     updateEta();
                 }).on("popupopen", (e) => {
@@ -5053,7 +5053,7 @@
                 }).on("click", e => {
                     isClicked = true; 
                     e.target.openPopup();
-                    let offset = 0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0);
+                    let offset = (0.001 * (e.target.getPopup().getElement().offsetHeight / 200) - (isPopupMobile() ? 0.001 : 0)) * Math.pow(Math.max(1, map.getZoom() - 17), -2);
                     map.flyTo([e.latlng.lat + offset, e.latlng.lng], Math.max(17, map.getZoom()), {"duration": 1});
                     updateEta();
                 }).on('popupopen', (e) => {
