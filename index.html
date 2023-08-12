@@ -5264,49 +5264,48 @@
             let routes = new Map();
             for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
-                if (data["route"] == text && (!data["bound"].hasOwnProperty("kmb") || kmbRouteExists(data)) && data["serviceType"] == 1) {
+                if (data["route"] == text && (!data["bound"].hasOwnProperty("kmb") || kmbRouteExists(data))) {
+                    let co = data["bound"].hasOwnProperty("kmb") ? "kmb" : (data["bound"].hasOwnProperty("ctb") ? "ctb" : (data["bound"].hasOwnProperty("nlb") ? "nlb" : (data["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                    let routeKey = co + "_" + (co == "nlb" ? data["nlbId"] : data["bound"][co]);
                     let dest = data["dest"][language].trim();
-                    let orig = data["orig"][language].trim();
                     if (language == "en") {
                         dest = capitalize(dest);
-                        orig = capitalize(orig);
                     }
-                    routes.set(dest, data);
-                    if (!routes.has(orig)) {
-                        routes.set(orig, data);
+                    if (routes.has(routeKey)) {
+                        if (routes.get(routeKey)["route"]["serviceType"] > data["serviceType"]) {
+                            routes.set(routeKey, {"dest": dest, "route": data});
+                        }
+                    } else {
+                        routes.set(routeKey, {"dest": dest, "route": data});
                     }
                 }
             }
             if (routes.size == 0) {
                 return language == "en" ? "Please Enter Bus Route" : "請輸入巴士路線";
             }
-            let array = [...routes].sort((a, b) => {
-                let coAStr = a[1]["bound"].hasOwnProperty("kmb") ? "kmb" : (a[1]["bound"].hasOwnProperty("ctb") ? "ctb" : (a[1]["bound"].hasOwnProperty("nlb") ? "nlb" : (a[1]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
-                let coBStr = b[1]["bound"].hasOwnProperty("kmb") ? "kmb" : (b[1]["bound"].hasOwnProperty("ctb") ? "ctb" : (b[1]["bound"].hasOwnProperty("nlb") ? "nlb" : (b[1]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+            let array = [...routes.values()].sort((a, b) => {
+                let coAStr = a["route"]["bound"].hasOwnProperty("kmb") ? "kmb" : (a["route"]["bound"].hasOwnProperty("ctb") ? "ctb" : (a["route"]["bound"].hasOwnProperty("nlb") ? "nlb" : (a["route"]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+                let coBStr = b["route"]["bound"].hasOwnProperty("kmb") ? "kmb" : (b["route"]["bound"].hasOwnProperty("ctb") ? "ctb" : (b["route"]["bound"].hasOwnProperty("nlb") ? "nlb" : (b["route"]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
                 let coA = coAStr == "kmb" ? 0 : (coAStr == "ctb" ? 1 : (coAStr == "nlb" ? 2 : (coAStr == "mtr-bus" ? 3 : 4)));
                 let coB = coBStr == "kmb" ? 0 : (coBStr == "ctb" ? 1 : (coBStr == "nlb" ? 2 : (coBStr == "mtr-bus" ? 3 : 4)));
                 if (coA != coB) {
                     return coA - coB;
                 }
                 if (coA == 2) {
-                    return Number(a[1]["nlbId"]) - Number(b[1]["nlbId"]);
+                    return Number(a["route"]["nlbId"]) - Number(b["route"]["nlbId"]);
                 } else {
                     if (coA == 4) {
-                        let gtfsDiff = Number(a[1]["gtfsId"]) - Number(b[1]["gtfsId"]);
+                        let gtfsDiff = Number(a["route"]["gtfsId"]) - Number(b["route"]["gtfsId"]);
                         if (gtfsDiff != 0) {
                             return gtfsDiff;
                         }
                     }
-                    let typeDiff = Number(a[1]["serviceType"]) - Number(b[1]["serviceType"]);
+                    let typeDiff = Number(a["route"]["serviceType"]) - Number(b["route"]["serviceType"]);
                     if (typeDiff == 0) {
                         if (coA == 1) {
-                            return a[1].hasOwnProperty("ctbSpecial") - b[1].hasOwnProperty("ctbSpecial");
+                            return a["route"].hasOwnProperty("ctbSpecial") - b["route"].hasOwnProperty("ctbSpecial");
                         }
-                        let boundDiff = -a[1]["bound"][coAStr].localeCompare(b[1]["bound"][coBStr]);
-                        if (boundDiff != 0) {
-                            return boundDiff;
-                        }
-                        return Number(a[1]["dest"][language] == a[0]) - Number(b[1]["dest"][language] == b[0]);
+                        return -a["route"]["bound"][coAStr].localeCompare(b["route"]["bound"][coBStr]);
                     } else {
                         return typeDiff;
                     }
@@ -5314,18 +5313,18 @@
             });
             return "<b>" + text + "</b>&nbsp;-&nbsp;" + array.map(a => {
                 let color;
-                if (a[1]["bound"].hasOwnProperty("kmb")) {
+                if (a["route"]["bound"].hasOwnProperty("kmb")) {
                     color = "#C60000";
-                } else if (a[1]["bound"].hasOwnProperty("ctb")) {
+                } else if (a["route"]["bound"].hasOwnProperty("ctb")) {
                     color = "#E5BF00";
-                } else if (a[1]["bound"].hasOwnProperty("nlb")) {
+                } else if (a["route"]["bound"].hasOwnProperty("nlb")) {
                     color = "#4A8765";
-                } else if (a[1]["bound"].hasOwnProperty("mtr-bus")) {
+                } else if (a["route"]["bound"].hasOwnProperty("mtr-bus")) {
                     color = "#003972";
                 } else {
                     color = "#00BC0C";
                 }
-                return "<span style=\"color: " + color + ";\">" + a[0].replaceAll("／", " ") + "</span>";
+                return "<span style=\"color: " + color + ";\">" + a["dest"].replaceAll("／", " ") + "</span>";
             }).join(" / ");
         }, document.getElementById("bottom-mobile-div"));
     };
