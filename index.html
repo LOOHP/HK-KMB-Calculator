@@ -295,6 +295,48 @@
         .clear-button-style:hover:not([disabled]) {
             background-color: #C41111 !important;
         }
+        @keyframes route-input-animation-up {
+            0% {
+                transform: translateY(0%);
+            }
+            50% {
+                transform: translateY(calc(-100% - 24px));
+            }
+            100% {
+                transform: translateY(calc(-100% - 24px));
+            }
+        }
+        .route-input-animation-up {
+            animation: route-input-animation-up 0.6s ease-in-out;
+        }
+        @keyframes route-input-animation-down {
+            0% {
+                transform: translateY(0%);
+            }
+            50% {
+                transform: translateY(calc(100% + 24px));
+            }
+            100% {
+                transform: translateY(calc(100% + 24px));
+            }
+        }
+        .route-input-animation-down {
+            animation: route-input-animation-down 0.6s ease-in-out;
+        }
+        @keyframes route-input-animation-add {
+            0% {
+                transform: translateY(calc(-100% - 24px));
+            }
+            50% {
+                transform: translateY(0%);
+            }
+            100% {
+                transform: translateY(0%);
+            }
+        }
+        .route-input-animation-add {
+            animation: route-input-animation-add 0.6s ease-in-out;
+        }
     </style>
 
     <section id="main-section" class="hero is-danger is-fullheight">
@@ -1743,7 +1785,6 @@
                 if (co != "ctb" || route["co"].indexOf("kmb") < 0) {
                     let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
 
-                    console.log(stop);
                     let distance = Math.round(stop["distance"] * 1000).toFixed(0);
                     let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
 
@@ -3202,6 +3243,7 @@
             let lastCo = null;
             let lastBound = null;
             let lastGtfsId = -1;
+            let lastStopDetails = null;
             for (let i = 0; i < collection.length; i++) {
                 let leg = i + 1;
                 let key = document.getElementById('route-' + leg + '-type').value;
@@ -3273,7 +3315,7 @@
                     let endingStop = dataSheet["stopList"][endingStopId];
                     let endingName = endingStop["name"]["zh"];
 
-                    let interchangeStopResult = findInterchangeStop(lastStopDetails, stopDetails.slice(startingStopIndex, endingStopIndex + 1));
+                    let interchangeStopResult = findInterchangeStop(lastStopDetails, stopDetails.slice(startingStopIndex, endingStopIndex));
 
                     let interchangeStopId1 = interchangeStopResult[0];
                     let interchangeStop1 = dataSheet["stopList"][interchangeStopId1];
@@ -5172,7 +5214,7 @@
     };
 
     let routeInputHtml = 
-        "<div class=\"box has-background-grey-lighter route-input-element\" id=\"route-%s-element\" style=\"position: relative;\">" + 
+        "<div class=\"box has-background-grey-lighter route-input-element\" id=\"route-%s-element\" style=\"position: relative; z-index: {ZIndex};\">" + 
             "<div class=\"columns\">" + 
                 "<div class=\"column is-one-quarter\">" + 
                     "<h5 class=\"title is-5 has-text-black\" style=\"min-width: 100px; width: 100%;\" id=\"route-%s-title\">第%c程路線</h5>" + 
@@ -5228,7 +5270,11 @@
         routeInputHtml = routeInputHtml.replace("{list}", "list=\"bus-routes\"");
     }
 
+    let moveLock = false;
     const moveUp = (leg) => {
+        if (moveLock) {
+            return;
+        }
         let collection = document.getElementsByClassName("route-input-element");
         if (collection.length == 1) {
             return;
@@ -5236,37 +5282,53 @@
         if (leg <= 1) {
             return;
         }
+        moveLock = true;
+
         let legHigher = leg - 1;
-        let routeNumberHigher = document.getElementById("route-" + legHigher).value;
-        let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
-        let startHigher = document.getElementById("route-" + legHigher + "-start").value;
-        let endHigher = document.getElementById("route-" + legHigher + "-end").value;
-
         let legLower = leg;
-        let routeNumberLower = document.getElementById("route-" + legLower).value;
-        let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
-        let startLower = document.getElementById("route-" + legLower + "-start").value;
-        let endLower = document.getElementById("route-" + legLower + "-end").value;
 
-        document.getElementById("route-" + legHigher).value = routeNumberLower;
-        updateRoutes();
-        document.getElementById("route-" + legHigher + "-type").value = routeKeyLower;
-        updateStartingStops();
-        document.getElementById("route-" + legHigher + "-start").value = startLower;
-        updateDestinationStops();
-        document.getElementById("route-" + legHigher + "-end").value = endLower;
+        document.getElementById("route-" + legHigher + "-element").classList.add("route-input-animation-down");
+        document.getElementById("route-" + legLower + "-element").classList.add("route-input-animation-up");
 
-        document.getElementById("route-" + legLower).value = routeNumberHigher;
-        updateRoutes();
-        document.getElementById("route-" + legLower + "-type").value = routeKeyHigher;
-        updateStartingStops();
-        document.getElementById("route-" + legLower + "-start").value = startHigher;
-        updateDestinationStops();
-        document.getElementById("route-" + legLower + "-end").value = endHigher;
+        setTimeout(() => {
+            document.getElementById("route-" + legHigher + "-element").classList.remove("route-input-animation-down");
+            document.getElementById("route-" + legLower + "-element").classList.remove("route-input-animation-up");
 
-        calculate();
+            let routeNumberHigher = document.getElementById("route-" + legHigher).value;
+            let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
+            let startHigher = document.getElementById("route-" + legHigher + "-start").value;
+            let endHigher = document.getElementById("route-" + legHigher + "-end").value;
+
+            let routeNumberLower = document.getElementById("route-" + legLower).value;
+            let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
+            let startLower = document.getElementById("route-" + legLower + "-start").value;
+            let endLower = document.getElementById("route-" + legLower + "-end").value;
+
+            document.getElementById("route-" + legHigher).value = routeNumberLower;
+            updateRoutes();
+            document.getElementById("route-" + legHigher + "-type").value = routeKeyLower;
+            updateStartingStops();
+            document.getElementById("route-" + legHigher + "-start").value = startLower;
+            updateDestinationStops();
+            document.getElementById("route-" + legHigher + "-end").value = endLower;
+
+            document.getElementById("route-" + legLower).value = routeNumberHigher;
+            updateRoutes();
+            document.getElementById("route-" + legLower + "-type").value = routeKeyHigher;
+            updateStartingStops();
+            document.getElementById("route-" + legLower + "-start").value = startHigher;
+            updateDestinationStops();
+            document.getElementById("route-" + legLower + "-end").value = endHigher;
+
+            calculate();
+
+            moveLock = false;
+        }, 300);
     };
     const moveDown = (leg) => {
+        if (moveLock) {
+            return;
+        }
         let collection = document.getElementsByClassName("route-input-element");
         if (collection.length == 1) {
             return;
@@ -5274,35 +5336,48 @@
         if (leg >= collection.length) {
             return;
         }
+        moveLock = true;
+
         let legHigher = leg;
-        let routeNumberHigher = document.getElementById("route-" + legHigher).value;
-        let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
-        let startHigher = document.getElementById("route-" + legHigher + "-start").value;
-        let endHigher = document.getElementById("route-" + legHigher + "-end").value;
-
         let legLower = leg + 1;
-        let routeNumberLower = document.getElementById("route-" + legLower).value;
-        let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
-        let startLower = document.getElementById("route-" + legLower + "-start").value;
-        let endLower = document.getElementById("route-" + legLower + "-end").value;
 
-        document.getElementById("route-" + legHigher).value = routeNumberLower;
-        updateRoutes();
-        document.getElementById("route-" + legHigher + "-type").value = routeKeyLower;
-        updateStartingStops();
-        document.getElementById("route-" + legHigher + "-start").value = startLower;
-        updateDestinationStops();
-        document.getElementById("route-" + legHigher + "-end").value = endLower;
+        document.getElementById("route-" + legHigher + "-element").classList.add("route-input-animation-down");
+        document.getElementById("route-" + legLower + "-element").classList.add("route-input-animation-up");
 
-        document.getElementById("route-" + legLower).value = routeNumberHigher;
-        updateRoutes();
-        document.getElementById("route-" + legLower + "-type").value = routeKeyHigher;
-        updateStartingStops();
-        document.getElementById("route-" + legLower + "-start").value = startHigher;
-        updateDestinationStops();
-        document.getElementById("route-" + legLower + "-end").value = endHigher;
+        setTimeout(() => {
+            document.getElementById("route-" + legHigher + "-element").classList.remove("route-input-animation-down");
+            document.getElementById("route-" + legLower + "-element").classList.remove("route-input-animation-up");
 
-        calculate();
+            let routeNumberHigher = document.getElementById("route-" + legHigher).value;
+            let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
+            let startHigher = document.getElementById("route-" + legHigher + "-start").value;
+            let endHigher = document.getElementById("route-" + legHigher + "-end").value;
+
+            let routeNumberLower = document.getElementById("route-" + legLower).value;
+            let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
+            let startLower = document.getElementById("route-" + legLower + "-start").value;
+            let endLower = document.getElementById("route-" + legLower + "-end").value;
+
+            document.getElementById("route-" + legHigher).value = routeNumberLower;
+            updateRoutes();
+            document.getElementById("route-" + legHigher + "-type").value = routeKeyLower;
+            updateStartingStops();
+            document.getElementById("route-" + legHigher + "-start").value = startLower;
+            updateDestinationStops();
+            document.getElementById("route-" + legHigher + "-end").value = endLower;
+
+            document.getElementById("route-" + legLower).value = routeNumberHigher;
+            updateRoutes();
+            document.getElementById("route-" + legLower + "-type").value = routeKeyHigher;
+            updateStartingStops();
+            document.getElementById("route-" + legLower + "-start").value = startHigher;
+            updateDestinationStops();
+            document.getElementById("route-" + legLower + "-end").value = endHigher;
+
+            calculate();
+
+            moveLock = false;
+        }, 300);
     };
     const openVirtualKeyboard = (event) => {
         let element = event.target;
@@ -5377,11 +5452,11 @@
             }).join(" / ");
         }, document.getElementById("bottom-mobile-div"));
     };
-    const routeAdd = () => {
+    const routeAdd = (animated = false) => {
         let div = document.getElementById('route-input');
         let collection = document.getElementsByClassName("route-input-element");
         let index = collection.length + 1;
-        let append = routeInputHtml.replaceAll("%s", "" + index).replaceAll("%c", toChineseNumber(index)).replaceAll("{BusRouteOptions}", busRouteListOptions);
+        let append = routeInputHtml.replaceAll("%s", "" + index).replaceAll("%c", toChineseNumber(index)).replaceAll("{BusRouteOptions}", busRouteListOptions).replaceAll("{ZIndex}", (1000 - index));
         if (index == 1) {
             div.innerHTML = append;
         } else {
@@ -5401,6 +5476,12 @@
         document.querySelectorAll(".bus-route-input").forEach(element => {
             element.addEventListener('focus', openVirtualKeyboard);
         });
+
+        if (animated) {
+            let element = document.getElementById('route-' + index + '-element');
+            element.classList.add("route-input-animation-add");
+            setTimeout(() => element.classList.remove("route-input-animation-add"), 600);
+        }
 
         calculate();
     };
@@ -5432,7 +5513,7 @@
                 let routeKey = document.getElementById("route-" + oldLeg + "-type").value;
                 let start = document.getElementById("route-" + oldLeg + "-start").value;
                 let end = document.getElementById("route-" + oldLeg + "-end").value;
-                collection[i].innerHTML = collection[i].innerHTML.replaceAll("route-" + oldLeg, "route-" + newLeg).replaceAll("let index = " + oldLeg, "let index = " + newLeg);
+                collection[i].outerHTML = collection[i].outerHTML.replaceAll("route-" + oldLeg, "route-" + newLeg).replaceAll("let index = " + oldLeg, "let index = " + newLeg);
                 document.getElementById("route-" + newLeg + "-title").innerHTML = language == "en" ? ("Route " + oldLeg) : ("第" + toChineseNumber(newLeg) + "程路線");
                 document.getElementById("route-" + newLeg).value = routeNumber;
                 document.getElementById("route-" + newLeg + "-type").value = routeKey;
@@ -5703,7 +5784,7 @@
         prompt(language == "en" ? "Copied share link to clipboard!" : "分享鏈接已複製到剪貼板", link);
     };
 
-    document.getElementById('route-add').addEventListener("click", routeAdd, false);
+    document.getElementById('route-add').addEventListener("click", () => routeAdd(true), false);
     document.getElementById('route-clear').addEventListener("click", routeClear, false);
 
     document.getElementById('toggle-timetable').addEventListener("click", toggleTimetable, false);
