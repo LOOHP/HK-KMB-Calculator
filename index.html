@@ -455,16 +455,19 @@
     }
 
     setInterval(() => {
-        document.querySelectorAll('.eta-table-stop-title').forEach(element => {
-            let targetWidth = element.parentElement.parentElement.parentElement.parentElement.parentElement.offsetWidth - 76.52;
-            element.style.fontSize = "26px";
-            let fontSize = 26;
-            while (targetWidth < element.offsetWidth) {
-                let newFontSize = fontSize - 1;
-                element.style.fontSize = newFontSize + "px";
-                fontSize = newFontSize;
-            }
-        });
+        if (getComputedStyle(document.getElementById("eta-table")).display != "none") {
+            document.querySelectorAll('.eta-table-stop-title').forEach(element => {
+                let targetWidth = element.parentElement.parentElement.parentElement.parentElement.parentElement.offsetWidth - 76.52;
+                element.style.fontSize = "26px";
+                let fontSize = 26;
+                while (targetWidth < element.offsetWidth) {
+                    console.log("hi");
+                    let newFontSize = fontSize - 1;
+                    element.style.fontSize = newFontSize + "px";
+                    fontSize = newFontSize;
+                }
+            });
+        }
 
         let collection = document.getElementsByClassName("mobile-dav-item");
         let flag = false;
@@ -4158,7 +4161,7 @@
                                     "</div>" +
                                 "</div>";
 
-                            let toggleParameter = localStorage["toggle-options"];
+                            let toggleParameter = localStorage.getItem("toggle-options");
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
                                 document.getElementById("time-table").innerHTML = append;
@@ -4212,7 +4215,7 @@
                                     "</div>" +
                                 "</div>";
 
-                            let toggleParameter = localStorage["toggle-options"];
+                            let toggleParameter = localStorage.getItem("toggle-options");
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
                                 document.getElementById("time-table").innerHTML = append;
@@ -4391,7 +4394,7 @@
                                     "</div>" +
                                 "</div>";
 
-                            let toggleParameter = localStorage["toggle-options"];
+                            let toggleParameter = localStorage.getItem("toggle-options");
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
                                 document.getElementById("time-table").innerHTML = append;
@@ -4568,7 +4571,7 @@
                                     "</div>" +
                                 "</div>";
 
-                            let toggleParameter = localStorage["toggle-options"];
+                            let toggleParameter = localStorage.getItem("toggle-options");
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
                                 document.getElementById("time-table").innerHTML = append;
@@ -4743,7 +4746,7 @@
                                     "</div>" +
                                 "</div>";
 
-                            let toggleParameter = localStorage["toggle-options"];
+                            let toggleParameter = localStorage.getItem("toggle-options");
                             if ((Number(toggleParameter) & 0x02) == 0 && document.getElementById('time-table').innerHTML == "") {
                                 document.getElementById('time-table').style.display = "";
                                 document.getElementById("time-table").innerHTML = append;
@@ -5137,7 +5140,7 @@
 
             updateEta();
 
-            let toggleParameter = localStorage["toggle-options"];
+            let toggleParameter = localStorage.getItem("toggle-options");
             if ((Number(toggleParameter) & 0x01) == 0) {
                 document.getElementById('eta-table').style.display = "";
             }
@@ -5440,22 +5443,22 @@
     };
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
-        let toggleParameter = localStorage["toggle-options"];
+        let toggleParameter = localStorage.getItem("toggle-options");
         document.getElementById('toggle-map').classList.remove("is-info");
         document.getElementById('toggle-map').classList.remove("is-dark");
         if ((Number(toggleParameter) & 0x04) != 0) {
             document.getElementById('toggle-map').classList.add("is-info");
             mapElement.style.display = "";
-            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x04;
+            localStorage.setItem("toggle-options", (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x04);
         } else {
             document.getElementById('toggle-map').classList.add("is-dark");
             mapElement.style.display = "none";
-            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x04;
+            localStorage.setItem("toggle-options", (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x04);
         }
     };
     const toggleTimetable = () => {
         let timetableElement = document.getElementById('time-table');
-        let toggleParameter = localStorage["toggle-options"];
+        let toggleParameter = localStorage.getItem("toggle-options");
         document.getElementById('toggle-timetable').classList.remove("is-info");
         document.getElementById('toggle-timetable').classList.remove("is-dark");
         if ((Number(toggleParameter) & 0x02) != 0) {
@@ -5463,16 +5466,16 @@
             if (timetableElement.innerHTML.length > 0) {
                 timetableElement.style.display = "";
             }
-            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x02;
+            localStorage.setItem("toggle-options", (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x02);
         } else {
             document.getElementById('toggle-timetable').classList.add("is-dark");
             timetableElement.style.display = "none";
-            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x02;
+            localStorage.setItem("toggle-options", (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x02);
         }
     };
     const toggleEta = () => {
         let etaElement = document.getElementById('eta-table');
-        let toggleParameter = localStorage["toggle-options"];
+        let toggleParameter = localStorage.getItem("toggle-options");
         document.getElementById('toggle-eta').classList.remove("is-info");
         document.getElementById('toggle-eta').classList.remove("is-dark");
         if ((Number(toggleParameter) & 0x01) != 0) {
@@ -5480,11 +5483,11 @@
             if (etaElement.innerHTML.length > 0) {
                 etaElement.style.display = "";
             }
-            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x01;
+            localStorage.setItem("toggle-options", (toggleParameter == undefined ? 0 : Number(toggleParameter)) & ~0x01);
         } else {
             document.getElementById('toggle-eta').classList.add("is-dark");
             etaElement.style.display = "none";
-            localStorage["toggle-options"] = (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x01;
+            localStorage.setItem("toggle-options", (toggleParameter == undefined ? 0 : Number(toggleParameter)) | 0x01);
         }
     };
     const toggleGps = () => {
@@ -5570,10 +5573,10 @@
             }
         }
 
-        let toggleParameter = localStorage["toggle-options"];
+        let toggleParameter = localStorage.getItem("toggle-options");
         if (toggleParameter != undefined) {
             let value = Number(toggleParameter);
-            localStorage["toggle-options"] = 0;
+            localStorage.setItem("toggle-options", 0);
             if ((value & 0x01) != 0) {
                 toggleEta();
             }
