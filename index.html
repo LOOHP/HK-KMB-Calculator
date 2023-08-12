@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./Control.FullScreen.css" />
     <script src="./Control.FullScreen.js"></script>
     <script src="./L.TileLayer.NoGap.js"></script>
@@ -283,6 +283,18 @@
             margin-bottom: 10px;
             font-size: 17px;
         }
+        .remove-button-style {
+            background-color: #FAC7C3 !important;
+        }
+        .remove-button-style:hover:not([disabled]) {
+            background-color: #F9BAB6 !important;
+        }
+        .clear-button-style {
+            background-color: #AD0E0E !important;
+        }
+        .clear-button-style:hover:not([disabled]) {
+            background-color: #C41111 !important;
+        }
     </style>
 
     <section id="main-section" class="hero is-danger is-fullheight">
@@ -329,7 +341,7 @@
                         <div id="route-input"></div><br>
                         <div class="box">
                             <button class="button is-success" id="route-add" title="新增路線" disabled><i class="material-icons" style="color: darkgreen;">add</i></button>
-                            <button class="button" id="route-clear" title="清除所有路線" style="background-color: #ad0e0e;"><i class="material-icons" style="color: pink;">delete</i></button>
+                            <button class="button clear-button-style" id="route-clear" title="清除所有路線"><i class="material-icons" style="color: pink;">delete</i></button>
                             <br><br>
                             <button class="button is-info" id="toggle-eta" title="顯示/隱藏預計到達時間"><i class="material-icons">departure_board</i></button>
                             <button class="button is-info" id="toggle-timetable" title="顯示/隱藏時間表"><i class="material-icons">date_range</i></button>
@@ -394,7 +406,7 @@
                             <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
                             <div id="nearby-routes-content" style="display: none; max-height: min(600px, 80vh); overflow: auto;"></div>
                             <button class="button is-dark" id="toggle-gps" title="打開/關閉定位位置" style="position: absolute; top: 10px; right: 63px;" disabled><i class="material-icons">gps_fixed</i></button>
-                            <button class="button" id="pin-remove" title="清除位置圖釘" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;" disabled><i class="material-icons" style="color: red;">wrong_location</i></button>
+                            <button class="button is-danger remove-button-style" id="pin-remove" title="清除位置圖釘" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px;" disabled><i class="material-icons" style="color: red;">wrong_location</i></button>
                         </div>
                         <h5 class="title is-5 data-source" style="font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://www.citybus.com.hk/" target="_blank">citybus.com.hk</a>, <a href="https://www.nlb.com.hk/" target="_blank">nlb.com.hk</a>, <a href="https://www.mtr.com.hk/" target="_blank">mtr.com.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
                     </div>
@@ -5192,7 +5204,7 @@
                     "</div>" + 
                 "</div>" + 
             "</div>" + 
-            "<button class=\"button\" id=\"route-%s-remove\" title=\"清除路線\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px; background-color: #fac7c3;\"><i class=\"material-icons\" style=\"color: red;\">close</i></button>" +
+            "<button class=\"button remove-button-style\" id=\"route-%s-remove\" title=\"清除路線\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px;\"><i class=\"material-icons\" style=\"color: red;\">close</i></button>" +
             "<button class=\"button\" id=\"route-%s-up\" title=\"向上移動\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\"><i class=\"material-icons\">move_up</i></button>" +
             "<button class=\"button\" id=\"route-%s-down\" title=\"向下移動\" onClick=\"let index = %s; moveDown(index);\"><i class=\"material-icons\">move_down</i></button>" +
         "</div>";
