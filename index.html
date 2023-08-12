@@ -39,6 +39,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./Control.FullScreen.css" />
     <script src="./Control.FullScreen.js"></script>
     <script src="./L.TileLayer.NoGap.js"></script>
@@ -49,6 +50,10 @@
 
 <body>
     <style>
+        * {
+            font-family: 'Noto Sans HK', sans-serif;
+        }
+
         @font-face {
             font-family: 'Material Symbols Outlined';
             font-style: normal;
@@ -235,7 +240,7 @@
             text-align: center;
             padding: 14px 5px;
             text-decoration: none;
-            font-size: 12px;
+            font-size: 11px;
             flex-grow: 1;
         }
         .mobile-navbar a.active {
@@ -368,7 +373,7 @@
                         <div class="map" id="map" style="color: black; position: relative; border-radius: 10px;">
                             <div id="map-clock-container" class="leaflet-top leaflet-left" style="z-index: 1100; left: 42px; display: none;">
                                 <div class="leaflet-control-layers leaflet-control">
-                                    <p style="color: black; padding: 1px 3px 0px 3px; text-align: left; vertical-align: middle;" id="map-clock"></p>
+                                    <p style="color: black; padding: 1px 3px 1px 3px; text-align: left; vertical-align: middle;" id="map-clock"></p>
                                 </div>
                             </div>
                             <div id="map-mobile-popup-container" style="display: none; max-height: 35%;">
