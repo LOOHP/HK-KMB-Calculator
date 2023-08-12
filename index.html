@@ -44,10 +44,33 @@
     <script src="./L.TileLayer.NoGap.js"></script>
     <link rel="stylesheet" href="./bus_route_keyboard.css" />
     <script src="./bus_route_keyboard.js"></script>
+    <script src="./bouncemarker.js"></script>
 </head>
 
 <body>
     <style>
+        @font-face {
+            font-family: 'Material Symbols Outlined';
+            font-style: normal;
+            font-weight: 400;
+            font-display: block;
+            src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v132/kJEhBvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oFsI.woff2) format('woff2');
+        }
+        .material-icons {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
         body:has(.requires-no-scroll) {
             position: fixed;
         }
@@ -300,13 +323,13 @@
                         <a class="anchor" id="anchor-route-input"></a>
                         <div id="route-input"></div><br>
                         <div class="box">
-                            <button class="button is-success" id="route-add" title="新增路線" disabled>➕</button>
-                            <button class="button" id="route-clear" title="清除所有路線" style="background-color: #ad0e0e;">🗑️</button>
+                            <button class="button is-success" id="route-add" title="新增路線" disabled><i class="material-icons" style="color: darkgreen;">add</i></button>
+                            <button class="button" id="route-clear" title="清除所有路線" style="background-color: #ad0e0e;"><i class="material-icons" style="color: pink;">delete</i></button>
                             <br><br>
-                            <button class="button is-info" id="toggle-eta" title="顯示/隱藏預計到達時間">⏳</button>
-                            <button class="button is-info" id="toggle-timetable" title="顯示/隱藏時間表">🕒</button>
-                            <button class="button is-info" id="toggle-map" title="顯示/隱藏地圖">🗺️</button>
-                            <button class="button is-link" id="share-link" title="獲取分享鏈結">🔗</button>
+                            <button class="button is-info" id="toggle-eta" title="顯示/隱藏預計到達時間"><i class="material-icons">departure_board</i></button>
+                            <button class="button is-info" id="toggle-timetable" title="顯示/隱藏時間表"><i class="material-icons">date_range</i></button>
+                            <button class="button is-info" id="toggle-map" title="顯示/隱藏地圖"><i class="material-icons">map</i></button>
+                            <button class="button is-link" id="share-link" title="獲取分享鏈結"><i class="material-icons">link</i></button>
                         </div>
                         <a class="anchor" id="anchor-fare-table-mobile"></a>
                         <div style="overflow: auto; width: 100%;" class="desk">
@@ -342,7 +365,7 @@
                         <a class="anchor" id="anchor-special-announcements"></a>
                         <div class="box has-background-grey-lighter" id="special-announcements" style="display: none; color: red; font-weight: bold;"></div>
                         <a class="anchor" id="anchor-map"></a>
-                        <div class="map" id="map" style="color: black; position: relative;">
+                        <div class="map" id="map" style="color: black; position: relative; border-radius: 10px;">
                             <div id="map-clock-container" class="leaflet-top leaflet-left" style="z-index: 1100; left: 42px; display: none;">
                                 <div class="leaflet-control-layers leaflet-control">
                                     <p style="color: black; padding: 1px 3px 0px 3px; text-align: left; vertical-align: middle;" id="map-clock"></p>
@@ -365,8 +388,8 @@
                             <h5 class="title is-5" style="color: black;" id="nearby-routes-label">鄰近路線</h5>
                             <p id="nearby-routes-prompt">點擊地圖以放置位置圖釘或打開定位位置</p>
                             <div id="nearby-routes-content" style="display: none; max-height: min(600px, 80vh); overflow: auto;"></div>
-                            <button class="button is-dark" id="toggle-gps" title="打開/關閉定位位置" style="position: absolute; top: 10px; right: 63px;" disabled>🧭</button>
-                            <button class="button" id="pin-remove" title="清除位置圖釘" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;" disabled>❌</button>
+                            <button class="button is-dark" id="toggle-gps" title="打開/關閉定位位置" style="position: absolute; top: 10px; right: 63px;" disabled><i class="material-icons">gps_fixed</i></button>
+                            <button class="button" id="pin-remove" title="清除位置圖釘" onClick="pinRemove();" style="position: absolute; top: 10px; right: 10px; background-color: #fac7c3;" disabled><i class="material-icons" style="color: red;">wrong_location</i></button>
                         </div>
                         <h5 class="title is-5 data-source" style="font-size: 15px;"><span id="data-label">數據來源</span>: <a href="https://data.gov.hk" target="_blank">data.gov.hk</a>, <a href="https://kmb.hk" target="_blank">kmb.hk</a>, <a href="https://www.citybus.com.hk/" target="_blank">citybus.com.hk</a>, <a href="https://www.nlb.com.hk/" target="_blank">nlb.com.hk</a>, <a href="https://www.mtr.com.hk/" target="_blank">mtr.com.hk</a>, <a href="https://github.com/hkbus/hk-bus-crawling" target="_blank">HK Bus Crawling@2021</a></h5>
                     </div>
@@ -392,8 +415,8 @@
 </body>
 
 <script>
-    const jumpToAnchor = (selectedAnchor) => {
-        document.querySelector(selectedAnchor).scrollIntoView({behavior: 'smooth'});
+    const jumpToAnchor = (selectedAnchor, behavior = 'smooth') => {
+        document.querySelector(selectedAnchor).scrollIntoView({behavior: behavior});
     };
 
     const getPercentageInView = (element) => {
@@ -653,54 +676,54 @@
     layerControl.addOverlay(nearbyLines, nearbyLinesName);
     layerControl.addOverlay(nearbyStopsMarker, nearbyStopsMarkerName);
 
-    let redIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-    let blueIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [13, 20],
-        iconAnchor: [6, 20],
-        popupAnchor: [1, -17],
-        shadowSize: [20, 20]
+    let gpsIcon = new L.Icon({
+        iconUrl: './icons/icon_gps.png',
+        shadowUrl: '',
+        iconSize: [27, 27],
+        iconAnchor: [7.6, 28.6],
+        popupAnchor: [5, -25],
+        shadowSize: [1, 1]
     });
 
+    let redIcon = new L.Icon({
+        iconUrl: './icons/bus_stop_red.png',
+        shadowUrl: './icons/bus_stop_shadow.png',
+        iconSize: [23, 44],
+        iconAnchor: [11.5, 43],
+        popupAnchor: [0, -41],
+        shadowSize: [41, 41]
+    });
     let greyIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [13, 20],
-        iconAnchor: [6, 20],
-        popupAnchor: [1, -17],
-        shadowSize: [20, 20]
+        iconUrl: './icons/bus_stop_grey.png',
+        shadowUrl: './icons/bus_stop_shadow.png',
+        iconSize: [15.3, 29.3],
+        iconAnchor: [7.6, 28.6],
+        popupAnchor: [0, -27.3],
+        shadowSize: [27.3, 27.3]
     });
     let goldIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [13, 20],
-        iconAnchor: [6, 20],
-        popupAnchor: [1, -17],
-        shadowSize: [20, 20]
+        iconUrl: './icons/bus_stop_gold.png',
+        shadowUrl: './icons/bus_stop_shadow.png',
+        iconSize: [15.3, 29.3],
+        iconAnchor: [7.6, 28.6],
+        popupAnchor: [0, -27.3],
+        shadowSize: [27.3, 27.3]
     });
     let orangeIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [13, 20],
-        iconAnchor: [6, 20],
-        popupAnchor: [1, -17],
-        shadowSize: [20, 20]
+        iconUrl: './icons/bus_stop_orange.png',
+        shadowUrl: './icons/bus_stop_shadow.png',
+        iconSize: [15.3, 29.3],
+        iconAnchor: [7.6, 28.6],
+        popupAnchor: [0, -27.3],
+        shadowSize: [27.3, 27.3]
     });
     let blackIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [13, 20],
-        iconAnchor: [6, 20],
-        popupAnchor: [1, -17],
-        shadowSize: [20, 20]
+        iconUrl: './icons/bus_stop_black.png',
+        shadowUrl: './icons/bus_stop_shadow.png',
+        iconSize: [15.3, 29.3],
+        iconAnchor: [7.6, 28.6],
+        popupAnchor: [0, -27.3],
+        shadowSize: [27.3, 27.3]
     });
 
     const isPopupMobile = () => {
@@ -782,7 +805,7 @@
         if (gpsMarker == null) {
             document.getElementById("pin-remove").disabled = true;
 
-            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: blueIcon}).addTo(gps).bindPopup(language == "en" ? "<p style=\"font-weight: bold;\">Your Location</p>" : "<p style=\"font-weight: bold;\">你的位置</p>").on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+            gpsMarker = L.marker([position.coords.latitude, position.coords.longitude], {icon: gpsIcon}).addTo(gps).bindPopup(language == "en" ? "<p style=\"font-weight: bold;\">Your Location</p>" : "<p style=\"font-weight: bold;\">你的位置</p>").on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup()};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
             droppedPin = null;
             pin.clearLayers();
             map.flyTo(new L.LatLng(position.coords.latitude, position.coords.longitude), Math.max(17, map.getZoom()), {"duration": 1});
@@ -1338,9 +1361,9 @@
                 let bbiNameData = bbiNameDataList[i];
                 let url = kmbBbiMapUrl.replace("{id}", bbiId);
                 let tooltip = language == "en" ? "Open BBI location map" : "展示轉車站位置圖";
-                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\">$1</a>";
-                let patternZh = new RegExp("(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
-                let patternEn = new RegExp("(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
+                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
+                let patternZh = new RegExp("(?:^|[> ])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
+                let patternEn = new RegExp("(?:^|[> ])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
             }
         }
@@ -1700,9 +1723,13 @@
                 if (co != "ctb" || route["co"].indexOf("kmb") < 0) {
                     let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
 
+                    console.log(stop);
+                    let distance = Math.round(stop["distance"] * 1000).toFixed(0);
+                    let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
+
                     table += 
                         "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + applyBbiStopHref(stopName) + "</span></th>" +
+                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + applyBbiStopHref(stopName) + " " + distanceStr + "</span></th>" +
                             "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
                         "</tr>";
                 }
@@ -1777,7 +1804,8 @@
                 }
 
                 let distance = Math.round(findDistance(stop["location"], gpsLocation) * 1000).toFixed(0);
-                let title = (language == "en" ? "Nearby " : "鄰近") + distance + (language == "en" ? "m" : "米");
+                let title = language == "en" ? "Nearby " : "鄰近";
+                let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
 
                 let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : (/^[A-Z]?[0-9]{1,3}[A-Z]?-[A-Z][0-9]{3}$/.test(stopId) ? "mtr-bus" : (/^[0-9]{8}$/.test(stopId) ? "gmb" : "kmb")));
                 let routesInfo = [];
@@ -1820,7 +1848,7 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">[" + title + "] " + applyBbiStopHref(stopName) + "</p></div><br>";
+                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">[" + title + "] " + applyBbiStopHref(stopName) + " " + distanceStr + "</p></div>";
 
                 let table =
                     "<div class=\"disable-scrollbars mobile-map-action-disable map-route-eta-table\" style=\"max-height: 400px; overflow-y: scroll;\">" +
@@ -1911,7 +1939,7 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">" + (language == "en" ? "[Nearby Route]" : "[鄰近路線]") + " " + applyBbiStopHref(stopName) + "</p></div><br>";
+                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">" + (language == "en" ? "[Nearby Route Stop]" : "[鄰近路線站]") + " " + applyBbiStopHref(stopName) + "</p></div>";
 
                 let table =
                     "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
@@ -2002,7 +2030,7 @@
                 }
                 if (droppedPin == null) {
                     document.getElementById("pin-remove").disabled = false;
-                    droppedPin = new L.marker(e.latlng, {draggable:'true'}).on('click', (e) => {
+                    droppedPin = new L.marker(e.latlng, {draggable:'true', bounceOnAdd: true, bounceOnAddOptions: {duration: 500, height: 50}}).on('click', (e) => {
                         map.panTo(e.latlng, {"duration": 1})
                     });
                     pin.addLayer(droppedPin);
@@ -2019,6 +2047,7 @@
                     });
                 } else {
                     droppedPin.setLatLng(e.latlng, {draggable:'true'});
+                    droppedPin.bounce({duration: 500, height: 50});
                     let position = droppedPin.getLatLng();
                     map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
                 }
@@ -2096,9 +2125,9 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2166,9 +2195,9 @@
                                         if (message == "") {
                                             if (elementSeq == 1) {
                                                 if (language == "en") {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                                 } else {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                                 }
                                             } else {
                                                 entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2202,9 +2231,9 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2286,9 +2315,9 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                             }
                                         } else {
                                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2324,9 +2353,9 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                         }
                     } else {
                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2377,9 +2406,9 @@
                             if (message == "") {
                                 if (elementSeq == 1) {
                                     if (language == "en") {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                     } else {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                     }
                                 } else {
                                     entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2412,9 +2441,9 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                         }
                     } else {
                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2468,9 +2497,9 @@
                                 if (message == "") {
                                     if (elementSeq == 1) {
                                         if (language == "en") {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                         } else {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                         }
                                     } else {
                                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2503,9 +2532,9 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2568,9 +2597,9 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "🕒" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                             }
                                         } else {
                                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -5155,9 +5184,9 @@
                     "</div>" + 
                 "</div>" + 
             "</div>" + 
-            "<button class=\"button\" id=\"route-%s-remove\" title=\"清除路線\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px; background-color: #fac7c3;\">❌</button>" +
-            "<button class=\"button\" id=\"route-%s-up\" title=\"向上移動\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\">⬆️</button>" +
-            "<button class=\"button\" id=\"route-%s-down\" title=\"向下移動\" onClick=\"let index = %s; moveDown(index);\">⬇️</button>" +
+            "<button class=\"button\" id=\"route-%s-remove\" title=\"清除路線\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px; background-color: #fac7c3;\"><i class=\"material-icons\" style=\"color: red;\">close</i></button>" +
+            "<button class=\"button\" id=\"route-%s-up\" title=\"向上移動\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\"><i class=\"material-icons\">move_up</i></button>" +
+            "<button class=\"button\" id=\"route-%s-down\" title=\"向下移動\" onClick=\"let index = %s; moveDown(index);\"><i class=\"material-icons\">move_down</i></button>" +
         "</div>";
     if (language == "en") {
         routeInputHtml = routeInputHtml
@@ -5511,7 +5540,7 @@
                 let latlng = new L.LatLng(lat, lng);
                 if (droppedPin == null) {
                     document.getElementById("pin-remove").disabled = false;
-                    droppedPin = new L.marker(latlng, {draggable:'true'}).on('click', (e) => {
+                    droppedPin = new L.marker(latlng, {draggable:'true', bounceOnAdd: true, bounceOnAddOptions: {duration: 500, height: 50}}).on('click', (e) => {
                         map.panTo(e.latlng, {"duration": 1})
                     });
                     pin.addLayer(droppedPin);
@@ -5528,6 +5557,7 @@
                     });
                 } else {
                     droppedPin.setLatLng(latlng, {draggable:'true'});
+                    droppedPin.bounce({duration: 500, height: 50});
                     let position = droppedPin.getLatLng();
                     map.panTo(new L.LatLng(position.lat, position.lng), {"duration": 1});
                 }
@@ -5661,6 +5691,8 @@
     document.getElementById('toggle-map').addEventListener("click", toggleMap, false);
     document.getElementById('toggle-gps').addEventListener("click", toggleGps, false);
     document.getElementById('share-link').addEventListener("click", copyShareLink, false);
+
+    document.querySelector('.leaflet-control-zoom-fullscreen').addEventListener("click", () => setTimeout(() => jumpToAnchor('#anchor-map', 'instant'), 200), false);
 </script>
 
 </html>

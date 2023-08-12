@@ -23,9 +23,9 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 		        <button class="keyboard-key keyboard-refocus" id="keyboard-7" disabled>7</button>
 		        <button class="keyboard-key keyboard-refocus" id="keyboard-8" disabled>8</button>
 		        <button class="keyboard-key keyboard-refocus" id="keyboard-9" disabled>9</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-Delete"><i class="material-icons">delete</i></button>
+		        <button class="keyboard-key keyboard-refocus" id="keyboard-Delete"><i class="keyboard-material-icons">delete</i></button>
 	            <button class="keyboard-key keyboard-refocus" id="keyboard-0" disabled>0</button>
-	            <button class="keyboard-key keyboard-refocus" id="keyboard-Backspace"><i class="material-icons">backspace</i></button>
+	            <button class="keyboard-key keyboard-refocus" id="keyboard-Backspace"><i class="keyboard-material-icons">backspace</i></button>
 		    </div>
 		    <div class="keyboard-scrollable-column keyboard-disable-scrollbars keyboard-refocus"></div>
 		    <div class="keyboard-background"></div>
