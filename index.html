@@ -349,11 +349,11 @@
                                 </div>
                             </div>
                             <div id="map-mobile-popup-container" style="display: none; max-height: 35%;">
-                                <div id="map-mobile-popup-leaflet-div" class="leaflet-bottom leaflet-left div-only-mobile" style="width: 97%; z-index: 1100;">
+                                <div id="map-mobile-popup-leaflet-div" class="div-only-mobile" style="width: 100%; position: absolute; bottom: 0; left: 0; padding: 15px; z-index: 1100;">
                                     <div class="leaflet-control-layers leaflet-control" style="width: 100%; text-align: center;">
                                         <div class="box map-mobile-popup" id="map-mobile-popup"></div>
                                     </div>
-                                    <a id="map-mobile-popup-close" class="leaflet-popup-close-button" role="button" aria-label="Close popup" href="#close" style="z-index: 901; top: 2px; right: -7px; pointer-events: auto;">
+                                    <a id="map-mobile-popup-close" class="leaflet-popup-close-button" role="button" aria-label="Close popup" href="#close" style="z-index: 901; top: 17px; right: 17px; pointer-events: auto;">
                                         <span aria-hidden="true">×</span>
                                     </a>
                                 </div>
@@ -471,6 +471,12 @@
         }
         document.getElementById("mobile-bottom-padding").style.paddingBottom = document.getElementById("mobile-bottom").offsetHeight + "px";
     }, 100);
+    document.querySelectorAll(".mobile-dav-item").forEach(element => {
+        element.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    });
 
     const getJSON = (url, callback, retry = true) => {
         let xhr = new XMLHttpRequest();
