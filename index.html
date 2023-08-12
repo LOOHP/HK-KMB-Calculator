@@ -5538,6 +5538,9 @@
             collection[i].remove();
         }
         routeAdd();
+        currentShareParameters = "";
+        let shareLink = getShareLink();
+        window.history.replaceState(null, null, shareLink);
     };
     const toggleMap = () => {
         let mapElement = document.getElementById('map');
