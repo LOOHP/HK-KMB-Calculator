@@ -28,6 +28,7 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 	            <button class="keyboard-key keyboard-refocus" id="keyboard-Backspace"><i class="material-icons">backspace</i></button>
 		    </div>
 		    <div class="keyboard-scrollable-column keyboard-disable-scrollbars keyboard-refocus"></div>
+		    <div class="keyboard-background"></div>
 		</div>
 	`;
 

@@ -7,11 +7,15 @@
     display: flex;
     align-items: center;
     margin: 0;
-    background: linear-gradient(to bottom, #ff8989 0%, #ff8989 100%) no-repeat;
-    background-size: calc(100% - 0px) calc(100% - 5px);
-    background-position-x: center;
-    background-position-y: bottom;
     border-radius: 10px 10px 0px 0px;
+}
+
+.keyboard-background {
+    background-color: #ff8989;
+    position: absolute;
+    bottom: 0;
+    height: 110%;
+    z-index: -1;
 }
 
 .keyboard-disable-scrollbars::-webkit-scrollbar {
@@ -116,8 +120,9 @@
     .keyboard-main {
         width: 400px;
     }
-    .keyboard-container {
-        background-size: calc(100% - 30px) calc(100% - 5px);
+    .keyboard-background {
+        width: 99.5%;
+        border-radius: 0 0 10px 0;
     }
     @keyframes marquee {
         0% {
@@ -145,8 +150,9 @@
     .keyboard-main {
         width: 100%;
     }
-    .keyboard-container {
-        background-size: calc(100% - 0px) calc(100% - 5px);
+    .keyboard-background {
+        width: 100%;
+        border-radius: 0;
     }
     @keyframes marquee {
         0% {

@@ -5266,7 +5266,9 @@
                         orig = capitalize(orig);
                     }
                     routes.set(dest, data);
-                    routes.set(orig, data);
+                    if (!routes.has(orig)) {
+                        routes.set(orig, data);
+                    }
                 }
             }
             if (routes.size == 0) {
