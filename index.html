@@ -460,8 +460,8 @@
                 let targetWidth = element.parentElement.parentElement.parentElement.parentElement.parentElement.offsetWidth - 76.52;
                 element.style.fontSize = "26px";
                 let fontSize = 26;
-                while (targetWidth < element.offsetWidth) {
-                    console.log("hi");
+                let counter = 0;
+                while (targetWidth < element.offsetWidth && counter++ < 1000) {
                     let newFontSize = fontSize - 1;
                     element.style.fontSize = newFontSize + "px";
                     fontSize = newFontSize;
