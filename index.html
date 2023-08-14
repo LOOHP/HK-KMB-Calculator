@@ -1424,8 +1424,8 @@
                 let url = kmbBbiMapUrl.replace("{id}", bbiId);
                 let tooltip = language == "en" ? "Open BBI location map" : "展示轉車站位置圖";
                 let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
-                let patternZh = new RegExp("(?:^|[> ])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
-                let patternEn = new RegExp("(?:^|[> ])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
+                let patternZh = new RegExp("(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
+                let patternEn = new RegExp("(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
             }
         }
@@ -2686,7 +2686,7 @@
     const kmbRouteExists = (route) => {
         for (let i = 0; i < kmbRouteList.length; i++) {
             let kmbRoute = kmbRouteList[i];
-            if (route["route"] == kmbRoute["route"] && route["bound"]["kmb"] == kmbRoute["bound"] && route["serviceType"] == kmbRoute["service_type"] && route["orig"]["zh"] == kmbRoute["orig_tc"] && route["dest"]["zh"] == kmbRoute["dest_tc"]) {
+            if (route["route"] == kmbRoute["route"] && route["bound"]["kmb"] == kmbRoute["bound"] && route["serviceType"] == kmbRoute["service_type"] && route["orig"]["zh"].replaceAll("／", "/") == kmbRoute["orig_tc"].replaceAll("／", "/") && route["dest"]["zh"].replaceAll("／", "/") == kmbRoute["dest_tc"].replaceAll("／", "/")) {
                 return true;
             }
         }
@@ -3280,9 +3280,9 @@
                     } else {
                         fare = twoWaySectionFare[2];
                         if (language == "en") {
-                            note = "Octopus Two-way Section Fare - " + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
+                            note = "Octopus Two-way Section Fare -&nbsp;" + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
                         } else {
-                            note = "八達通雙向分段收費 - " + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
+                            note = "八達通雙向分段收費 -&nbsp;" + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
                         }
                     }
                     if (co == "nlb") {
@@ -3333,9 +3333,9 @@
                     } else {
                         fare = twoWaySectionFare[2];
                         if (language == "en") {
-                            note = "Octopus Two-way Section Fare - " + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
+                            note = "Octopus Two-way Section Fare -&nbsp;" + displayStopNames[twoWaySectionFare[0]] + " to " + displayStopNames[twoWaySectionFare[1]];
                         } else {
-                            note = "八達通雙向分段收費 - " + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
+                            note = "八達通雙向分段收費 -&nbsp;" + displayStopNames[twoWaySectionFare[0]] + " 至 " + displayStopNames[twoWaySectionFare[1]];
                         }
                     }
 
@@ -3414,9 +3414,9 @@
                                             } else {
                                                 fare0 = twoWaySectionFare0[2];
                                                 if (language == "en") {
-                                                    note0 = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
+                                                    note0 = "Octopus Two-way Section Fare -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
                                                 } else {
-                                                    note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                                                    note0 = "八達通雙向分段收費 -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
                                                 }
                                             }
                                             if (lastCo == "nlb") {
@@ -3646,9 +3646,9 @@
                                         } else {
                                             fare0 = twoWaySectionFare0[2];
                                             if (language == "en") {
-                                                note0 = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
+                                                note0 = "Octopus Two-way Section Fare -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
                                             } else {
-                                                note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                                                note0 = "八達通雙向分段收費 -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
                                             }
                                         }
                                         if (lastCo == "nlb") {
@@ -3740,9 +3740,9 @@
                                 } else {
                                     fare0 = twoWaySectionFare0[2];
                                     if (language == "en") {
-                                        note0 = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
+                                        note0 = "Octopus Two-way Section Fare -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
                                     } else {
-                                        note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                                        note0 = "八達通雙向分段收費 -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
                                     }
                                 }
                                 if (lastCo == "nlb") {
@@ -3869,9 +3869,9 @@
                             } else {
                                 fare0 = twoWaySectionFare0[2];
                                 if (language == "en") {
-                                    note = "Octopus Two-way Section Fare - " + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
+                                    note = "Octopus Two-way Section Fare -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare[0]] + " to " + rowsData[i - 1][14][twoWaySectionFare[1]];
                                 } else {
-                                    note0 = "八達通雙向分段收費 - " + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
+                                    note0 = "八達通雙向分段收費 -&nbsp;" + rowsData[i - 1][14][twoWaySectionFare0[0]] + " 至 " + rowsData[i - 1][14][twoWaySectionFare0[1]];
                                 }
                             }
                             if (lastCo == "nlb") {
@@ -4838,7 +4838,18 @@
                     }
                     if (stopMarkerData.has(stopDetails[u][0])) {
                         stopMarkerData.get(stopDetails[u][0])[0].push(stopMarker[0][0]);
-                        stopMarkerData.get(stopDetails[u][0])[2] = stopMarker[2];
+                        if (stopMarkerData.get(stopDetails[u][0])[0].indexOf(route["route"]) >= 0) {
+                            if (stopMarkerData.get(stopDetails[u][0])[1] == 0) {
+                                if (stopMarker[1] == 1) {
+                                    stopMarkerData.get(stopDetails[u][0])[1] = 5;
+                                }
+                            } else {
+                                stopMarkerData.get(stopDetails[u][0])[1] = stopMarker[1];
+                                stopMarkerData.get(stopDetails[u][0])[2] = stopMarker[2];
+                            }
+                        } else {
+                            stopMarkerData.get(stopDetails[u][0])[2] = stopMarker[2];
+                        }
                     } else {
                         stopMarkerData.set(stopDetails[u][0], stopMarker);
                     }
@@ -5045,6 +5056,7 @@
 
             let etaTables = [];
             let tableKeys = [];
+            let pinsPosition = new Set();
             for (let key of stopMarkerData.keys()) {
                 let stopMarker = stopMarkerData.get(key);
                 let routes = stopMarker[0];
@@ -5067,8 +5079,12 @@
                 }
                 desc = "<p style=\"text-align: center;\">" + desc + coStr + "</p>"
                 let icon;
-                if (stopType == 0) {
-                    desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>"
+                if (stopType == 0 || stopType == 5) {
+                    if (stopType == 5) {
+                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please board/alight at this stop" : "請在此站上車/落車") + "</p>";
+                    } else {
+                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please board at this stop" : "請在此站上車") + "</p>";
+                    }
                     icon = redIcon;
                     let tableKey = rowsData[stopMarker[4]][8]["route"] + "_" + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co]);
                     if (tableKeys.indexOf(tableKey) < 0) {
@@ -5131,7 +5147,7 @@
                             tableKeys.push(tableKey);
                         }
                     }
-                    desc += "</p>"
+                    desc += "</p>";
                     icon = redIcon;
                 } else if (stopType == 3) {
                     icon = goldIcon;
