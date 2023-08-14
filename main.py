@@ -171,14 +171,16 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 def find_first_closest_location_index(location, locations):
     closest_distance = haversine_distance(location[0], location[1], locations[0][0], locations[0][1])
+    closest_index = -1
     for i in range(1, len(locations)):
         loc = locations[i]
         distance = haversine_distance(location[0], location[1], loc[0], loc[1])
         if distance <= closest_distance:
             closest_distance = distance
-        else:
-            return i - 1
-    return len(locations) - 1
+            closest_index = i
+        elif closest_index >= 0 and closest_distance <= 0.2:
+            return closest_index
+    return (len(locations) - 1) if closest_index < 0 else closest_index
 
 
 def find_closest_section(location, sections):
@@ -193,10 +195,10 @@ def find_closest_section(location, sections):
     return closest
 
 
-def sort_sections(start, sections):
-    pool = list(sections)
-    result = []
-    location = start
+def sort_sections(sections):
+    pool = list(sections[1:])
+    result = [sections[0]]
+    location = sections[0][0]
     while len(pool) > 0:
         closest = find_closest_section(location, pool)
         pool.remove(closest)
@@ -207,12 +209,12 @@ def sort_sections(start, sections):
 
 def kmb_route_exists(route):
     for kmb_route in kmb_route_list:
-        if route["route"] == kmb_route["route"] and route["bound"]["kmb"] == kmb_route["bound"] and route["serviceType"] == kmb_route["service_type"] and route["orig"]["zh"] == kmb_route["orig_tc"] and route["dest"]["zh"] == kmb_route["dest_tc"]:
+        if route["route"] == kmb_route["route"] and route["bound"]["kmb"] == kmb_route["bound"] and route["serviceType"] == kmb_route["service_type"] and route["orig"]["zh"].replace("／", "/") == kmb_route["orig_tc"].replace("／", "/") and route["dest"]["zh"].replace("／", "/") == kmb_route["dest_tc"].replace("／", "/"):
             return True
     return False
 
 
-def resolve_route_information(data, start, stops):
+def resolve_route_information(data, stops):
     result = []
     pattern = "<coordinates> *(.*?) *<\/coordinates>"
     itr = re.finditer(pattern, data, flags=0)
@@ -224,20 +226,20 @@ def resolve_route_information(data, start, stops):
         for matcher_2 in itr_2:
             sub_result.append([float(matcher_2.group(2)), float(matcher_2.group(1))])
         result.append(sub_result)
-    sorted_result = sort_sections(start, result)
+    sorted_result = sort_sections(result)
     combined = []
     for section in sorted_result:
         combined = section + combined
     combined.reverse()
     if len(stops) <= 1:
-        return combined
+        return [combined]
     result = []
     for i in range(1, len(stops) - 1):
         stop = data_sheet["stopList"][stops[i]]
         location = [stop["location"]["lat"], stop["location"]["lng"]]
         index = find_first_closest_location_index(location, combined)
         result.append(combined[:(index + 1)])
-        del combined[0:(index + 1)]
+        del combined[:index]
     result.append(combined)
     return result
 
@@ -260,21 +262,15 @@ def add_route_path(route_number, route_data):
     route_paths = {}
     for entry in route_data:
         if entry["route"] == route_number:
-            first_stop = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route-stop/" + route_number + "/" + ("outbound" if entry["bound"] == "O" else "inbound") + "/" + entry["service_type"])["data"][0]["stop"]
-            first_stop_data = get_json("https://data.etabus.gov.hk/v1/transport/kmb/stop/" + first_stop)["data"]
             stops = None
             for key, route in data_sheet["routeList"].items():
                 if "kmb" in route["bound"] and kmb_route_exists(route) and route["route"] == route_number and entry["bound"] == route["bound"]["kmb"] and entry["service_type"] == route["serviceType"]:
                     stops = route["stops"]["kmb"]
                     break
-            try:
-                b = resolve_route_information(get_text(paths_url.replace("{route}", route_number).replace("{bound}", "1" if entry["bound"] == "O" else "2").replace(
-                    "{type}", entry["service_type"])), [float(first_stop_data["lat"]), float(first_stop_data["long"])], stops)
-                if entry["bound"] not in route_paths:
-                    route_paths[entry["bound"]] = {}
-                route_paths[entry["bound"]][entry["service_type"]] = b
-            except:
-                pass
+            b = resolve_route_information(get_text(paths_url.replace("{route}", route_number).replace("{bound}", "1" if entry["bound"] == "O" else "2").replace("{type}", entry["service_type"])), stops)
+            if entry["bound"] not in route_paths:
+                route_paths[entry["bound"]] = {}
+            route_paths[entry["bound"]][entry["service_type"]] = b
     write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_paths\\" + route_number + ".json", route_paths)
 
 
@@ -729,6 +725,7 @@ if __name__ == '__main__':
             futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
         for future in concurrent.futures.as_completed(futures):
             pass
+    #add_route_path("111", get_all_routes_data())
 
     #read_ctb_bbi()
 
