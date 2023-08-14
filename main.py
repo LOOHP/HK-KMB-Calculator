@@ -207,7 +207,7 @@ def sort_sections(start, sections):
 
 def kmb_route_exists(route):
     for kmb_route in kmb_route_list:
-        if (route["route"] == kmb_route["route"] and route["bound"]["kmb"] == kmb_route["bound"] and route["serviceType"] == kmb_route["service_type"] and route["orig"]["zh"] == kmb_route["orig_tc"] and route["dest"]["zh"] == kmb_route["dest_tc"]):
+        if route["route"] == kmb_route["route"] and route["bound"]["kmb"] == kmb_route["bound"] and route["serviceType"] == kmb_route["service_type"] and route["orig"]["zh"] == kmb_route["orig_tc"] and route["dest"]["zh"] == kmb_route["dest_tc"]:
             return True
     return False
 
@@ -693,11 +693,11 @@ def write_dict_to_file(file, dictionary, indent=4):
 
 
 if __name__ == '__main__':
-    weekday_map_zh = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '日及公眾假期'}
-    weekday_map_en = {'1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday & Public Holidays'}
-    #data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
-    #paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
-    #kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")
+    #weekday_map_zh = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '日及公眾假期'}
+    #weekday_map_en = {'1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday & Public Holidays'}
+    data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
+    paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
+    kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")["data"]
     #ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
     #ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
     #ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
@@ -708,8 +708,8 @@ if __name__ == '__main__':
     #mtr_bus_info_url = "https://www.mtr.com.hk/ch/customer/services/searchBusRouteDetails.php?routeID={route}"
     #gmb_route_list = get_json("https://data.etagmb.gov.hk/route/")["data"]["routes"]
     #gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
-    nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
-    nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
+    #nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
+    #nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
 
     #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
@@ -721,14 +721,14 @@ if __name__ == '__main__':
     #a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
     #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\regional_two_way_section_fare.json", a)
 
-    #with concurrent.futures.ThreadPoolExecutor() as executor:
-    #    futures = []
-    #    route_numbers = get_all_routes()
-    #    route_data = get_all_routes_data()
-    #    for route_number in route_numbers:
-    #        futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
-    #    for future in concurrent.futures.as_completed(futures):
-    #        pass
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        route_numbers = get_all_routes()
+        route_data = get_all_routes_data()
+        for route_number in route_numbers:
+            futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
+        for future in concurrent.futures.as_completed(futures):
+            pass
 
     #read_ctb_bbi()
 
@@ -789,5 +789,5 @@ if __name__ == '__main__':
     #write_mtr_bus_timetable()
 
     #print("".join(get_text("https://www.nlb.com.hk/route/detail/63").splitlines()))
-    write_nlb_timetable()
+    #write_nlb_timetable()
 
