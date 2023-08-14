@@ -4844,7 +4844,6 @@
                                     stopMarkerData.get(stopDetails[u][0])[1] = 5;
                                 }
                             } else {
-                                stopMarkerData.get(stopDetails[u][0])[1] = stopMarker[1];
                                 stopMarkerData.get(stopDetails[u][0])[2] = stopMarker[2];
                             }
                         } else {
@@ -5175,7 +5174,7 @@
                         + "<span style=\"word-break: keep-all; font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"map_" + co + "," + rowsData[stopMarker[4]][11][stopMarker[5]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co]) + ",3,15,0\"></span><br>";
                 }
 
-                let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170})
+                let stopPin = L.marker(stopMarker[3], {icon: icon}).addTo(markers).bindPopup(desc, {minWidth: 170, maxWidth: 800})
                 .on("mouseover", e => {
                     if (!isPopupMobile() && !isClicked) {
                         e.target.openPopup();
