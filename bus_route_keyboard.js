@@ -53,7 +53,7 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 
 	const handle = e => {
 		let element = e.target;
-		if (element.classList.contains("material-icons")) {
+		if (element.classList.contains("keyboard-material-icons")) {
 			element = element.parentElement;
 		}
 		if (element.classList.contains("keyboard-key")) {
