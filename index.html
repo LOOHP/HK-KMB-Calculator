@@ -1424,8 +1424,8 @@
                 let url = kmbBbiMapUrl.replace("{id}", bbiId);
                 let tooltip = language == "en" ? "Open BBI location map" : "展示轉車站位置圖";
                 let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
-                let patternZh = new RegExp("(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
-                let patternEn = new RegExp("(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
+                let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
+                let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
             }
         }
@@ -3095,7 +3095,7 @@
             for (let k = 0; k < stops.length - 1; k++) {
                 let stopId = stops[k];
                 let stop = dataSheet["stopList"][stopId];
-                let name = language == "en" ? capitalize(stop["name"]["en"]) : stop["name"]["zh"];
+                let name = (k + 1) + ". " + (language == "en" ? capitalize(stop["name"]["en"]) : stop["name"]["zh"]);
                 addOptions(document.getElementById('route-' + leg + '-start'), name, "route-" + leg + "-start-" + k, k);
             }
 
@@ -3134,7 +3134,7 @@
             for (let k = startingStop + 1; k < stops.length; k++) {
                 let stopId = stops[k];
                 let stop = dataSheet["stopList"][stopId];
-                let name = language == "en" ? capitalize(stop["name"]["en"]) : stop["name"]["zh"];
+                let name = (k + 1) + ". " + (language == "en" ? capitalize(stop["name"]["en"]) : stop["name"]["zh"]);
                 addOptions(document.getElementById('route-' + leg + '-end'), name, "route-" + leg + "-end-" + k, k);
             }
 
@@ -4844,6 +4844,9 @@
                                     stopMarkerData.get(stopDetails[u][0])[1] = 5;
                                 }
                             } else {
+                                if (stopMarkerData.get(stopDetails[u][0])[1] == 4 && stopMarker[1] == 1) {
+                                    stopMarkerData.get(stopDetails[u][0])[1] = 1;
+                                }
                                 stopMarkerData.get(stopDetails[u][0])[2] = stopMarker[2];
                             }
                         } else {
@@ -5420,7 +5423,7 @@
                 }
             }
             if (routes.size == 0) {
-                return language == "en" ? "Please Enter Bus Route" : "請輸入巴士路線";
+                return "<b>" + text + "</b>&nbsp;-&nbsp;<span style=\"color: #adadad;\">" + (language == "en" ? "Please Enter Bus Route" : "請輸入巴士路線") + "</span>";
             }
             let array = [...routes.values()].sort((a, b) => {
                 let coAStr = a["route"]["bound"].hasOwnProperty("kmb") ? "kmb" : (a["route"]["bound"].hasOwnProperty("ctb") ? "ctb" : (a["route"]["bound"].hasOwnProperty("nlb") ? "nlb" : (a["route"]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
@@ -5450,7 +5453,9 @@
                     }
                 }
             });
-            return "<b>" + text + "</b>&nbsp;-&nbsp;" + array.map(a => {
+
+            let firstCo = array[0]["route"]["bound"].hasOwnProperty("kmb") ? "kmb" : (array[0]["route"]["bound"].hasOwnProperty("ctb") ? "ctb" : (array[0]["route"]["bound"].hasOwnProperty("nlb") ? "nlb" : (array[0]["route"]["bound"].hasOwnProperty("mtr-bus") ? "mtr-bus" : "gmb")));
+            return "<b>" + getRouteNumberDisplay(firstCo, text, {emoji: true}) + "</b>&nbsp;-&nbsp;" + array.map(a => {
                 let color;
                 if (a["route"]["bound"].hasOwnProperty("kmb")) {
                     color = "#C60000";

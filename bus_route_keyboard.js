@@ -44,9 +44,7 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 		simulateKeyEvent(inputField, key, 'keyup');
 		event.stopPropagation();
 		event.preventDefault();
-		setTimeout(() => {
-			inputField.selectionStart = inputField.selectionEnd = 10000;
-		}, 0);
+		setTimeout(() => inputField.selectionStart = inputField.selectionEnd = 10000, 0);
     };
 
 	prependTo.prepend(main);
@@ -59,6 +57,14 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 		if (element.classList.contains("keyboard-key")) {
 			let key = element.id.substring("keyboard-".length);
 			handleKeyboardClick(event, element, key, key.length > 1);
+		} else {
+			do {
+				if (Array.from(element.classList).some(clazz => clazz.startsWith("keyboard-"))) {
+					setTimeout(() => inputField.focus(), 0);
+					break;
+				}
+				element = element.parentElement;
+			} while (element);
 		}
 	};
 
