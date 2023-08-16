@@ -474,6 +474,8 @@
 </body>
 
 <script>
+    const printConnectionError = (str) => console.log(str);
+
     const jumpToAnchor = (selectedAnchor, behavior = 'smooth') => {
         document.querySelector(selectedAnchor).scrollIntoView({behavior: behavior});
     };
@@ -788,9 +790,20 @@
         shadowSize: [27.3, 27.3]
     });
 
+    let currentStopMarkersByStopId = new Map();
+    let currentStopMarkersByPin = new Map();
+
     const isPopupMobile = () => {
         return getComputedStyle(document.getElementById('map-mobile-popup-leaflet-div')).display != "none";
     };
+
+    const clickMarker = (marker) => {
+        marker.fireEvent('click', {
+            latlng: marker.getLatLng(),
+            layerPoint: map.latLngToLayerPoint(marker.getLatLng()),
+            containerPoint: map.latLngToContainerPoint(marker.getLatLng())
+        });
+    }
 
     let style = document.createElement("style");
     document.head.appendChild(style);
@@ -802,10 +815,45 @@
         let popup = evt.popup;
         openPopups.push(popup);
         document.getElementById("map-mobile-popup-container").style.display = "";
-        document.getElementById("map-mobile-popup").innerHTML = popup.getContent();
+        let html = popup.getContent();
+        let leftHtml = "";
+        let rightHtml = "";
+        let stopIdData = currentStopMarkersByPin.get(popup._source);
+        if (stopIdData) {
+            let showRoute = stopIdData.size > 1;
+            for (let routeNumber of stopIdData.keys()) {
+                let routeDisplay = showRoute ? ("<span style=\"font-size: 15px;\">" + routeNumber + "</span>") : "";
+                let routeStopIdData = stopIdData.get(routeNumber);
+                if (routeStopIdData.hasOwnProperty("previous")) {
+                    leftHtml += "<button class=\"button\" style=\"justify-content: left;\" onClick=\"clickMarker(currentStopMarkersByStopId.get('" + routeStopIdData['previous'] + "'));\"><i class=\"material-icons\" style=\"font-size: 25px; vertical-align: -12%;\">keyboard_arrow_left</i>" + routeDisplay + "</button>";
+                }
+                if (routeStopIdData.hasOwnProperty("previous_alt")) {
+                    leftHtml += "<button class=\"button\" style=\"justify-content: left; color: #adadad;\" onClick=\"clickMarker(currentStopMarkersByStopId.get('" + routeStopIdData['previous_alt'] + "'));\"><i class=\"material-icons\" style=\"font-size: 25px; vertical-align: -12%;\">keyboard_arrow_left</i>" + routeDisplay + "</button>";
+                }
+                if (routeStopIdData.hasOwnProperty("previous_end")) {
+                    leftHtml += "<button class=\"button\" style=\"justify-content: left; color: red;\" onClick=\"clickMarker(currentStopMarkersByStopId.get('" + routeStopIdData['previous_end'] + "'));\"><i class=\"material-icons\" style=\"font-size: 25px; vertical-align: -12%;\">first_page</i>" + routeDisplay + "</button>";
+                }
+                if (routeStopIdData.hasOwnProperty("next")) {
+                    rightHtml += "<button class=\"button\" style=\"justify-content: right;\" onClick=\"clickMarker(currentStopMarkersByStopId.get('" + routeStopIdData['next'] + "'));\">" + routeDisplay + "<i class=\"material-icons\" style=\"font-size: 25px; vertical-align: -12%;\">keyboard_arrow_right</i></button>";
+                }
+                if (routeStopIdData.hasOwnProperty("next_alt")) {
+                    rightHtml += "<button class=\"button\" style=\"justify-content: right; color: #adadad;\" onClick=\"clickMarker(currentStopMarkersByStopId.get('" + routeStopIdData['next_alt'] + "'));\">" + routeDisplay + "<i class=\"material-icons\" style=\"font-size: 25px; vertical-align: -12%;\">keyboard_arrow_right</i></button>";
+                }
+                if (routeStopIdData.hasOwnProperty("next_end")) {
+                    rightHtml += "<button class=\"button\" style=\"justify-content: right; color: red;\" onClick=\"clickMarker(currentStopMarkersByStopId.get('" + routeStopIdData['next_end'] + "'));\">" + routeDisplay + "<i class=\"material-icons\" style=\"font-size: 25px; vertical-align: -12%;\">last_page</i></button>";
+                }
+            }
+        }
+        if (leftHtml != "") {
+            html += "<div style=\"position: absolute; bottom: 10px; left: 10px; display: flex; flex-direction: column; row-gap: 7px;\">" + leftHtml + "</div>";
+        }
+        if (rightHtml != "") {
+            html += "<div style=\"position: absolute; bottom: 10px; right: 10px; display: flex; flex-direction: column; row-gap: 7px;\">" + rightHtml + "</div>";
+        }
+        document.getElementById("map-mobile-popup").innerHTML = html;
         if (isPopupMobile()) {
             const f = () => {
-                let height = document.querySelector('.leaflet-popup-content').querySelector('p').offsetHeight;
+                let height = document.querySelector('.leaflet-popup-content').querySelector('p').offsetHeight - 1;
                 if (stylesheet.cssRules.length > 0) {
                     stylesheet.deleteRule(0);
                 }
@@ -1008,7 +1056,7 @@
             }
             busRouteListOptions += options;
         } else {
-            alert("Unable to get response from " + kmbRouteListUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + kmbRouteListUrl + ". (Is it down?)");
         }
     });
 
@@ -1030,7 +1078,7 @@
             }
             busRouteListOptions = options;
         } else {
-            alert("Unable to get response from " + ctbRouteListUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + ctbRouteListUrl + ". (Is it down?)");
         }
     });
 
@@ -1052,7 +1100,7 @@
             }
             busRouteListOptions = options;
         } else {
-            alert("Unable to get response from " + nlbRouteListUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + nlbRouteListUrl + ". (Is it down?)");
         }
     });
 
@@ -1065,7 +1113,7 @@
         if (err == null) {
             mtrBusStopAliasList = data;
         } else {
-            alert("Unable to get response from " + mtrBusStopAliasListUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + mtrBusStopAliasListUrl + ". (Is it down?)");
         }
     });
 
@@ -1090,7 +1138,7 @@
             }
             busRouteListOptions = options;
         } else {
-            alert("Unable to get response from " + gmbRouteListUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + gmbRouteListUrl + ". (Is it down?)");
         }
     });
 
@@ -1247,7 +1295,7 @@
                     }
                     busRouteListOptions = options;
                 } else {
-                    alert("Unable to get response from " + mtrBusRouteListUrl + ". (Is it down?)");
+                    printConnectionError("Unable to get response from " + mtrBusRouteListUrl + ". (Is it down?)");
                 }
             });
 
@@ -1255,11 +1303,11 @@
                 if (err == null) {
                     dataSheet["stopList"] = {...dataSheet["stopList"], ...data};
                 } else {
-                    alert("Unable to get response from ./mtr_bus_stops.json. (Is it down?)");
+                    printConnectionError("Unable to get response from ./mtr_bus_stops.json. (Is it down?)");
                 }
             });
         } else {
-            alert("Unable to get response from " + dataSheetUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + dataSheetUrl + ". (Is it down?)");
         }
     });
 
@@ -1269,7 +1317,7 @@
         if (err == null) {
             bbiF1 = data;
         } else {
-            alert("Unable to get response from " + bbiF1Url + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + bbiF1Url + ". (Is it down?)");
         }
     });
 
@@ -1279,7 +1327,7 @@
         if (err == null) {
             bbiB1 = data;
         } else {
-            alert("Unable to get response from " + bbiB1Url + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + bbiB1Url + ". (Is it down?)");
         }
     });
 
@@ -1289,7 +1337,7 @@
         if (err == null) {
             bbiStopId = data;
         } else {
-            alert("Unable to get response from " + bbiStopIdUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + bbiStopIdUrl + ". (Is it down?)");
         }
     });
 
@@ -1299,7 +1347,7 @@
         if (err == null) {
             bbiGmbKmb = data;
         } else {
-            alert("Unable to get response from " + bbiGmbKmbUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + bbiGmbKmbUrl + ". (Is it down?)");
         }
     });
 
@@ -1309,7 +1357,7 @@
         if (err == null) {
             regionalTwoWaySectionFare = data;
         } else {
-            alert("Unable to get response from " + regionalTwoWaySectionFareUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + regionalTwoWaySectionFareUrl + ". (Is it down?)");
         }
     });
 
@@ -1319,7 +1367,7 @@
         if (err == null) {
             bbiCtb = data;
         } else {
-            alert("Unable to get response from " + bbiCtbUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + bbiCtbUrl + ". (Is it down?)");
         }
     });
 
@@ -1329,7 +1377,7 @@
         if (err == null) {
             ctbId = data;
         } else {
-            alert("Unable to get response from " + ctbIdUrl + ". (Is it down?)");
+            printConnectionError("Unable to get response from " + ctbIdUrl + ". (Is it down?)");
         }
     });
 
@@ -1800,7 +1848,8 @@
                     updatingRouteTasks.push(task0Id);
                     getJSON("./route_paths/" + routeNumber + ".json", (err, data) => {
                         try {
-                            if (err == null) {                
+                            if (err == null) {
+                                console.log(routeNumber);
                                 let sections = data[bound][route["serviceType"]];
                                 if (sections == undefined) {
                                     return;
@@ -1847,7 +1896,7 @@
                                     }).addTo(nearbyLines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
                                 }
                             } else {
-                                alert("Unable to get response from ./route_paths/" + routeNumber + ".json. (Is it down?)");
+                                printConnectionError("Unable to get response from ./route_paths/" + routeNumber + ".json. (Is it down?)");
                             }
                         } finally {
                             updatingRouteTasks.splice(updatingRouteTasks.indexOf(task0Id), 1);
@@ -2274,7 +2323,7 @@
                         }
                     }
                 } else {
-                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                    printConnectionError("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
                 }
             });
         }
@@ -2393,7 +2442,7 @@
                         }
                     }
                 } else {
-                    alert("Unable to get response from " + mtrBusRouteEtaUrl + ". (Is it down?)");
+                    printConnectionError("Unable to get response from " + mtrBusRouteEtaUrl + ". (Is it down?)");
                 }
             });
         }
@@ -2482,7 +2531,7 @@
                         }
                     }
                 } else {
-                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                    printConnectionError("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
                 }
             });
         }
@@ -2574,7 +2623,7 @@
                         }
                     }
                 } else {
-                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                    printConnectionError("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
                 }
             });
         }
@@ -2675,7 +2724,7 @@
                         }
                     }
                 } else {
-                    alert("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
+                    printConnectionError("Unable to get response from " + resolvedStopEtaUrl + ". (Is it down?)");
                 }
             });
         }
@@ -3228,7 +3277,7 @@
                             route["fares"] = faresArray;
                             calculate();
                         } else {
-                            alert("Unable to get response from " + resolvedRouteDataUrl + ". (Is it down?)");
+                            printConnectionError("Unable to get response from " + resolvedRouteDataUrl + ". (Is it down?)");
                         }
                     });
                     return;
@@ -3916,6 +3965,8 @@
             markers.clearLayers();
             lines.clearLayers();
             activeRouteMarker.clearLayers();
+            currentStopMarkersByStopId.clear();
+            currentStopMarkersByPin.clear();
             document.getElementById('special-announcements').innerHTML = "";
             document.getElementById('special-announcements').style.display = "none";
 
@@ -4050,7 +4101,7 @@
                                 }
                             }
                         } else {
-                            alert("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
+                            printConnectionError("Unable to get response from " + resolvedSpecialUrl + ". (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
                     }]);
@@ -4228,7 +4279,7 @@
                                 document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
                         } else {
-                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                            printConnectionError("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
@@ -4254,7 +4305,7 @@
                                 }
                             }
                         } else {
-                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                            printConnectionError("Unable to get response from ./dummy.txt. (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
                     }]);
@@ -4282,7 +4333,7 @@
                                 document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
                         } else {
-                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                            printConnectionError("Unable to get response from ./dummy.txt. (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
@@ -4310,7 +4361,7 @@
                                 }
                             }
                         } else {
-                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                            printConnectionError("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
                     }]);
@@ -4461,7 +4512,7 @@
                                 document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
                         } else {
-                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                            printConnectionError("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
@@ -4487,7 +4538,7 @@
                                 }
                             }
                         } else {
-                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                            printConnectionError("Unable to get response from ./dummy.txt. (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
                     }]);
@@ -4638,7 +4689,7 @@
                                 document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
                         } else {
-                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                            printConnectionError("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
@@ -4664,7 +4715,7 @@
                                 }
                             }
                         } else {
-                            alert("Unable to get response from ./dummy.txt. (Is it down?)");
+                            printConnectionError("Unable to get response from ./dummy.txt. (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task0Id), 1);
                     }]);
@@ -4813,7 +4864,7 @@
                                 document.getElementById("time-table").innerHTML += "<hr style=\"border-top: 1px solid #eee;\">" + append;
                             }
                         } else {
-                            alert("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
+                            printConnectionError("Unable to get response from " + resolvedTimeTableUrl + ". (Is it down?)");
                         }
                         calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
@@ -4824,17 +4875,39 @@
                 for (let u = 0; u < stopNames.length; u++) {
                     let stopName = stopNames[u];
                     let stopPosition = stopDetails[u][1]["location"];
+                    let routeNumber = route["route"];
                     let desc = (u + 1) + ". " + applyBbiStopHref(entry[14][u]);
                     let positionArray = [stopPosition["lat"], stopPosition["lng"]];
+                    let stopId = stopDetails[u][0];
+                    let stopIds = {"current": stopId};
+                    if ((u + 1) < stopNames.length) {
+                        stopIds["next"] = stopDetails[u + 1][0];
+                    }
+                    if (u > 0) {
+                        stopIds["previous"] = stopDetails[u - 1][0];
+                    }
                     let stopMarker;
                     if (u < entry[12] || u > entry[13]) {
-                        stopMarker = [[route["route"]], 4, desc, positionArray, i, u, co, routeNumberDisplay];
+                        stopMarker = [[routeNumber], 4, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
                     } else if (u == entry[12]) {
-                        stopMarker = [[route["route"]], 0, desc, positionArray, i, u, co, routeNumberDisplay];
+                        stopMarker = [[routeNumber], 0, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
                     } else if (u == entry[13]) {
-                        stopMarker = [[route["route"]], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u, co, routeNumberDisplay];
+                        stopMarker = [[routeNumber], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
                     } else {
-                        stopMarker = [[route["route"]], 3, desc, positionArray, i, u, co, routeNumberDisplay];
+                        stopMarker = [[routeNumber], 3, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
+                    }
+                    let stopType = stopMarker[1];
+                    if (stopType == 0) {
+                        stopIds["previous_end"] = stopIds["previous"];
+                        delete stopIds["previous"];
+                    } else if (stopType == 1 || stopType == 2) {
+                        stopIds["next_end"] = stopIds["next"];
+                        delete stopIds["next"];
+                    } else if (stopType == 4) {
+                        stopIds["previous_alt"] = stopIds["previous"];
+                        delete stopIds["previous"];
+                        stopIds["next_alt"] = stopIds["next"];
+                        delete stopIds["next"];
                     }
                     if (stopMarkerData.has(stopDetails[u][0])) {
                         stopMarkerData.get(stopDetails[u][0])[0].push(stopMarker[0][0]);
@@ -4852,8 +4925,17 @@
                         } else {
                             stopMarkerData.get(stopDetails[u][0])[2] = stopMarker[2];
                         }
+                        if (stopMarkerData.get(stopDetails[u][0])[1] == 4) {
+                            stopMarkerData.get(stopDetails[u][0])[1] = stopMarker[1];
+                        }
                     } else {
                         stopMarkerData.set(stopDetails[u][0], stopMarker);
+                    }
+                    let map = stopMarkerData.get(stopDetails[u][0])[8];
+                    if (map.has(routeNumber)) {
+                        map.set(new Map([...map[routeNumber], ...stopIds]));
+                    } else {
+                        map.set(routeNumber, stopIds);
                     }
                 }
 
@@ -4913,7 +4995,7 @@
                                 }
                                 map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
                             } else {
-                                alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
+                                printConnectionError("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
                             }
                         } finally {
                             calculateTasks.splice(calculateTasks.indexOf(task2Id), 1);
@@ -4985,7 +5067,7 @@
                                 }
                                 map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
                             } else {
-                                alert("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
+                                printConnectionError("Unable to get response from ./route_paths/" + route["route"] + ".json. (Is it down?)");
                             }
                         } finally {
                             calculateTasks.splice(calculateTasks.indexOf(task2Id), 1);
@@ -5066,6 +5148,7 @@
                 let desc = stopMarker[2];
                 let co = stopMarker[6];
                 let routeNumberDisplay = stopMarker[7];
+                let stopIds = stopMarker[8];
                 if (rowsData.length > 1) {
                     desc = "[" + routes.join("/") + "] " + desc;
                 }
@@ -5121,8 +5204,15 @@
                         let changeTo = nextEntry[0];
                         desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo + "</p><p style=\"text-align: center; font-size: 15px;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
                     } else {
-                        let changeTo = routes[1];
-                        desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo;
+                        let changeTo;
+                        if (Array.from(stopMarkerData.values()).some(e => e[0].indexOf(routes[1]) >= 0 && e[1] == 0)) {
+                            let nextEntry = rowsData[stopMarker[4] + 1];
+                            changeTo = nextEntry[0];
+                            desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo + "</p><p style=\"text-align: center; font-size: 15px;\">(" + (language == "en" ? "Walk to " : "步行至 ") + nextEntry[14][nextEntry[12]] + ")";
+                        } else {
+                            changeTo = routes[1];
+                            desc += "<p style=\"text-align: center; font-size: 20px;\">" + (language == "en" ? "Please interchange at this stop " : "請在此站轉車 ") + routes[0] + " 🡒 " + changeTo;
+                        }
 
                         let tableKey = rowsData[stopMarker[4] + 1][8]["route"] + "_" + (co == "nlb" ? rowsData[stopMarker[4] + 1][8]["nlbId"] : rowsData[stopMarker[4] + 1][8]["bound"][co]);
                         if (tableKeys.indexOf(tableKey) < 0) {
@@ -5198,6 +5288,8 @@
                 if (stopType >= 0 && stopType <= 3) {
                     stopPin.addTo(activeRouteMarker);
                 }
+                currentStopMarkersByStopId.set(stopIds.values().next().value["current"], stopPin);
+                currentStopMarkersByPin.set(stopPin, stopIds);
             }
 
             let append = 
