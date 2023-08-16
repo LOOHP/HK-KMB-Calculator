@@ -4898,16 +4898,24 @@
                     }
                     let stopType = stopMarker[1];
                     if (stopType == 0) {
-                        stopIds["previous_end"] = stopIds["previous"];
-                        delete stopIds["previous"];
+                        if (stopIds.hasOwnProperty("previous")) {
+                            stopIds["previous_end"] = stopIds["previous"];
+                            delete stopIds["previous"];
+                        }
                     } else if (stopType == 1 || stopType == 2) {
-                        stopIds["next_end"] = stopIds["next"];
-                        delete stopIds["next"];
+                        if (stopIds.hasOwnProperty("next")) {
+                            stopIds["next_end"] = stopIds["next"];
+                            delete stopIds["next"];
+                        }
                     } else if (stopType == 4) {
-                        stopIds["previous_alt"] = stopIds["previous"];
-                        delete stopIds["previous"];
-                        stopIds["next_alt"] = stopIds["next"];
-                        delete stopIds["next"];
+                        if (stopIds.hasOwnProperty("previous")) {
+                            stopIds["previous_alt"] = stopIds["previous"];
+                            delete stopIds["previous"];
+                        }
+                        if (stopIds.hasOwnProperty("next")) {
+                            stopIds["next_alt"] = stopIds["next"];
+                            delete stopIds["next"];
+                        }
                     }
                     if (stopMarkerData.has(stopDetails[u][0])) {
                         stopMarkerData.get(stopDetails[u][0])[0].push(stopMarker[0][0]);
