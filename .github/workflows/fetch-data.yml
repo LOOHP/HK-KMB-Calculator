@@ -27,8 +27,7 @@ jobs:
       - name: Update resources
         uses: test-room-7/action-update-file@v1
         with:
-            file-path: |
-              data/*
+            file-path: data/*.js
             commit-msg: Update resources
             github-token: ${{ secrets.GITHUB_TOKEN }}
             branch: gh-pages
