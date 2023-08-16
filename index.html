@@ -1849,7 +1849,6 @@
                     getJSON("./route_paths/" + routeNumber + ".json", (err, data) => {
                         try {
                             if (err == null) {
-                                console.log(routeNumber);
                                 let sections = data[bound][route["serviceType"]];
                                 if (sections == undefined) {
                                     return;
