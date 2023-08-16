@@ -263,7 +263,7 @@ def add_route_path(route_number, route_data):
     route_paths = {}
     for entry in route_data:
         if entry["route"] == route_number:
-            stops = None
+            stops = []
             for key, route in data_sheet["routeList"].items():
                 if "kmb" in route["bound"] and kmb_route_exists(route) and route["route"] == route_number and entry["bound"] == route["bound"]["kmb"] and entry["service_type"] == route["serviceType"]:
                     stops = route["stops"]["kmb"]
@@ -272,7 +272,7 @@ def add_route_path(route_number, route_data):
             if entry["bound"] not in route_paths:
                 route_paths[entry["bound"]] = {}
             route_paths[entry["bound"]][entry["service_type"]] = b
-    write_dict_to_file("data/route_paths\\" + route_number + ".json", route_paths)
+    write_dict_to_file("data/route_paths/" + route_number + ".json", route_paths)
 
 
 def resolve_mtr_bus_data():
@@ -440,7 +440,7 @@ def resolve_write_ctb_paths(data):
                 section = find_trim_closest_sections(positions_list, stop_1, stop_2)
                 if section is not None:
                     result[bound][stop_pair] = section
-        write_dict_to_file("data/route_paths_ctb\\" + route_number + ".json", result)
+        write_dict_to_file("data/route_paths_ctb/" + route_number + ".json", result)
 
 
 def convert_weekday_ranges(input_string):
@@ -544,7 +544,7 @@ def write_gmb_data_0(region, route_number):
                                 timetable[weekday] = {}
                             timetable[weekday][times] = frequency
                 result["bound"][bound] = {"timetable": merge_gmb_timetable(timetable)}
-            write_dict_to_file("data/route_data_gmb\\" + gtfs_id + ".json", result)
+            write_dict_to_file("data/route_data_gmb/" + gtfs_id + ".json", result)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
@@ -593,7 +593,7 @@ def write_mtr_bus_timetable():
                     for i in range(0, len(periods)):
                         times.append({"period": periods[i], "frequency": frequencies[i]})
                     result["bound"][bound]["timetable"].append({"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": times})
-        write_dict_to_file("data/route_data_mtr_bus\\" + route_number + ".json", result)
+        write_dict_to_file("data/route_data_mtr_bus/" + route_number + ".json", result)
 
 
 def write_nlb_timetable():
@@ -679,7 +679,7 @@ def write_nlb_timetable():
                     for i in range(0, len(periods)):
                         times.append({"period": periods[i], "frequency": frequencies[i], "school_holiday": school_holiday, "school_day_only": school_day_only, "public_holiday": public_holiday, "no_school_day": no_school_day})
                     result["timetable"].append({"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": times})
-        write_dict_to_file("data/route_data_nlb\\" + route_id + ".json", result)
+        write_dict_to_file("data/route_data_nlb/" + route_id + ".json", result)
 
 
 def write_dict_to_file(file, dictionary, indent=4):
@@ -772,7 +772,7 @@ if __name__ == '__main__':
     #
     #write_dict_to_file("data/kmb_gmb_interchange_1.json", data)
 
-    #raw_path = get_ctb_paths(get_json("file:///data/ctb_timeable_macro\\ctb_route_ids_test.json"))
+    #raw_path = get_ctb_paths(get_json("file:///data/ctb_timeable_macro/ctb_route_ids_test.json"))
     #resolve_write_ctb_paths(raw_path)
 
     print("Resolving GMB Route Data...")
