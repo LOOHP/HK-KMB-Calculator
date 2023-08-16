@@ -1,5 +1,6 @@
 import concurrent.futures
 import math
+import os
 import traceback
 import urllib
 import zlib
@@ -254,7 +255,7 @@ def read_ctb_bbi():
             entry = tc_data[u]
             entry["remarkEn"] = en_data[u]["remark"]
             result.append(entry)
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\ctb_bbi_data.json", result)
+    write_dict_to_file("data/ctb_bbi_data.json", result)
 
 
 def add_route_path(route_number, route_data):
@@ -271,7 +272,7 @@ def add_route_path(route_number, route_data):
             if entry["bound"] not in route_paths:
                 route_paths[entry["bound"]] = {}
             route_paths[entry["bound"]][entry["service_type"]] = b
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_paths\\" + route_number + ".json", route_paths)
+    write_dict_to_file("data/route_paths\\" + route_number + ".json", route_paths)
 
 
 def resolve_mtr_bus_data():
@@ -356,9 +357,9 @@ def resolve_mtr_bus_data():
                 key = route_number + "+1+" + stop_list[0][7] + "+" + stop_list[-1][7]
                 routes_result[key] = result
 
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\mtr_bus_routes.json", routes_result)
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\mtr_bus_stops.json", stops_result)
-    write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\mtr_bus_stop_alias.json", stops_alias_result)
+    write_dict_to_file("data/mtr_bus_routes.json", routes_result)
+    write_dict_to_file("data/mtr_bus_stops.json", stops_result)
+    write_dict_to_file("data/mtr_bus_stop_alias.json", stops_alias_result)
 
 
 def get_ctb_paths(data):
@@ -439,7 +440,7 @@ def resolve_write_ctb_paths(data):
                 section = find_trim_closest_sections(positions_list, stop_1, stop_2)
                 if section is not None:
                     result[bound][stop_pair] = section
-        write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_paths_ctb\\" + route_number + ".json", result)
+        write_dict_to_file("data/route_paths_ctb\\" + route_number + ".json", result)
 
 
 def convert_weekday_ranges(input_string):
@@ -543,7 +544,7 @@ def write_gmb_data_0(region, route_number):
                                 timetable[weekday] = {}
                             timetable[weekday][times] = frequency
                 result["bound"][bound] = {"timetable": merge_gmb_timetable(timetable)}
-            write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_data_gmb\\" + gtfs_id + ".json", result)
+            write_dict_to_file("data/route_data_gmb\\" + gtfs_id + ".json", result)
     except Exception as e:
         print(e)
         print(traceback.format_exc())
@@ -592,7 +593,7 @@ def write_mtr_bus_timetable():
                     for i in range(0, len(periods)):
                         times.append({"period": periods[i], "frequency": frequencies[i]})
                     result["bound"][bound]["timetable"].append({"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": times})
-        write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_data_mtr_bus\\" + route_number + ".json", result)
+        write_dict_to_file("data/route_data_mtr_bus\\" + route_number + ".json", result)
 
 
 def write_nlb_timetable():
@@ -678,60 +679,53 @@ def write_nlb_timetable():
                     for i in range(0, len(periods)):
                         times.append({"period": periods[i], "frequency": frequencies[i], "school_holiday": school_holiday, "school_day_only": school_day_only, "public_holiday": public_holiday, "no_school_day": no_school_day})
                     result["timetable"].append({"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": times})
-        write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\route_data_nlb\\" + route_id + ".json", result)
+        write_dict_to_file("data/route_data_nlb\\" + route_id + ".json", result)
 
 
 def write_dict_to_file(file, dictionary, indent=4):
     json_object = json.dumps(dictionary, indent=indent)
-
+    os.makedirs(os.path.dirname(file), exist_ok=True)
     with open(file, "w") as outfile:
         outfile.write(json_object)
 
 
 if __name__ == '__main__':
-    #weekday_map_zh = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '日及公眾假期'}
-    #weekday_map_en = {'1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday & Public Holidays'}
+    print("Initializing data...")
+    weekday_map_zh = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '日及公眾假期'}
+    weekday_map_en = {'1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday & Public Holidays'}
     data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
     paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
     kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")["data"]
-    #ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
-    #ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
-    #ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
-    #ctb_path_url = "https://mobile.citybus.com.hk/nwp3/getline.php?info="
-    #mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
-    #mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
-    #mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
-    #mtr_bus_info_url = "https://www.mtr.com.hk/ch/customer/services/searchBusRouteDetails.php?routeID={route}"
-    #gmb_route_list = get_json("https://data.etagmb.gov.hk/route/")["data"]["routes"]
-    #gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
-    #nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
-    #nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
+    ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
+    ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
+    ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
+    ctb_path_url = "https://mobile.citybus.com.hk/nwp3/getline.php?info="
+    mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
+    mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
+    mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
+    mtr_bus_info_url = "https://www.mtr.com.hk/ch/customer/services/searchBusRouteDetails.php?routeID={route}"
+    gmb_route_list = get_json("https://data.etagmb.gov.hk/route/")["data"]["routes"]
+    gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
+    nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
+    nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
 
-    #bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
-    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_f1.json", resolve_bbi_data(bbi_data_f1))
-    #bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
-    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\bbi_b1.json", resolve_bbi_data(bbi_data_b1))
+    print("Resolving KMB BBI...")
+    bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
+    write_dict_to_file("data/bbi_f1.json", resolve_bbi_data(bbi_data_f1))
+    bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
+    write_dict_to_file("data/bbi_b1.json", resolve_bbi_data(bbi_data_b1))
 
-    #print(get_text("https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=1686913282.html"))
+    print("Resolving KMB Regional Two Way Section Fare...")
+    a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
+    write_dict_to_file("data/regional_two_way_section_fare.json", a)
 
-    #a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
-    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\regional_two_way_section_fare.json", a)
+    print("Resolving CTB BBI...")
+    read_ctb_bbi()
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
-        route_numbers = get_all_routes()
-        route_data = get_all_routes_data()
-        for route_number in route_numbers:
-            futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
-        for future in concurrent.futures.as_completed(futures):
-            pass
-    #add_route_path("111", get_all_routes_data())
+    print("Resolving MTR Bus Route Data...")
+    resolve_mtr_bus_data()
 
-    #read_ctb_bbi()
-
-    #resolve_mtr_bus_data()
-
-    #data = get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange.json")
+    #data = get_json("file:///data/kmb_gmb_interchange.json")
     #while True:
     #    input_text = input()
     #    print("GMB " + input_text)
@@ -761,9 +755,9 @@ if __name__ == '__main__':
     #            data["gmb"][gmb_id + "_I"] = entry
     #    print("Added")
     #
-    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange_1.json", data)
+    #write_dict_to_file("data/kmb_gmb_interchange_1.json", data)
 
-    #data = get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange.json")
+    #data = get_json("file:///data/kmb_gmb_interchange.json")
     #inverted_data = {}
     #for key, value in data['gmb'].items():
     #    for item in value:
@@ -776,15 +770,27 @@ if __name__ == '__main__':
     #        inverted_data[route_key][bound_value].append(key)
     #data["kmb"] = inverted_data
     #
-    #write_dict_to_file("C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\kmb_gmb_interchange_1.json", data)
+    #write_dict_to_file("data/kmb_gmb_interchange_1.json", data)
 
-    #raw_path = get_ctb_paths(get_json("file:///C:\\Users\\LOOHP\\Desktop\\temp\\HK Bus Fare\\ctb_timeable_macro\\ctb_route_ids_test.json"))
+    #raw_path = get_ctb_paths(get_json("file:///data/ctb_timeable_macro\\ctb_route_ids_test.json"))
     #resolve_write_ctb_paths(raw_path)
 
-    #write_gmb_data()
+    print("Resolving GMB Route Data...")
+    write_gmb_data()
 
-    #write_mtr_bus_timetable()
+    print("Resolving MTR Bus Timetables...")
+    write_mtr_bus_timetable()
 
-    #print("".join(get_text("https://www.nlb.com.hk/route/detail/63").splitlines()))
-    #write_nlb_timetable()
+    print("Resolving NLB Timetables...")
+    write_nlb_timetable()
+
+    print("Writing KMB Route Paths...")
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        route_numbers = get_all_routes()
+        route_data = get_all_routes_data()
+        for route_number in route_numbers:
+            futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
+        concurrent.futures.wait(futures, timeout=1800, return_when=concurrent.futures.ALL_COMPLETED)
+    #add_route_path("A47X", get_all_routes_data())
 
