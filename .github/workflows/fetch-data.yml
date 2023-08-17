@@ -55,4 +55,3 @@ jobs:
             commit_message: 'Update resources'
             branch: 'data'
             commit_options: '--no-verify'
-            create_branch: true
