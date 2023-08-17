@@ -1,0 +1,42 @@
+{
+    "route": "59",
+    "region": "KLN",
+    "gtfsId": "2004397",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:30-07:30",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "09:00-10:19",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "10:19-16:29",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "16:29-17:30",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "19:30-20:27",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "20:27-00:03",
+                            "frequency": "4"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
