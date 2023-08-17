@@ -716,6 +716,7 @@ if __name__ == '__main__':
         for file in files:
             source_path = os.path.join(root, file)
             destination_path = os.path.join("data", os.path.relpath(source_path, "data_static"))
+            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
             shutil.copy2(source_path, destination_path)
 
     if len(sys.argv) > 1 and sys.argv[1] == "test":
