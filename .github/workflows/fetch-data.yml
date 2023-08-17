@@ -43,7 +43,8 @@ jobs:
           API_TOKEN_GITHUB: ${{github.token}}
         with:
           path: '.'
-          destination_repo: 'HK-KMB-Calculator/data'
+          destination_repo: 'LOOHP/HK-KMB-Calculator'
+          destination_branch: 'data'
           user_email: 'example@email.com'
           user_name: 'github-actions[bot]'
           commit_message: 'Clean resources'
