@@ -698,109 +698,109 @@ if __name__ == '__main__':
     data_sheet = get_json("https://raw.githubusercontent.com/LOOHP/hk-bus-crawling/gh-pages/routeFareList.json")
     paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
     kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")["data"]
-    ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
-    ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
-    ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
-    ctb_path_url = "https://mobile.citybus.com.hk/nwp3/getline.php?info="
-    mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
-    mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
-    mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
-    mtr_bus_info_url = "https://www.mtr.com.hk/ch/customer/services/searchBusRouteDetails.php?routeID={route}"
-    gmb_route_list = get_json("https://data.etagmb.gov.hk/route/")["data"]["routes"]
-    gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
-    nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
-    nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
-
-    print("Writing Static Data...")
-    for root, dirs, files in os.walk("data_static"):
-        for file in files:
-            source_path = os.path.join(root, file)
-            destination_path = os.path.join("data", os.path.relpath(source_path, "data_static"))
-            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-            shutil.copy2(source_path, destination_path)
-
-    if len(sys.argv) > 1 and sys.argv[1] == "test":
-        print("Creating Dummy Files For Test")
-        for kmb_route in kmb_route_list:
-            write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".json", {})
-            write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".1.json", {})
-            write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".2.json", {})
-        sys.exit()
-
-    print("Resolving KMB BBI...")
-    bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
-    write_dict_to_file("data/bbi_f1.json", resolve_bbi_data(bbi_data_f1))
-    bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
-    write_dict_to_file("data/bbi_b1.json", resolve_bbi_data(bbi_data_b1))
-
-    print("Resolving KMB Regional Two Way Section Fare...")
-    a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
-    write_dict_to_file("data/regional_two_way_section_fare.json", a)
-
-    print("Resolving CTB BBI...")
-    read_ctb_bbi()
-
-    print("Resolving MTR Bus Route Data...")
-    resolve_mtr_bus_data()
-
-    #data = get_json("file:///data/kmb_gmb_interchange.json")
-    #while True:
-    #    input_text = input()
-    #    print("GMB " + input_text)
-    #    if input_text == "done":
-    #        break
-    #    region = input()
-    #    print("Region " + region)
-    #    gmb_routes = [x.strip() for x in input_text.split(",")]
-    #    input_text = input()
-    #    print("KMB " + input_text)
-    #    kmb_routes = [x.strip() for x in input_text.split(",")]
-    #    for gmb in gmb_routes:
-    #        entry = []
-    #        for kmb in kmb_routes:
-    #            entry.append({
-    #                "route": kmb,
-    #                "bound": "O"
-    #            })
-    #            entry.append({
-    #                "route": kmb,
-    #                "bound": "I"
-    #            })
-    #        gmb_ex_data = get_json("https://data.etagmb.gov.hk/route/" + region + "/" + gmb)["data"]
-    #        if len(gmb_ex_data) > 0:
-    #            gmb_id = str(gmb_ex_data[0]["route_id"])
-    #            data["gmb"][gmb_id + "_O"] = entry
-    #            data["gmb"][gmb_id + "_I"] = entry
-    #    print("Added")
+    # ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
+    # ctb_bbi_tc_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/tc/"
+    # ctb_bbi_en_url = "https://www.citybus.com.hk/concessionApi/public/bbi/api/v1/scheme/en/"
+    # ctb_path_url = "https://mobile.citybus.com.hk/nwp3/getline.php?info="
+    # mtr_bus_route_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_routes.csv")
+    # mtr_bus_stop_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_stops.csv")
+    # mtr_bus_fare_list = get_text("https://opendata.mtr.com.hk/data/mtr_bus_fares.csv")
+    # mtr_bus_info_url = "https://www.mtr.com.hk/ch/customer/services/searchBusRouteDetails.php?routeID={route}"
+    # gmb_route_list = get_json("https://data.etagmb.gov.hk/route/")["data"]["routes"]
+    # gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
+    # nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
+    # nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
     #
-    #write_dict_to_file("data/kmb_gmb_interchange_1.json", data)
-
-    #data = get_json("file:///data/kmb_gmb_interchange.json")
-    #inverted_data = {}
-    #for key, value in data['gmb'].items():
-    #    for item in value:
-    #        route_key = item['route']
-    #        bound_value = item['bound']
-    #        if route_key not in inverted_data:
-    #            inverted_data[route_key] = {}
-    #        if bound_value not in inverted_data[route_key]:
-    #            inverted_data[route_key][bound_value] = []
-    #        inverted_data[route_key][bound_value].append(key)
-    #data["kmb"] = inverted_data
+    # print("Writing Static Data...")
+    # for root, dirs, files in os.walk("data_static"):
+    #     for file in files:
+    #         source_path = os.path.join(root, file)
+    #         destination_path = os.path.join("data", os.path.relpath(source_path, "data_static"))
+    #         os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+    #         shutil.copy2(source_path, destination_path)
     #
-    #write_dict_to_file("data/kmb_gmb_interchange_1.json", data)
-
-    #raw_path = get_ctb_paths(get_json("file:///data/ctb_timeable_macro/ctb_route_ids_test.json"))
-    #resolve_write_ctb_paths(raw_path)
-
-    print("Resolving GMB Route Data...")
-    write_gmb_data()
-
-    print("Resolving MTR Bus Timetables...")
-    write_mtr_bus_timetable()
-
-    print("Resolving NLB Timetables...")
-    write_nlb_timetable()
+    # if len(sys.argv) > 1 and sys.argv[1] == "test":
+    #     print("Creating Dummy Files For Test")
+    #     for kmb_route in kmb_route_list:
+    #         write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".json", {})
+    #         write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".1.json", {})
+    #         write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".2.json", {})
+    #     sys.exit()
+    #
+    # print("Resolving KMB BBI...")
+    # bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
+    # write_dict_to_file("data/bbi_f1.json", resolve_bbi_data(bbi_data_f1))
+    # bbi_data_b1 = get_json("https://www.kmb.hk/storage/BBI_routeB1.js")
+    # write_dict_to_file("data/bbi_b1.json", resolve_bbi_data(bbi_data_b1))
+    #
+    # print("Resolving KMB Regional Two Way Section Fare...")
+    # a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
+    # write_dict_to_file("data/regional_two_way_section_fare.json", a)
+    #
+    # print("Resolving CTB BBI...")
+    # read_ctb_bbi()
+    #
+    # print("Resolving MTR Bus Route Data...")
+    # resolve_mtr_bus_data()
+    #
+    # #data = get_json("file:///data/kmb_gmb_interchange.json")
+    # #while True:
+    # #    input_text = input()
+    # #    print("GMB " + input_text)
+    # #    if input_text == "done":
+    # #        break
+    # #    region = input()
+    # #    print("Region " + region)
+    # #    gmb_routes = [x.strip() for x in input_text.split(",")]
+    # #    input_text = input()
+    # #    print("KMB " + input_text)
+    # #    kmb_routes = [x.strip() for x in input_text.split(",")]
+    # #    for gmb in gmb_routes:
+    # #        entry = []
+    # #        for kmb in kmb_routes:
+    # #            entry.append({
+    # #                "route": kmb,
+    # #                "bound": "O"
+    # #            })
+    # #            entry.append({
+    # #                "route": kmb,
+    # #                "bound": "I"
+    # #            })
+    # #        gmb_ex_data = get_json("https://data.etagmb.gov.hk/route/" + region + "/" + gmb)["data"]
+    # #        if len(gmb_ex_data) > 0:
+    # #            gmb_id = str(gmb_ex_data[0]["route_id"])
+    # #            data["gmb"][gmb_id + "_O"] = entry
+    # #            data["gmb"][gmb_id + "_I"] = entry
+    # #    print("Added")
+    # #
+    # #write_dict_to_file("data/kmb_gmb_interchange_1.json", data)
+    #
+    # #data = get_json("file:///data/kmb_gmb_interchange.json")
+    # #inverted_data = {}
+    # #for key, value in data['gmb'].items():
+    # #    for item in value:
+    # #        route_key = item['route']
+    # #        bound_value = item['bound']
+    # #        if route_key not in inverted_data:
+    # #            inverted_data[route_key] = {}
+    # #        if bound_value not in inverted_data[route_key]:
+    # #            inverted_data[route_key][bound_value] = []
+    # #        inverted_data[route_key][bound_value].append(key)
+    # #data["kmb"] = inverted_data
+    # #
+    # #write_dict_to_file("data/kmb_gmb_interchange_1.json", data)
+    #
+    # #raw_path = get_ctb_paths(get_json("file:///data/ctb_timeable_macro/ctb_route_ids_test.json"))
+    # #resolve_write_ctb_paths(raw_path)
+    #
+    # print("Resolving GMB Route Data...")
+    # write_gmb_data()
+    #
+    # print("Resolving MTR Bus Timetables...")
+    # write_mtr_bus_timetable()
+    #
+    # print("Resolving NLB Timetables...")
+    # write_nlb_timetable()
 
     print("Writing KMB Route Paths...")
     with concurrent.futures.ThreadPoolExecutor() as executor:
