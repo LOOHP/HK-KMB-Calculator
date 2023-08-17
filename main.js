@@ -152,5 +152,6 @@ function delay(millis) {
   await browser.close();
 
   let json = JSON.stringify(routeIdsResult, null, 4);
-  fs.writeFile('ctb_route_ids.json', json, 'utf8', e => {});
+  fs.mkdir('data', { recursive: true }, (err) => {});
+  fs.writeFile('data/ctb_route_ids.json', json, 'utf8', e => {});
 })();
