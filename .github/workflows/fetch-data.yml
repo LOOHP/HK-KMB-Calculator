@@ -49,6 +49,7 @@ jobs:
           user_name: 'github-actions[bot]'
           commit_message: 'Clean resources'
       - name: Update resources
+        if: '!cancelled()'
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
             file_pattern: 'data/**/*'
