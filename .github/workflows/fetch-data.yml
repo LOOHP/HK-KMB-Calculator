@@ -56,3 +56,4 @@ jobs:
             commit_message: 'Update resources'
             branch: 'data'
             commit_options: '--no-verify'
+            add_options: '-a'
