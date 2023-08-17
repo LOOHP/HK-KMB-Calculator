@@ -688,6 +688,7 @@ def write_nlb_timetable():
 def write_dict_to_file(file, dictionary, indent=4):
     json_object = json.dumps(dictionary, indent=indent)
     os.makedirs(os.path.dirname(file), exist_ok=True)
+    print(file)
     with open(file, "w") as outfile:
         outfile.write(json_object)
 

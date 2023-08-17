@@ -37,6 +37,10 @@ jobs:
       #- name: Crawling resources (NodeJS)
       #  run: |
       #    node main.js
+      - name: LS
+        run: |
+          ls
+          ls data
       - name: Clean old resources
         uses: kafkasl/delete_from_another_repo@0.0.1
         continue-on-error: true
