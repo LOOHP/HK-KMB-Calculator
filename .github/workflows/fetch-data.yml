@@ -42,7 +42,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{github.token}}
         with:
-          path: ''
+          path: '.'
           destination_repo: 'HK-KMB-Calculator/data'
           user_email: 'example@email.com'
           user_name: 'github-actions[bot]'
