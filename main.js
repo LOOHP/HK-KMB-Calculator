@@ -57,7 +57,24 @@ function delay(millis) {
             await delay(1000);
             await page.click('[onclick*="backsearch"]');
             await delay(500);
-            await page.waitForSelector(identifier);
+            try {
+              await page.waitForSelector(identifier);
+            } catch (error) {
+              let closeBlockClick = await page.$('[onclick*="hidespecialNote"]');
+              if (closeBlockClick) {
+                const isVisible = await closeBlockClick.evaluate((el) => {
+                  const style = window.getComputedStyle(el);
+                  return style && style.display !== 'none' && style.visibility !== 'hidden';
+                });
+                if (isVisible) {
+                  await closeBlockClick.click();
+                }
+              }
+              await delay(1000);
+              await page.click('[onclick*="backsearch"]');
+              await delay(500);
+              await page.waitForSelector(identifier);
+            }
             targetElements = await page.$$(identifier);
             targetElement = targetElements[u];
           }
