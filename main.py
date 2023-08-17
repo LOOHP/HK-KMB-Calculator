@@ -714,6 +714,8 @@ if __name__ == '__main__':
         print("Creating Dummy Files For Test")
         for kmb_route in kmb_route_list:
             write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".json", {})
+            write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".1.json", {})
+            write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".2.json", {})
         sys.exit()
 
     print("Resolving KMB BBI...")
