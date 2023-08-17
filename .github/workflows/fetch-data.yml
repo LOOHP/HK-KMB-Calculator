@@ -37,11 +37,16 @@ jobs:
       #- name: Crawling resources (NodeJS)
       #  run: |
       #    node main.js
-      - uses: daniL16/action-clean-old-files@1.1.0
+      - name: Clean old resources
+        uses: kafkasl/delete_from_another_repo@0.0.1
+        env:
+          API_TOKEN_GITHUB: ${{github.token}}
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          dir: '.'
-          base_branch: 'data'
+          path: ''
+          destination_repo: 'HK-KMB-Calculator/data'
+          user_email: 'example@email.com'
+          user_name: 'github-actions[bot]'
+          commit_message: 'Clean resources'
       - name: Update resources
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
