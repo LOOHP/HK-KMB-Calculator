@@ -124,9 +124,13 @@ function delay(millis) {
       let json = JSON.stringify(routeIdsResult, null, 4);
       fs.writeFile('ctb_route_ids_temp.json', json, 'utf8', e => {});
 
+      let failedCount = 0;
       while (true) {
         try {
           try {
+            if (failedCount > 5) {
+              throw new Error('failedCount is ' + failedCount);
+            }
             await page.click('[onclick*="backsearch"]');
           } catch (error) {
             console.error(error);
@@ -142,6 +146,7 @@ function delay(millis) {
           break;
         } catch (error) {
           console.error(error);
+          failedCount++;
         }
       }
     }
