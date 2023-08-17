@@ -694,7 +694,7 @@ if __name__ == '__main__':
     print("Initializing data...")
     weekday_map_zh = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '日及公眾假期'}
     weekday_map_en = {'1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday & Public Holidays'}
-    data_sheet = get_json("https://raw.githubusercontent.com/hkbus/hk-bus-crawling/gh-pages/routeFareList.json")
+    data_sheet = get_json("https://raw.githubusercontent.com/LOOHP/hk-bus-crawling/gh-pages/routeFareList.json")
     paths_url = "https://m4.kmb.hk:8012/api/rt/{route}/{bound}/{type}/?apikey=com.mobilesoft.2015"
     kmb_route_list = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route/")["data"]
     ctb_route_list = get_json("https://rt.data.gov.hk/v2/transport/citybus/route/ctb")
