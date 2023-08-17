@@ -139,7 +139,7 @@ function delay(millis) {
       await page.screenshot({ path: 'error.png' });
     } finally {
       let json = JSON.stringify(routeIdsResult, null, 4);
-      fs.writeFile('ctb_route_ids_temp.json', json, 'utf8', e => {});
+      fs.writeFile('ctb_route_ids.json.tmp', json, 'utf8', e => {});
 
       let failedCount = 0;
       while (true) {
