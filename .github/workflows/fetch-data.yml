@@ -9,6 +9,9 @@ jobs:
   Fetch-Route-Data:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
@@ -21,9 +24,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Crawling resources (Python)
-        run: |
-          python main.py
+      #- name: Crawling resources (Python)
+      #  run: |
+      #    python main.py
       - name: Setup NodeJS environment
         uses: actions/setup-node@v3
         with:
@@ -31,13 +34,13 @@ jobs:
       - name: Install NodeJS dependencies
         run: |
           npm i puppeteer
-      - name: Crawling resources (NodeJS)
-        run: |
-          node main.js
+      #- name: Crawling resources (NodeJS)
+      #  run: |
+      #    node main.js
       - name: Update resources
-        uses: test-room-7/action-update-file@v1
+        uses: stefanzweifel/git-auto-commit-action@v4
         with:
-            file-path: data/**/*
-            commit-msg: Update resources
-            github-token: ${{ secrets.GITHUB_TOKEN }}
+            file_pattern: data/**/*
+            commit_message: Update resources
             branch: data
+            
