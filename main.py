@@ -2,6 +2,7 @@ import concurrent.futures
 import math
 import os
 import shutil
+import ssl
 import sys
 import traceback
 import urllib
@@ -692,6 +693,7 @@ def write_dict_to_file(file, dictionary, indent=4):
 
 
 if __name__ == '__main__':
+    ssl._create_default_https_context = ssl._create_unverified_context
     print("Initializing data...")
     weekday_map_zh = {'1': '一', '2': '二', '3': '三', '4': '四', '5': '五', '6': '六', '7': '日及公眾假期'}
     weekday_map_en = {'1': 'Monday', '2': 'Tuesday', '3': 'Wednesday', '4': 'Thursday', '5': 'Friday', '6': 'Saturday', '7': 'Sunday & Public Holidays'}
@@ -814,5 +816,7 @@ if __name__ == '__main__':
             if count > 3:
                 break
         concurrent.futures.wait(futures, timeout=1800, return_when=concurrent.futures.ALL_COMPLETED)
+        for future in futures:
+            print(future.result())
     #add_route_path("A47X", get_all_routes_data())
 
