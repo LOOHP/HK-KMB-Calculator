@@ -26,7 +26,7 @@ jobs:
           pip install -r requirements.txt
       - name: Crawling resources (Python)
         run: |
-          python main.py
+          python main.py test
       - name: Setup NodeJS environment
         uses: actions/setup-node@v3
         with:
@@ -34,9 +34,9 @@ jobs:
       - name: Install NodeJS dependencies
         run: |
           npm i puppeteer
-      - name: Crawling resources (NodeJS)
-        run: |
-          node main.js
+      #- name: Crawling resources (NodeJS)
+      #  run: |
+      #    node main.js
       - name: Delete old data
         uses: dawidd6/action-delete-branch@v3
         with:
