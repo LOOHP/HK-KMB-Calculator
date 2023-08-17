@@ -1,6 +1,7 @@
 import concurrent.futures
 import math
 import os
+import sys
 import traceback
 import urllib
 import zlib
@@ -708,6 +709,12 @@ if __name__ == '__main__':
     gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
     nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
     nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
+
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        print("Creating Dummy Files For Test")
+        for kmb_route in kmb_route_list:
+            write_dict_to_file("data/route_paths/" + kmb_route["route"] + ".json", {})
+        sys.exit()
 
     print("Resolving KMB BBI...")
     bbi_data_f1 = get_json("https://www.kmb.hk/storage/BBI_routeF1.js")
