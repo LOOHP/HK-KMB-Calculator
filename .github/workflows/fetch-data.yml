@@ -37,13 +37,6 @@ jobs:
       #- name: Crawling resources (NodeJS)
       #  run: |
       #    node main.js
-      - name: Retain main data folder
-        continue-on-error: true
-        run: |
-          git rm -r --cached data
-          git config user.email "temp@example.com"
-          git config user.name "Temp Name"
-          git commit . -m "Temp action"
       - name: Clean old resources
         uses: kafkasl/delete_from_another_repo@0.0.1
         continue-on-error: true
