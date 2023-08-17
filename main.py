@@ -1,6 +1,7 @@
 import concurrent.futures
 import math
 import os
+import shutil
 import sys
 import traceback
 import urllib
@@ -709,6 +710,13 @@ if __name__ == '__main__':
     gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
     nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
     nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
+
+    print("Writing Static Data...")
+    for root, dirs, files in os.walk("data_static"):
+        for file in files:
+            source_path = os.path.join(root, file)
+            destination_path = os.path.join("data", os.path.relpath(source_path, "data_static"))
+            shutil.copy2(source_path, destination_path)
 
     if len(sys.argv) > 1 and sys.argv[1] == "test":
         print("Creating Dummy Files For Test")
