@@ -38,6 +38,7 @@ jobs:
       #  run: |
       #    node main.js
       - name: Retain main data folder
+        continue-on-error: true
         run: |
           git rm -r --cached data
           git config user.email "temp@example.com"
