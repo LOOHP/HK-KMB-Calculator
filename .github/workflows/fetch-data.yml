@@ -15,8 +15,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
-        with:
-          ref: 'data'
       - name: Setup Python environment
         uses: actions/setup-python@v2
         with:
@@ -39,6 +37,11 @@ jobs:
       - name: Crawling resources (NodeJS)
         run: |
           node main.js
+      - name: Delete old data
+        uses: dawidd6/action-delete-branch@v3
+        with:
+          github_token: ${{github.token}}
+          branches: 'data'
       - name: Update resources
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
@@ -46,4 +49,4 @@ jobs:
             commit_message: 'Update resources'
             branch: 'data'
             commit_options: '--no-verify'
-            
+            create_branch: true
