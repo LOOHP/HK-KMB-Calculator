@@ -40,7 +40,8 @@ jobs:
       - name: Update resources
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-            file_pattern: data/**/*
-            commit_message: Update resources
-            branch: data
+            file_pattern: 'data/**/*'
+            commit_message: 'Update resources'
+            branch: 'data'
+            commit_options: '--no-verify'
             
