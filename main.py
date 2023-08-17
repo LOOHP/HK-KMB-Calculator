@@ -807,8 +807,12 @@ if __name__ == '__main__':
         futures = []
         route_numbers = get_all_routes()
         route_data = get_all_routes_data()
+        count = 0
         for route_number in route_numbers:
             futures.append(executor.submit(add_route_path, route_number=route_number, route_data=route_data))
+            count += 1
+            if count > 3:
+                break
         concurrent.futures.wait(futures, timeout=1800, return_when=concurrent.futures.ALL_COMPLETED)
     #add_route_path("A47X", get_all_routes_data())
 
