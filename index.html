@@ -874,7 +874,7 @@
             if (index !== -1) {
                 openPopups.splice(index, 1);
             }
-        }, 100);
+        }, 600);
     });
     map.on('click', (evt) => {
         isClicked = false;
@@ -1155,6 +1155,29 @@
     getJSON(dataSheetUrl, (err, data) => {
         if (err == null) {
             dataSheet = data;
+
+            dataSheet["stopList"]["AC1FD9BDD09D1DD6"]["name"]["zh"] += " (沙頭角邊境禁區 - 需持邊境禁區許可證)";
+            dataSheet["stopList"]["AC1FD9BDD09D1DD6"]["name"]["en"] += " (Sha Tau Kok Frontier Closed Area - Closed Area Permit Required)";
+            dataSheet["stopList"]["20001477"]["name"]["zh"] += " (沙頭角邊境禁區 - 需持邊境禁區許可證)";
+            dataSheet["stopList"]["20001477"]["name"]["en"] += " (Sha Tau Kok Frontier Closed Area - Closed Area Permit Required)";
+
+            dataSheet["stopList"]["152"]["name"]["zh"] += " (深圳灣管制站 - 僅限過境旅客)";
+            dataSheet["stopList"]["152"]["name"]["en"] += " (Shenzhen Bay Control Point - Border Crossing Passengers Only)";
+            dataSheet["stopList"]["20015453"]["name"]["zh"] += " (深圳灣管制站 - 僅限過境旅客)";
+            dataSheet["stopList"]["20015453"]["name"]["en"] += " (Shenzhen Bay Control Point - Border Crossing Passengers Only)";
+            dataSheet["stopList"]["003208"]["name"]["zh"] += " (深圳灣管制站 - 僅限過境旅客)";
+            dataSheet["stopList"]["003208"]["name"]["en"] += " (Shenzhen Bay Control Point - Border Crossing Passengers Only)";
+
+            dataSheet["stopList"]["81567ACCCF40DD4B"]["name"]["zh"] += " (落馬洲支線出入境管制站 - 僅限過境旅客)";
+            dataSheet["stopList"]["81567ACCCF40DD4B"]["name"]["en"] += " (Lok Ma Chau Spur Line Immigration Control Point - Border Crossing Passengers Only)";
+            dataSheet["stopList"]["20015420"]["name"]["zh"] += " (落馬洲支線出入境管制站 - 僅限過境旅客)";
+            dataSheet["stopList"]["20015420"]["name"]["en"] += " (Lok Ma Chau Spur Line Immigration Control Point - Border Crossing Passengers Only)";
+
+            dataSheet["stopList"]["20011698"]["name"]["zh"] += " (落馬洲管制站 - 僅限過境旅客)";
+            dataSheet["stopList"]["20011698"]["name"]["en"] += " (Lok Ma Chau Control Point - Border Crossing Passengers Only)";
+            dataSheet["stopList"]["20015598"]["name"]["zh"] += " (落馬洲管制站 - 僅限過境旅客)";
+            dataSheet["stopList"]["20015598"]["name"]["en"] += " (Lok Ma Chau Control Point - Border Crossing Passengers Only)";
+
             let kmbOps = new Set();
             outer: for (let key in dataSheet["routeList"]) {
                 let data = dataSheet["routeList"][key];
