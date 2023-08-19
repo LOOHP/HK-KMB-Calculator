@@ -1490,10 +1490,11 @@
     const applyBbiStopHref = (stopName) => {
         for (let bbiId in bbiStopId) {
             let bbiNameDataList = bbiStopId[bbiId];
+            let mainName = bbiNameDataList[0];
             for (let i = 0; i < bbiNameDataList.length; i++) {
                 let bbiNameData = bbiNameDataList[i];
                 let url = kmbBbiMapUrl.replace("{id}", bbiId);
-                let tooltip = language == "en" ? "Open BBI location map" : "展示轉車站位置圖";
+                let tooltip = language == "en" ? "Open " + mainName["en"] + " BBI location map" : "展示" + mainName["zh"] + "轉車站位置圖";
                 let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
                 let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
                 let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
