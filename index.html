@@ -1827,7 +1827,7 @@
                     stopName += language == "en" ? " (GMB)" : " (專線小巴)";
                 }
 
-                let routeNumberDisplay = getRouteNumberDisplay(entry["co"], routeNumber, {background: true});
+                let routeNumberDisplay = getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true});
 
                 let allStops = route["stops"][co];
 
@@ -1862,7 +1862,7 @@
 
                     table += 
                         "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + getRouteNumberDisplay(entry["co"], routeNumber, {background: true, inverted: true}) + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + applyBbiStopHref(stopName) + " " + distanceStr + "</span></th>" +
+                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumberDisplay + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + applyBbiStopHref(stopName) + " " + distanceStr + "</span></th>" +
                             "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
                         "</tr>";
                 }
@@ -1916,7 +1916,7 @@
                                         weight: 2,
                                         opacity: 0.7,
                                         smoothFactor: 0.00001
-                                    }).addTo(nearbyLines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(nearbyLines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                                 }
                             } else {
                                 printConnectionError("Unable to get response from https://raw.githubusercontent.com/LOOHP/HK-KMB-Calculator/data/data/route_paths/" + routeNumber + ".json. (Is it down?)");
@@ -4025,6 +4025,7 @@
                 }
 
                 let routeNumberDisplay = getRouteNumberDisplay(co, entry[0]);
+                console.log(routeNumberDisplay);
 
                 let remark = entry[6];
                 if (entry[8].hasOwnProperty("jointOp")) {
@@ -4970,6 +4971,8 @@
                     }
                 }
 
+                let routeDisplay = getRouteNumberDisplay(co, route["route"], {background: true, inverted: true});
+
                 if (co == "kmb") {
                     let task2Id = makeId(10);
                     calculateTasks.push(task2Id);
@@ -4997,9 +5000,9 @@
                                     }
                                     let desc;
                                     if (language == "en") {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + "</span></b>";
                                     } else {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + "</span></b>";
                                     }
                                     if (pointListBefore.length > 0) {
                                         new L.Polyline(pointListBefore, {
@@ -5007,21 +5010,21 @@
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                                     }
                                     new L.Polyline(pointListRoute, {
                                         color: 'red',
                                         weight: 4,
                                         opacity: 1,
                                         smoothFactor: 1
-                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                                     if (pointListAfter.length > 0) {
                                         new L.Polyline(pointListAfter, {
                                             color: '#141414',
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                                     }
                                 }
                                 map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
@@ -5069,9 +5072,9 @@
                                     let coStr = language == "en" ? " - CTB" : " - 城巴";
                                     let desc;
                                     if (language == "en") {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                                     } else {
-                                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
+                                        desc = "<b style=\"font-size: 17px\">" + routeDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                                     }
                                     if (pointListBefore.length > 0) {
                                         new L.Polyline(pointListBefore, {
@@ -5079,21 +5082,21 @@
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                                     }
                                     new L.Polyline(pointListRoute, {
                                         color: 'gold',
                                         weight: 4,
                                         opacity: 1,
                                         smoothFactor: 1
-                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                                     if (pointListAfter.length > 0) {
                                         new L.Polyline(pointListAfter, {
                                             color: '#141414',
                                             weight: 3,
                                             opacity: 0.5,
                                             smoothFactor: 1
-                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                                     }
                                 }
                                 map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
@@ -5136,9 +5139,9 @@
                     }
                     let desc;
                     if (language == "en") {
-                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
+                        desc = "<b style=\"font-size: 17px\">" + routeDisplay + " <span style=\"font-size: 12px\">To </span><span style=\"font-size: 15px\">" + capitalize(route["dest"]["en"]) + coStr + "</span></b>";
                     } else {
-                        desc = "<b style=\"font-size: 17px\">" + routeNumberDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
+                        desc = "<b style=\"font-size: 17px\">" + routeDisplay + " <span style=\"font-size: 12px\">往</span><span style=\"font-size: 15px\">" + route["dest"]["zh"] + coStr + "</span></b>";
                     }
                     let color = co == "ctb" ? "gold" : (co == "nlb" ? "#4A8765" : (co == "mtr-bus" ? "#003972" : "#00BC0C"));
                     if (pointListBefore.length > 0) {
@@ -5147,21 +5150,21 @@
                             weight: 3,
                             opacity: 0.5,
                             smoothFactor: 1
-                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                     }
                     new L.Polyline(pointListRoute, {
                         color: color,
                         weight: 4,
                         opacity: 1,
                         smoothFactor: 1
-                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                    }).addTo(lines).addTo(activeRouteMarker).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                     if (pointListAfter.length > 0) {
                         new L.Polyline(pointListAfter, {
                             color: '#141414',
                             weight: 3,
                             opacity: 0.5,
                             smoothFactor: 1
-                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup();});
+                        }).addTo(lines).bindPopup(desc).on("mouseover", e => {if (!isPopupMobile() && !isClicked) {e.target.openPopup(e.latlng)};}).on("mouseout", e => {if (!isClicked) {e.target.closePopup()};}).on("click", e => {isClicked = true; e.target.openPopup(e.latlng);});
                     }
                     map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
                 }
