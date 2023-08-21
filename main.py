@@ -199,10 +199,15 @@ def find_closest_section(location, sections):
     return closest
 
 
-def sort_sections(sections):
-    pool = list(sections[1:])
-    result = [sections[0]]
-    location = sections[0][0]
+def sort_sections(start, sections):
+    if haversine_distance(start[0], start[1], sections[0][0][0], sections[0][0][1]) < 0.3:
+        pool = list(sections[1:])
+        result = [sections[0]]
+        location = sections[0][0]
+    else:
+        pool = list(sections)
+        result = []
+        location = start
     while len(pool) > 0:
         closest = find_closest_section(location, pool)
         pool.remove(closest)
@@ -218,7 +223,7 @@ def kmb_route_exists(route):
     return False
 
 
-def resolve_route_information(data, stops):
+def resolve_route_information(data, stops, start):
     result = []
     pattern = "<coordinates> *(.*?) *<\/coordinates>"
     itr = re.finditer(pattern, data, flags=0)
@@ -230,7 +235,7 @@ def resolve_route_information(data, stops):
         for matcher_2 in itr_2:
             sub_result.append([float(matcher_2.group(2)), float(matcher_2.group(1))])
         result.append(sub_result)
-    sorted_result = sort_sections(result)
+    sorted_result = sort_sections(start, result)
     combined = []
     for section in sorted_result:
         combined = section + combined
@@ -271,7 +276,9 @@ def add_route_path(route_number, route_data):
                 if "kmb" in route["bound"] and kmb_route_exists(route) and route["route"] == route_number and entry["bound"] == route["bound"]["kmb"] and entry["service_type"] == route["serviceType"]:
                     stops = route["stops"]["kmb"]
                     break
-            b = resolve_route_information(get_text(paths_url.replace("{route}", route_number).replace("{bound}", "1" if entry["bound"] == "O" else "2").replace("{type}", entry["service_type"])), stops)
+            first_stop = get_json("https://data.etabus.gov.hk/v1/transport/kmb/route-stop/" + route_number + "/" + ("outbound" if entry["bound"] == "O" else "inbound") + "/" + entry["service_type"])["data"][0]["stop"]
+            first_stop_data = get_json("https://data.etabus.gov.hk/v1/transport/kmb/stop/" + first_stop)["data"]
+            b = resolve_route_information(get_text(paths_url.replace("{route}", route_number).replace("{bound}", "1" if entry["bound"] == "O" else "2").replace("{type}", entry["service_type"])), stops, [float(first_stop_data["lat"]), float(first_stop_data["long"])])
             if entry["bound"] not in route_paths:
                 route_paths[entry["bound"]] = {}
             route_paths[entry["bound"]][entry["service_type"]] = b
