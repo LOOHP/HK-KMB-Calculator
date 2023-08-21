@@ -36,6 +36,8 @@ jobs:
       - name: Crawling resources (NodeJS)
         run: |
           node main.js
+      - name: Update MD5
+        run: find data -type f -exec md5sum {} + | md5sum | cut -f1 -d ' ' > checksum.md5
       - name: Clean old resources
         uses: kafkasl/delete_from_another_repo@0.0.1
         continue-on-error: true
