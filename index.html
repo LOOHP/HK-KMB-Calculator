@@ -283,6 +283,52 @@
             margin-bottom: 10px;
             font-size: 17px;
         }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .0s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .0s;
+        }
+        input:checked + .slider {
+            background-color: #50C878;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(100%);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
+        }
         .remove-button-style {
             background-color: #FAC7C3 !important;
         }
@@ -1855,7 +1901,7 @@
                 }
 
                 if (co != "ctb" || route["co"].indexOf("kmb") < 0) {
-                    let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+                    let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "','true'";
 
                     let distance = Math.round(stop["distance"] * 1000).toFixed(0);
                     let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
@@ -1953,7 +1999,7 @@
                     let bound = co == "nlb" ? route["nlbId"] : route["bound"][co];
 
                     let allStops = route["stops"][co];
-                    let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "'";
+                    let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "','true'";
 
                     if (co == "ctb" && route["stops"].hasOwnProperty("kmb")) {
                         let kmbAllStops = route["stops"]["kmb"];
@@ -2047,7 +2093,7 @@
                             lastIndex = index;
                         }
                     }
-                    let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + startStopId + "','" + stopId + "'";
+                    let params = "'" + co + "','" + routeNumber + "','" + route["bound"][co] + "','" + route["serviceType"] + "','" + startStopId + "','" + stopId + "','true'";
                     if (co == "ctb" && route["stops"].hasOwnProperty("kmb")) {
                         let kmbAllStops = route["stops"]["kmb"];
                         params = "'kmb','" + routeNumber + "','" + route["bound"]["kmb"] + "','" + route["serviceType"] + "','" + kmbAllStops[allStops.indexOf(startStopId)] + "','" + kmbAllStops[allStops.indexOf(stopId)] + "'";
@@ -2115,19 +2161,21 @@
             updatingRouteTasks.splice(updatingRouteTasks.indexOf(taskId), 1);
         }
     };
-    const handleNearbyRouteClick = (co, routeNumber, bound, type, startingStop, endingStop) => {
-        let index = 1;
-        let shareLink = getShareLink();
-        for (let i = 1; true; i++) {
-            if (shareLink.indexOf("r" + i + "=") >= 0) {
-                index = i + 1;
+    const handleNearbyRouteClick = (co, routeNumber, bound, type, startingStop, endingStop, interchange) => {
+        let animated = true;
+        let collection = document.getElementsByClassName("route-input-element");
+        for (let i = collection.length - 1; i >= 0; i--) {
+            let leg = i + 1;
+            if (document.getElementById('route-' + leg).value == "") {
+                routeRemove(leg, true);
+                animated = false;
             } else {
                 break;
             }
         }
 
-        let link = shareLink + "&r" + index + "=" + co + "," + routeNumber + "," + bound + "," + type + "," + startingStop + "," + endingStop;
-        window.location.href = link;
+        let param = co + "," + routeNumber + "," + bound + "," + type + "," + startingStop + "," + endingStop + "," + interchange;
+        routeAdd(animated, param);
     };
 
     let openedLayerSelector = false;
@@ -3214,7 +3262,8 @@
             if (sameNameArray.length >= 0 && sameNameArray[0] != undefined && sameNameArray[0].value >= 0) {
                 document.getElementById('route-' + leg + '-end').value = sameNameArray[0].value;
             } else {
-                document.getElementById('route-' + leg + '-end').value = Math.max(lastSelected, 0) > startingStop ? lastSelected : -1;
+                let selectIndex = Math.max(lastSelected, 0);
+                document.getElementById('route-' + leg + '-end').value = selectIndex > startingStop && selectIndex < document.getElementById('route-' + leg + '-end').options.length ? lastSelected : -1;
             }
         }
     };
@@ -3329,13 +3378,14 @@
                 let stopDetails = stopIdsToDetails(stops);
                 let startingStopIndex = Number(document.getElementById('route-' + leg + '-start').value);
                 let endingStopIndex = Number(document.getElementById('route-' + leg + '-end').value);
+                let calculateInterchange = document.getElementById('route-' + leg + '-interchange').checked != "false";
                 if (startingStopIndex <= -1) {
                     return;
                 }
                 if (endingStopIndex <= -1) {
                     return;
                 }
-                if (i == 0) {
+                if (i == 0 || !calculateInterchange) {
                     let startingStopId = stops[startingStopIndex];
                     let startingStop = dataSheet["stopList"][startingStopId];
                     let startingName = startingStop["name"]["zh"];
@@ -3980,7 +4030,7 @@
                     lastCo = co;
                     lastGtfsId = route["gtfsId"];
                 }
-                shareParameters.push("r" + leg + "=" + co + "," + routeNumber + "," + (co == "nlb" ? route["nlbId"] : route["bound"][co]) + "," + route["serviceType"] + "," + stops[startingStopIndex] + "," + stops[endingStopIndex]);
+                shareParameters.push("r" + leg + "=" + co + "," + routeNumber + "," + (co == "nlb" ? route["nlbId"] : route["bound"][co]) + "," + route["serviceType"] + "," + stops[startingStopIndex] + "," + stops[endingStopIndex] + "," + calculateInterchange);
             }
 
             currentShareParameters = "?" + shareParameters.join("&");
@@ -5390,22 +5440,24 @@
                 "</div>" + 
             "</div>" + 
             "<button class=\"button remove-button-style\" id=\"route-%s-remove\" title=\"清除路線\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px;\"><i class=\"material-icons\" style=\"color: red;\">close</i></button>" +
+            "<div style=\"position: absolute; bottom: 12px; right: 12px; display: flex; flex-direction: row; flex-wrap: wrap; max-width: 30%; justify-content: right; align-items: center;\"><p style=\"text-align: right; font-size: 15px;\">計算轉乘折扣</p><label class=\"switch\" title=\"計算轉乘折扣\" style=\"margin-left: 10px;\"><input type=\"checkbox\" id=\"route-%s-interchange\" onChange=\"calculate();\" checked><span class=\"slider round\"></span></label></div>" +
             "<button class=\"button\" id=\"route-%s-up\" title=\"向上移動\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\"><i class=\"material-icons\">move_up</i></button>" +
             "<button class=\"button\" id=\"route-%s-down\" title=\"向下移動\" onClick=\"let index = %s; moveDown(index);\"><i class=\"material-icons\">move_down</i></button>" +
         "</div>";
     if (language == "en") {
         routeInputHtml = routeInputHtml
-                .replace("第%c程路線", "Route %s")
-                .replace("請輸入巴士路線", "Please Enter Bus Route")
-                .replace("路線類型", "Route Variant")
-                .replace("請選擇路線類型", "Please Select Route Variant")
-                .replace("上車巴士站", "Boarding Stop")
-                .replace("請選擇上車巴士站", "Please Select Boarding Stop")
-                .replace("落車巴士站", "Alighting Stop")
-                .replace("請選擇落車巴士站", "Please Select Alighting Stop")
-                .replace("清除路線", "Remove Route")
-                .replace("向上移動", "Move Upwards")
-                .replace("向下移動", "Move Downwards");
+                .replaceAll("第%c程路線", "Route %s")
+                .replaceAll("請輸入巴士路線", "Please Enter Bus Route")
+                .replaceAll("路線類型", "Route Variant")
+                .replaceAll("請選擇路線類型", "Please Select Route Variant")
+                .replaceAll("上車巴士站", "Boarding Stop")
+                .replaceAll("請選擇上車巴士站", "Please Select Boarding Stop")
+                .replaceAll("落車巴士站", "Alighting Stop")
+                .replaceAll("請選擇落車巴士站", "Please Select Alighting Stop")
+                .replaceAll("清除路線", "Remove Route")
+                .replaceAll("向上移動", "Move Upwards")
+                .replaceAll("向下移動", "Move Downwards")
+                .replaceAll("計算轉乘折扣", "Include BBI Discount");
     }
     if (isPopupMobile()) {
         routeInputHtml = routeInputHtml.replace("{list}", "");
@@ -5441,11 +5493,13 @@
             let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
             let startHigher = document.getElementById("route-" + legHigher + "-start").value;
             let endHigher = document.getElementById("route-" + legHigher + "-end").value;
+            let interchangeHigher = document.getElementById("route-" + legHigher + "-interchange").checked;
 
             let routeNumberLower = document.getElementById("route-" + legLower).value;
             let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
             let startLower = document.getElementById("route-" + legLower + "-start").value;
             let endLower = document.getElementById("route-" + legLower + "-end").value;
+            let interchangeLower = document.getElementById("route-" + legLower + "-interchange").checked;
 
             document.getElementById("route-" + legHigher).value = routeNumberLower;
             updateRoutes();
@@ -5454,6 +5508,7 @@
             document.getElementById("route-" + legHigher + "-start").value = startLower;
             updateDestinationStops();
             document.getElementById("route-" + legHigher + "-end").value = endLower;
+            document.getElementById("route-" + legHigher + "-interchange").checked = interchangeLower;
 
             document.getElementById("route-" + legLower).value = routeNumberHigher;
             updateRoutes();
@@ -5462,6 +5517,7 @@
             document.getElementById("route-" + legLower + "-start").value = startHigher;
             updateDestinationStops();
             document.getElementById("route-" + legLower + "-end").value = endHigher;
+            document.getElementById("route-" + legLower + "-interchange").checked = interchangeHigher;
 
             calculate();
 
@@ -5495,11 +5551,13 @@
             let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
             let startHigher = document.getElementById("route-" + legHigher + "-start").value;
             let endHigher = document.getElementById("route-" + legHigher + "-end").value;
+            let interchangeHigher = document.getElementById("route-" + legHigher + "-interchange").checked;
 
             let routeNumberLower = document.getElementById("route-" + legLower).value;
             let routeKeyLower = document.getElementById("route-" + legLower + "-type").value;
             let startLower = document.getElementById("route-" + legLower + "-start").value;
             let endLower = document.getElementById("route-" + legLower + "-end").value;
+            let interchangeLower = document.getElementById("route-" + legLower + "-interchange").checked;
 
             document.getElementById("route-" + legHigher).value = routeNumberLower;
             updateRoutes();
@@ -5508,6 +5566,7 @@
             document.getElementById("route-" + legHigher + "-start").value = startLower;
             updateDestinationStops();
             document.getElementById("route-" + legHigher + "-end").value = endLower;
+            document.getElementById("route-" + legHigher + "-interchange").checked = interchangeLower;
 
             document.getElementById("route-" + legLower).value = routeNumberHigher;
             updateRoutes();
@@ -5516,6 +5575,7 @@
             document.getElementById("route-" + legLower + "-start").value = startHigher;
             updateDestinationStops();
             document.getElementById("route-" + legLower + "-end").value = endHigher;
+            document.getElementById("route-" + legLower + "-interchange").checked = interchangeHigher;
 
             calculate();
 
@@ -5597,7 +5657,7 @@
             }).join(" / ");
         }, document.getElementById("bottom-mobile-div"));
     };
-    const routeAdd = (animated = false) => {
+    const routeAdd = (animated = false, loadParameters = null) => {
         let div = document.getElementById('route-input');
         let collection = document.getElementsByClassName("route-input-element");
         let index = collection.length + 1;
@@ -5628,11 +5688,62 @@
             setTimeout(() => element.classList.remove("route-input-animation-add"), 600);
         }
 
+        if (loadParameters != null) {
+            let parts = loadParameters.split(",");
+            let co = parts[0];
+            let s = 0;
+            if (co != "kmb" && co != "ctb" && co != "nlb" && co != "mtr-bus" && co != "gmb") {
+                s = 1;
+                co = "kmb";
+            }
+            let routeNumber = parts[1 - s];
+            let bound = parts[2 - s];
+            let type = parts[3 - s];
+            let startingStop = parts[4 - s];
+            let endingStop = parts[5 - s];
+            let interchange = parts[6 - s] != "false";
+
+            let routeKey = null;
+            let route = null;
+            let startingStopIndex;
+            let endingStopIndex;
+            for (let key in dataSheet["routeList"]) {
+                let data = dataSheet["routeList"][key];
+                if (data["bound"].hasOwnProperty(co) && (co != "kmb" || kmbRouteExists(data)) && data["route"] == routeNumber && (co == "nlb" ? data["nlbId"] == bound : (data["bound"][co] == bound)) && data["serviceType"] == type) {
+                    startingStopIndex = data["stops"][co].indexOf(startingStop);
+                    endingStopIndex = data["stops"][co].lastIndexOf(endingStop);
+                    if (startingStopIndex < 0 || endingStopIndex < 0 || startingStopIndex > endingStopIndex) {
+                        continue;
+                    }
+                    if (startingStopIndex == endingStopIndex) {
+                        if ((startingStopIndex + 1) == data["stops"][co].length) {
+                            startingStopIndex--;
+                        } else {
+                            endingStopIndex++;
+                        }
+                    }
+                    routeKey = key + "_" + type;
+                    route = data;
+                    break;
+                }
+            }
+            if (route != null) {
+                document.getElementById("route-" + index).value = routeNumber;
+                updateRoutes();
+                document.getElementById("route-" + index + "-type").value = routeKey;
+                updateStartingStops();
+                document.getElementById("route-" + index + "-start").value = startingStopIndex;
+                updateDestinationStops();
+                document.getElementById("route-" + index + "-end").value = endingStopIndex;
+                document.getElementById("route-" + index + "-interchange").checked = interchange;
+            }
+        }
+
         calculate();
     };
-    const routeRemove = (leg) => {
+    const routeRemove = (leg, bypassCheck = false) => {
         let collection = document.getElementsByClassName("route-input-element");
-        if (collection.length == 1) {
+        if (collection.length == 1 && !bypassCheck) {
             return;
         }
         let index;
@@ -5647,8 +5758,10 @@
         }
         if (index == lastIndex) {
             collection[index].remove();
-            document.getElementById('route-' + index + '-down').disabled = true;
-            calculate();
+            if (index > 0) {
+                document.getElementById('route-' + index + '-down').disabled = true;
+                calculate();
+            }
         } else {
             collection[index].remove();
             for (let i = index; i < collection.length; i++) {
@@ -5658,12 +5771,14 @@
                 let routeKey = document.getElementById("route-" + oldLeg + "-type").value;
                 let start = document.getElementById("route-" + oldLeg + "-start").value;
                 let end = document.getElementById("route-" + oldLeg + "-end").value;
+                let interchange = document.getElementById("route-" + oldLeg + "-interchange").checked;
                 collection[i].outerHTML = collection[i].outerHTML.replaceAll("route-" + oldLeg, "route-" + newLeg).replaceAll("let index = " + oldLeg, "let index = " + newLeg);
                 document.getElementById("route-" + newLeg + "-title").innerHTML = language == "en" ? ("Route " + oldLeg) : ("第" + toChineseNumber(newLeg) + "程路線");
                 document.getElementById("route-" + newLeg).value = routeNumber;
                 document.getElementById("route-" + newLeg + "-type").value = routeKey;
                 document.getElementById("route-" + newLeg + "-start").value = start;
                 document.getElementById("route-" + newLeg + "-end").value = end;
+                document.getElementById("route-" + newLeg + "-interchange").checked = interchange;
                 if (index == 0) {
                     document.getElementById('route-' + newLeg + '-up').disabled = true;
                 }
@@ -5857,6 +5972,7 @@
             let type = parts[3 - s];
             let startingStop = parts[4 - s];
             let endingStop = parts[5 - s];
+            let interchange = parts[6 - s] != "false";
 
             let routeKey = null;
             let route = null;
@@ -5895,6 +6011,7 @@
             document.getElementById("route-" + i + "-start").value = startingStopIndex;
             updateDestinationStops();
             document.getElementById("route-" + i + "-end").value = endingStopIndex;
+            document.getElementById("route-" + i + "-interchange").checked = interchange;
 
             flag = true;
         }
