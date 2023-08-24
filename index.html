@@ -723,37 +723,37 @@
 
     let googleAttribution = '<a href="https://www.google.com/intl/en_uk/help/terms_maps/">Map data &copy;' + new Date().getUTCFullYear() + ' Google</a>';
 
-    let googleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+    let googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
         maxZoom: 22,
         subdomains:['mt0','mt1','mt2','mt3'],
         attribution: googleAttribution
     });
 
-    let googleStreetsTraffic = L.tileLayer('http://{s}.google.com/vt/lyrs=m@221097413,traffic&x={x}&y={y}&z={z}',{
+    let googleStreetsTraffic = L.tileLayer('https://{s}.google.com/vt/lyrs=m@221097413,traffic&x={x}&y={y}&z={z}',{
         maxZoom: 22,
         subdomains:['mt0','mt1','mt2','mt3'],
         attribution: googleAttribution
     });
 
-    let googleHybrid = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
+    let googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{
         maxZoom: 22,
         subdomains:['mt0','mt1','mt2','mt3'],
         attribution: googleAttribution
     });
 
-    let googleHybridTraffic = L.tileLayer('http://{s}.google.com/vt/lyrs=s@221097413,traffic,h&x={x}&y={y}&z={z}',{
+    let googleHybridTraffic = L.tileLayer('https://{s}.google.com/vt/lyrs=s@221097413,traffic,h&x={x}&y={y}&z={z}',{
         maxZoom: 22,
         subdomains:['mt0','mt1','mt2','mt3'],
         attribution: googleAttribution
     });
 
-    let googleSat = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+    let googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
         maxZoom: 22,
         subdomains:['mt0','mt1','mt2','mt3'],
         attribution: googleAttribution
     });
 
-    let googleTerrain = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
+    let googleTerrain = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{
         maxZoom: 22,
         subdomains:['mt0','mt1','mt2','mt3'],
         attribution: googleAttribution
