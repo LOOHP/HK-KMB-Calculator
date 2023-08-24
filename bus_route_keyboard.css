@@ -48,8 +48,27 @@
     min-height: 50px;
     width: 100%;
     background-color: #f0f0f0;
+    border-color: #7d7d7d;
     border-radius: 5px;
     cursor: pointer;
+    border-style: outset;
+}
+
+.keyboard-key-danger {
+    border-color: #B76262;
+    color: #910000;
+}
+
+.keyboard-key-disabled {
+    border-color: #B2B2B2;
+    color: #B2B2B2;
+    background-color: #F0F0F0;
+    cursor: default;
+    border-style: solid;
+}
+
+.keyboard-key-clicked {
+    border-style: inset;
 }
 
 .keyboard-scrollable-column {

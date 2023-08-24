@@ -302,7 +302,7 @@
             right: 0;
             bottom: 0;
             background-color: #ccc;
-            transition: .0s;
+            transition: 0s;
         }
         .slider:before {
             position: absolute;
@@ -312,7 +312,13 @@
             left: 3px;
             bottom: 3px;
             background-color: white;
-            transition: .0s;
+            transition: 0s;
+        }
+        .slider-animate {
+            transition: 0.2s;
+        }
+        .slider-animate:before {
+            transition: 0.2s;
         }
         input:checked + .slider {
             background-color: #50C878;
@@ -3378,7 +3384,7 @@
                 let stopDetails = stopIdsToDetails(stops);
                 let startingStopIndex = Number(document.getElementById('route-' + leg + '-start').value);
                 let endingStopIndex = Number(document.getElementById('route-' + leg + '-end').value);
-                let calculateInterchange = document.getElementById('route-' + leg + '-interchange').checked != "false";
+                let calculateInterchange = document.getElementById('route-' + leg + '-interchange').checked;
                 if (startingStopIndex <= -1) {
                     return;
                 }
@@ -5440,7 +5446,7 @@
                 "</div>" + 
             "</div>" + 
             "<button class=\"button remove-button-style\" id=\"route-%s-remove\" title=\"清除路線\" onClick=\"let index = %s; routeRemove(index);\" style=\"position: absolute; top: 10px; right: 10px;\"><i class=\"material-icons\" style=\"color: red;\">close</i></button>" +
-            "<div style=\"position: absolute; bottom: 12px; right: 12px; display: flex; flex-direction: row; flex-wrap: wrap; max-width: 30%; justify-content: right; align-items: center;\"><p style=\"text-align: right; font-size: 15px;\">計算轉乘折扣</p><label class=\"switch\" title=\"計算轉乘折扣\" style=\"margin-left: 10px;\"><input type=\"checkbox\" id=\"route-%s-interchange\" onChange=\"calculate();\" checked><span class=\"slider round\"></span></label></div>" +
+            "<div style=\"position: absolute; bottom: 12px; right: 12px; display: flex; flex-direction: row; flex-wrap: wrap; max-width: 30%; justify-content: right; align-items: center;\"><p style=\"text-align: right; font-size: 15px;\">計算轉乘折扣</p><label class=\"switch\" title=\"計算轉乘折扣\" style=\"margin-left: 10px;\"><input type=\"checkbox\" id=\"route-%s-interchange\" onChange=\"calculate();\" checked><span class=\"slider slider-animate round\" id=\"route-%s-interchange-slider\"></span></label></div>" +
             "<button class=\"button\" id=\"route-%s-up\" title=\"向上移動\" onClick=\"let index = %s; moveUp(index);\" style=\"margin-right: 10px;\"><i class=\"material-icons\">move_up</i></button>" +
             "<button class=\"button\" id=\"route-%s-down\" title=\"向下移動\" onClick=\"let index = %s; moveDown(index);\"><i class=\"material-icons\">move_down</i></button>" +
         "</div>";
@@ -5485,9 +5491,15 @@
         document.getElementById("route-" + legHigher + "-element").classList.add("route-input-animation-down");
         document.getElementById("route-" + legLower + "-element").classList.add("route-input-animation-up");
 
+        document.getElementById("route-" + legHigher + "-interchange-slider").classList.remove("slider-animate");
+        document.getElementById("route-" + legLower + "-interchange-slider").classList.remove("slider-animate");
+
         setTimeout(() => {
             document.getElementById("route-" + legHigher + "-element").classList.remove("route-input-animation-down");
             document.getElementById("route-" + legLower + "-element").classList.remove("route-input-animation-up");
+
+            document.getElementById("route-" + legHigher + "-interchange-slider").classList.add("slider-animate");
+            document.getElementById("route-" + legLower + "-interchange-slider").classList.add("slider-animate");
 
             let routeNumberHigher = document.getElementById("route-" + legHigher).value;
             let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;
@@ -5543,9 +5555,15 @@
         document.getElementById("route-" + legHigher + "-element").classList.add("route-input-animation-down");
         document.getElementById("route-" + legLower + "-element").classList.add("route-input-animation-up");
 
+        document.getElementById("route-" + legHigher + "-interchange-slider").classList.remove("slider-animate");
+        document.getElementById("route-" + legLower + "-interchange-slider").classList.remove("slider-animate");
+
         setTimeout(() => {
             document.getElementById("route-" + legHigher + "-element").classList.remove("route-input-animation-down");
             document.getElementById("route-" + legLower + "-element").classList.remove("route-input-animation-up");
+
+            document.getElementById("route-" + legHigher + "-interchange-slider").classList.add("slider-animate");
+            document.getElementById("route-" + legLower + "-interchange-slider").classList.add("slider-animate");
 
             let routeNumberHigher = document.getElementById("route-" + legHigher).value;
             let routeKeyHigher = document.getElementById("route-" + legHigher + "-type").value;

@@ -14,18 +14,18 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
                 <p id="keyboard-info-box"></p>
             </div>
 		    <div class="keyboard keyboard-refocus">
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-1" disabled>1</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-2" disabled>2</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-3" disabled>3</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-4" disabled>4</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-5" disabled>5</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-6" disabled>6</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-7" disabled>7</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-8" disabled>8</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-9" disabled>9</button>
-		        <button class="keyboard-key keyboard-refocus" id="keyboard-Delete"><i class="keyboard-material-icons">delete</i></button>
-	            <button class="keyboard-key keyboard-refocus" id="keyboard-0" disabled>0</button>
-	            <button class="keyboard-key keyboard-refocus" id="keyboard-Backspace"><i class="keyboard-material-icons">backspace</i></button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-1">1</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-2">2</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-3">3</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-4">4</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-5">5</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-6">6</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-7">7</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-8">8</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-9">9</button>
+		        <button class="keyboard-key keyboard-refocus keyboard-key-danger" id="keyboard-Delete"><i class="keyboard-material-icons">delete</i></button>
+	            <button class="keyboard-key keyboard-refocus keyboard-key-disabled" id="keyboard-0">0</button>
+	            <button class="keyboard-key keyboard-refocus keyboard-key-danger" id="keyboard-Backspace"><i class="keyboard-material-icons">backspace</i></button>
 		    </div>
 		    <div class="keyboard-scrollable-column keyboard-disable-scrollbars keyboard-refocus"></div>
 		    <div class="keyboard-background"></div>
@@ -44,7 +44,9 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 		simulateKeyEvent(inputField, key, 'keyup');
 		event.stopPropagation();
 		event.preventDefault();
+		element.classList.add("keyboard-key-clicked");
 		setTimeout(() => inputField.selectionStart = inputField.selectionEnd = 10000, 0);
+		setTimeout(() => element.classList.remove("keyboard-key-clicked"), 200);
     };
 
 	prependTo.prepend(main);
@@ -54,7 +56,7 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 		if (element.classList.contains("keyboard-material-icons")) {
 			element = element.parentElement;
 		}
-		if (element.classList.contains("keyboard-key")) {
+		if (element.classList.contains("keyboard-key") && !element.classList.contains("keyboard-key-disabled")) {
 			let key = element.id.substring("keyboard-".length);
 			handleKeyboardClick(event, element, key, key.length > 1);
 		} else {
@@ -71,7 +73,7 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 	document.addEventListener('mousedown', handle);
 
 	let lastValue = null;
-	const timerTask = setInterval(() => {
+	const inputTask = () => {
 		let currentValue = inputField.value;
 		let possibleNextChar = new Set();
 		for (let i = 0; i < routeNumbers.length; i++) {
@@ -83,9 +85,9 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 		}
 		for (let i = 0; i <= 9; i++) {
 			if (possibleNextChar.has(i.toString())) {
-				document.getElementById("keyboard-" + i).disabled = false;
+				document.getElementById("keyboard-" + i).classList.remove("keyboard-key-disabled");
 			} else {
-				document.getElementById("keyboard-" + i).disabled = true;
+				document.getElementById("keyboard-" + i).classList.add("keyboard-key-disabled");
 			}
 		}
 		let letterDiv = document.querySelector(".keyboard-scrollable-column");
@@ -113,7 +115,10 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 				document.getElementById("keyboard-info-box-container").style.justifyContent = "";
 			}
 		}
-	}, 200);
+	};
+
+	inputField.addEventListener('keyup', inputTask);
+	inputTask();
 
 	const inputHandle = (e) => {
 		setTimeout(() => {
@@ -121,6 +126,7 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 				main.remove();
 				document.removeEventListener('mousedown', handle);
 				inputField.removeEventListener('focusout', inputHandle);
+				inputField.removeEventListener('keyup', inputTask);
 				clearInterval(timerTask);
 			}
 		}, 100);
