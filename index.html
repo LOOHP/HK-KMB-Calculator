@@ -79,6 +79,9 @@
         body:has(.requires-no-scroll) {
             position: fixed;
         }
+        .button:hover {
+            transition: 0.4s !important;
+        }
         .loading {
             z-index: 999999;
             width: 100%;
@@ -273,6 +276,9 @@
         .bbi-map-href:hover {
             color: #FF001D !important;
         }
+        .stop-google-href:hover {
+            filter: brightness(150%);
+        }
         .data-source {
             color: #111770 !important;
         }
@@ -326,6 +332,9 @@
         input:focus + .slider {
             box-shadow: 0 0 1px #2196F3;
         }
+        input:hover:checked + .slider {
+            filter: brightness(110%);
+        }
         input:checked + .slider:before {
             transform: translateX(100%);
         }
@@ -337,15 +346,19 @@
         }
         .remove-button-style {
             background-color: #FAC7C3 !important;
+            border-color: #FF6767 !important;
         }
         .remove-button-style:hover:not([disabled]) {
             background-color: #F9BAB6 !important;
+            border-color: #FF9090 !important;
         }
         .clear-button-style {
             background-color: #AD0E0E !important;
+            border-color: #AD0E0E !important;
         }
         .clear-button-style:hover:not([disabled]) {
             background-color: #C41111 !important;
+            border-color: #C41111 !important;
         }
         @keyframes route-input-animation-up {
             0% {
@@ -1554,11 +1567,11 @@
             }
         }
         document.querySelectorAll('.bbi-map-href').forEach(element => {
-            element.addEventListener('click', bbiStopHandler);
+            element.addEventListener('click', eventStopPropagation);
         });
         return stopName;
     };
-    const bbiStopHandler = (event) => event.stopPropagation();
+    const eventStopPropagation = (event) => event.stopPropagation();
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
@@ -1911,12 +1924,19 @@
 
                     let distance = Math.round(stop["distance"] * 1000).toFixed(0);
                     let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
+                    let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stop["data"]["location"]["lat"] + "," + stop["data"]["location"]["lng"];
+                    let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
+                    let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
 
                     table += 
                         "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumberDisplay + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + applyBbiStopHref(stopName) + " " + distanceStr + "</span></th>" +
+                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumberDisplay + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + googleHrefTag + applyBbiStopHref(stopName) + "</a>" + googleHrefTag + " " + distanceStr + "</a></span></th>" +
                             "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
                         "</tr>";
+
+                    setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
+                        element.addEventListener('click', eventStopPropagation);
+                    }), 0);
                 }
 
                 if (co == "kmb") {
@@ -2033,7 +2053,15 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">[" + title + "] " + applyBbiStopHref(stopName) + " " + distanceStr + "</p></div>";
+
+                let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stop["location"]["lat"] + "," + stop["location"]["lng"];
+                let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
+                let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
+                setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
+                    element.addEventListener('click', eventStopPropagation);
+                }), 0);
+
+                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">" + googleHrefTag + "[" + title + "] </a>" + googleHrefTag + applyBbiStopHref(stopName) + "</a>" + googleHrefTag + " " + distanceStr + "</a></p></div>";
 
                 let table =
                     "<div class=\"disable-scrollbars mobile-map-action-disable map-route-eta-table\" style=\"max-height: 400px; overflow-y: scroll;\">" +
@@ -2124,7 +2152,15 @@
                 } else if (stopCo == "gmb") {
                     stopName += language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">" + (language == "en" ? "[Nearby Route Stop]" : "[鄰近路線站]") + " " + applyBbiStopHref(stopName) + "</p></div>";
+
+                let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stop["location"]["lat"] + "," + stop["location"]["lng"];
+                let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
+                let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
+                setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
+                    element.addEventListener('click', eventStopPropagation);
+                }), 0);
+
+                let info = "<div style=\"text-align: center;\"><p style=\"font-weight: bold;\">" + googleHrefTag + (language == "en" ? "[Nearby Route Stop]" : "[鄰近路線站]") + " </a>" + googleHrefTag + applyBbiStopHref(stopName) + "</a></p></div>";
 
                 let table =
                     "<div class=\"disable-scrollbars\" style=\"max-height: 400px; overflow-y: scroll;\">" +
@@ -2312,9 +2348,9 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2382,9 +2418,9 @@
                                         if (message == "") {
                                             if (elementSeq == 1) {
                                                 if (language == "en") {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                                 } else {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                                 }
                                             } else {
                                                 entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2418,9 +2454,9 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2502,9 +2538,9 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                             }
                                         } else {
                                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2540,9 +2576,9 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                         }
                     } else {
                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2593,9 +2629,9 @@
                             if (message == "") {
                                 if (elementSeq == 1) {
                                     if (language == "en") {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                     } else {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                     }
                                 } else {
                                     entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2628,9 +2664,9 @@
 
                     if (elementSeq == 1) {
                         if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                         } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                         }
                     } else {
                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2684,9 +2720,9 @@
                                 if (message == "") {
                                     if (elementSeq == 1) {
                                         if (language == "en") {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                         } else {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                         }
                                     } else {
                                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2719,9 +2755,9 @@
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
                             if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                             } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                             }
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -2784,9 +2820,9 @@
                                     if (message == "") {
                                         if (elementSeq == 1) {
                                             if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
                                             } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
+                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
                                             }
                                         } else {
                                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
@@ -3538,7 +3574,7 @@
                                             let fare0 = 0;
                                             let note0 = "-";
                                             if (twoWaySectionFare0 == null) {
-                                                fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                                fare0 = rowsData[i - 1][7];
                                             } else {
                                                 fare0 = twoWaySectionFare0[2];
                                                 if (language == "en") {
@@ -3616,7 +3652,7 @@
                                     
                                     let fare0 = 0;
                                     let note0 = "-";
-                                    fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                    fare0 = rowsData[i - 1][7];
                                     lastFare = fare0;
                                     lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
 
@@ -3674,7 +3710,7 @@
                                             
                                             let fare0 = 0;
                                             let note0 = "-";
-                                            fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                            fare0 = rowsData[i - 1][7];
                                             lastFare = fare0;
                                             lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
 
@@ -3770,7 +3806,7 @@
                                         let fare0 = 0;
                                         let note0 = "-";
                                         if (twoWaySectionFare0 == null) {
-                                            fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                            fare0 = rowsData[i - 1][7];
                                         } else {
                                             fare0 = twoWaySectionFare0[2];
                                             if (language == "en") {
@@ -3864,7 +3900,7 @@
                                 let fare0 = 0;
                                 let note0 = "-";
                                 if (twoWaySectionFare0 == null) {
-                                    fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                    fare0 = rowsData[i - 1][7];
                                 } else {
                                     fare0 = twoWaySectionFare0[2];
                                     if (language == "en") {
@@ -3937,7 +3973,7 @@
                                     
                                     let fare0 = 0;
                                     let note0 = "-";
-                                    fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                    fare0 = rowsData[i - 1][7];
                                     lastFare = fare0;
                                     lastStopDetails = stopDetails.slice(rowsData[i - 1][10] + 1, newEndingStopIndex + 1);
 
@@ -3989,11 +4025,11 @@
 
                             let newEndingStopIndex = rowsData[i - 1][9].indexOf(interchangeName1);
                             rowsData[i - 1][13] = newEndingStopIndex;
-                            let twoWaySectionFare0 = co == "kmb" ? checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1) : null;
+                            let twoWaySectionFare0 = lastCo == "kmb" ? checkTwoWaySectionFare(rowsData[i - 1][0], rowsData[i - 1][9], rowsData[i - 1][1], interchangeName1) : null;
                             let fare0 = 0;
                             let note0 = "-";
                             if (twoWaySectionFare0 == null) {
-                                fare0 = Number(rowsData[i - 1][8]["fares"][rowsData[i - 1][12]]);
+                                fare0 = rowsData[i - 1][7];
                             } else {
                                 fare0 = twoWaySectionFare0[2];
                                 if (language == "en") {
@@ -4065,6 +4101,7 @@
             let getJSONTasksQueue = [];
 
             let totalFare = 0;
+            let totalHalfFare = 0;
             let nanInFare = false;
             for (let i = 0; i < rowsData.length; i++) {
                 let entry = rowsData[i];
@@ -4147,6 +4184,7 @@
                     nanInFare = true;
                 } else {
                     totalFare += entry[7];
+                    totalHalfFare += roundTo1Decimal(entry[7] / 2);
                 }
 
                 let route = entry[8];
@@ -5238,8 +5276,18 @@
                 let co = stopMarker[6];
                 let routeNumberDisplay = stopMarker[7];
                 let stopIds = stopMarker[8];
+
+                let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stopMarker[3][0] + "," + stopMarker[3][1];
+                let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
+                let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
+                setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
+                    element.addEventListener('click', eventStopPropagation);
+                }), 0);
+
                 if (rowsData.length > 1) {
-                    desc = "[" + routes.filter((value, index, array) => array.indexOf(value) === index).join("/") + "] " + desc;
+                    desc = "[" + routes.filter((value, index, array) => array.indexOf(value) === index).join("/") + "] " + googleHrefTag + desc + "</a>";
+                } else {
+                    desc = googleHrefTag + desc + "</a>";
                 }
                 let coStr = "";
                 if (co == "ctb") {
@@ -5251,7 +5299,7 @@
                 } else if (co == "gmb") {
                     coStr = language == "en" ? " - GMB" : " - 專線小巴";
                 }
-                desc = "<p style=\"text-align: center;\">" + desc + coStr + "</p>"
+                desc = "<p style=\"text-align: center;\">" + desc + googleHrefTag + coStr + "</a></p>"
                 let icon;
                 if (stopType == 0 || stopType == 5) {
                     if (stopType == 5) {
@@ -5394,7 +5442,7 @@
 
             map.flyToBounds(activeRouteMarker.getBounds(), {"duration": 1, "paddingTopLeft": [17, 17], "paddingBottomRight": [17, 17]});
 
-            document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + (nanInFare ? "*" : "") + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + roundTo1Decimal(totalFare / 2).toFixed(1) + (nanInFare ? "*" : "") + ")";
+            document.getElementById('total-fare').innerHTML = "$" + totalFare.toFixed(1) + (nanInFare ? "*" : "") + " (" + (language == "en" ? "Half Fare" : "半價") + " $" + totalHalfFare.toFixed(1) + (nanInFare ? "*" : "") + ")";
 
             updateEta();
 
