@@ -127,7 +127,6 @@ function createBusRouteKeyboard(routeNumbers, inputField, infoDisplayCallback, p
 				document.removeEventListener('mousedown', handle);
 				inputField.removeEventListener('focusout', inputHandle);
 				inputField.removeEventListener('keyup', inputTask);
-				clearInterval(timerTask);
 			}
 		}, 100);
     };
