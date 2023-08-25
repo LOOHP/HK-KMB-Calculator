@@ -1551,17 +1551,20 @@
     });
 
     const kmbBbiMapUrl = "https://app.kmb.hk/app1933/BBI/map/{id}.jpg";
-    const applyBbiStopHref = (stopName) => {
+    const applyBbiStopHref = (stopName, co = "kmb") => {
+        if (co != "kmb") {
+            return stopName;
+        }
         for (let bbiId in bbiStopId) {
             let bbiNameDataList = bbiStopId[bbiId];
             let mainName = bbiNameDataList[0];
             for (let i = 0; i < bbiNameDataList.length; i++) {
                 let bbiNameData = bbiNameDataList[i];
                 let url = kmbBbiMapUrl.replace("{id}", bbiId);
-                let tooltip = language == "en" ? "Open " + mainName["en"] + " BBI location map" : "展示" + mainName["zh"] + "轉車站位置圖";
+                let tooltip = language == "en" ? "Open " + mainName["en"] + " BBI location map" : "展示 " + mainName["zh"] + "轉車站 位置圖";
                 let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
-                let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))", 'gi');
-                let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))", 'gi');
+                let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))(?! \\()", 'gi');
+                let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))(?! \\()", 'gi');
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
             }
         }
@@ -1924,7 +1927,7 @@
                     let distance = Math.round(stop["distance"] * 1000).toFixed(0);
                     let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
                     let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stop["data"]["location"]["lat"] + "," + stop["data"]["location"]["lng"];
-                    let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
+                    let googleHrefTitle = language == "en" ? "Open " + stopName + " Bus Stop Location on Google Maps" : "在Google地圖上展示 " + stopName + " 巴士站位置";
                     let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
 
                     table += 
@@ -2054,7 +2057,7 @@
                 }
 
                 let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stop["location"]["lat"] + "," + stop["location"]["lng"];
-                let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
+                let googleHrefTitle = language == "en" ? "Open " + stopName + " Bus Stop Location on Google Maps" : "在Google地圖上展示 " + stopName + " 巴士站位置";
                 let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
                 setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
                     element.addEventListener('click', eventStopPropagation);
@@ -2153,7 +2156,7 @@
                 }
 
                 let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stop["location"]["lat"] + "," + stop["location"]["lng"];
-                let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
+                let googleHrefTitle = language == "en" ? "Open " + stopName + " Bus Stop Location on Google Maps" : "在Google地圖上展示 " + stopName + " 巴士站位置";
                 let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
                 setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
                     element.addEventListener('click', eventStopPropagation);
@@ -5004,13 +5007,13 @@
                     }
                     let stopMarker;
                     if (u < entry[12] || u > entry[13]) {
-                        stopMarker = [[routeNumber], 4, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
+                        stopMarker = [[routeNumber], 4, desc, positionArray, i, u, co, routeNumberDisplay, new Map(), stopName];
                     } else if (u == entry[12]) {
-                        stopMarker = [[routeNumber], 0, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
+                        stopMarker = [[routeNumber], 0, desc, positionArray, i, u, co, routeNumberDisplay, new Map(), stopName];
                     } else if (u == entry[13]) {
-                        stopMarker = [[routeNumber], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
+                        stopMarker = [[routeNumber], i + 1 == rowsData.length ? 1 : 2, desc, positionArray, i, u, co, routeNumberDisplay, new Map(), stopName];
                     } else {
-                        stopMarker = [[routeNumber], 3, desc, positionArray, i, u, co, routeNumberDisplay, new Map()];
+                        stopMarker = [[routeNumber], 3, desc, positionArray, i, u, co, routeNumberDisplay, new Map(), stopName];
                     }
                     let stopType = stopMarker[1];
                     if (stopType == 0) {
@@ -5275,19 +5278,8 @@
                 let co = stopMarker[6];
                 let routeNumberDisplay = stopMarker[7];
                 let stopIds = stopMarker[8];
+                let stopName = stopMarker[9];
 
-                let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stopMarker[3][0] + "," + stopMarker[3][1];
-                let googleHrefTitle = language == "en" ? "Open Bus Stop Location on Google Maps" : "在Google地圖上展示巴士站位置";
-                let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
-                setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
-                    element.addEventListener('click', eventStopPropagation);
-                }), 0);
-
-                if (rowsData.length > 1) {
-                    desc = "[" + routes.filter((value, index, array) => array.indexOf(value) === index).join("/") + "] " + googleHrefTag + desc + "</a>";
-                } else {
-                    desc = googleHrefTag + desc + "</a>";
-                }
                 let coStr = "";
                 if (co == "ctb") {
                     coStr = language == "en" ? " - CTB" : " - 城巴";
@@ -5298,6 +5290,21 @@
                 } else if (co == "gmb") {
                     coStr = language == "en" ? " - GMB" : " - 專線小巴";
                 }
+                stopName += coStr;
+
+                let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stopMarker[3][0] + "," + stopMarker[3][1];
+                let googleHrefTitle = language == "en" ? "Open " + stopName + " Bus Stop Location on Google Maps" : "在Google地圖上展示 " + stopName + " 巴士站位置";
+                let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
+                setTimeout(() => document.querySelectorAll('.stop-google-href').forEach(element => {
+                    element.addEventListener('click', eventStopPropagation);
+                }), 0);
+
+                if (rowsData.length > 1) {
+                    desc = "[" + routes.filter((value, index, array) => array.indexOf(value) === index).join("/") + "] " + googleHrefTag + desc + "</a>";
+                } else {
+                    desc = googleHrefTag + desc + "</a>";
+                }
+                
                 desc = "<p style=\"text-align: center;\">" + desc + googleHrefTag + coStr + "</a></p>"
                 let icon;
                 if (stopType == 0 || stopType == 5) {
@@ -5314,7 +5321,7 @@
                             "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                 "<tbody>" +
                                     "<tr>" +
-                                        "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + applyBbiStopHref(rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]]) + "</b></th>" +
+                                        "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + applyBbiStopHref(rowsData[stopMarker[4]][14][rowsData[stopMarker[4]][12]], co) + "</b></th>" +
                                     "</tr>" + 
                                     "<tr>" +
                                         "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4]][11][rowsData[stopMarker[4]][12]] + "," + routes[0] + "," + (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : (co == "nlb" ? rowsData[stopMarker[4]][8]["nlbId"] : rowsData[stopMarker[4]][8]["bound"][co])) + ",1,25,0\"></th>" +
@@ -5357,7 +5364,7 @@
                                 "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                     "<tbody>" +
                                         "<tr>" +
-                                            "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + applyBbiStopHref(rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]]) + "</b></th>" +
+                                            "<th style=\"text-align: center;\"><b style=\"font-size: 25px;\"></b><b class=\"eta-table-stop-title\" style=\"white-space: nowrap;\">" + applyBbiStopHref(rowsData[stopMarker[4] + 1][14][rowsData[stopMarker[4] + 1][12]], co) + "</b></th>" +
                                         "</tr>" + 
                                         "<tr>" +
                                             "<th style=\"font-weight: normal; text-align: center;\" class=\"eta-update\" id=\"eta_" + co + "," + rowsData[stopMarker[4] + 1][11][rowsData[stopMarker[4] + 1][12]] + "," + changeTo + "," + rowsData[stopMarker[4] + 1][8]["bound"][co] + ",1,25,0\"></th>" +
