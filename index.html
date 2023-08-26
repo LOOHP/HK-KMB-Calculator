@@ -180,49 +180,6 @@
         .map {
             height: 75vh;
         }
-        @media screen and (max-width : 1920px) {
-            .div-only-mobile {
-                display: none;
-            }
-            .leaflet-popup-content p {
-                font-size: 17px;
-            }
-            .bottom-mobile-div {
-                width: initial;
-            }
-        }
-        @media screen and (max-width : 906px) {
-            .desk {
-                display: none;
-            }
-            .div-only-mobile {
-                display: inline-block;
-            }
-            .div-mobile-max-width {
-                width: 100%;
-            }
-            .map {
-                height: 80vh;
-            }
-            .leaflet-popup-content {
-                overflow: hidden;
-            }
-            .leaflet-popup-content p {
-                margin: 0 0;
-            }
-            .leaflet-popup-content a.leaflet-popup-close-button {
-                display: none;
-            }
-            .mobile-map-action-disable {
-                max-height: 25vh !important;
-            }
-            .leaflet-popup-content p {
-                font-size: 15px;
-            }
-            .bottom-mobile-div {
-                width: 100%;
-            }
-        }
         .leaflet-control-layers {
             text-align: left;
         }
@@ -271,9 +228,25 @@
         }
         .bbi-map-href {
             color: #C11E2F !important;
+            white-space: nowrap;
         }
         .bbi-map-href:hover {
             color: #FF001D !important;
+        }
+        .interactive-href-img {
+            display: none;
+            width: 35vw;
+            position: fixed;
+            z-index: 1000;
+            right: 0px;
+            bottom: 0px;
+            border: 10px solid #C11E2F;
+            border-radius: 10px;
+            background-color: white;
+        }
+        iframe.interactive-href-img {
+            aspect-ratio: 9 / 14 !important;
+            max-width: 500px;
         }
         .stop-google-href:hover {
             filter: brightness(150%);
@@ -400,6 +373,52 @@
         }
         .route-input-animation-add {
             animation: route-input-animation-add 0.6s ease-in-out;
+        }
+        @media screen and (max-width : 1920px) {
+            .div-only-mobile {
+                display: none;
+            }
+            .leaflet-popup-content p {
+                font-size: 17px;
+            }
+            .bottom-mobile-div {
+                width: initial;
+            }
+        }
+        @media screen and (max-width : 906px) {
+            .desk {
+                display: none;
+            }
+            .div-only-mobile {
+                display: inline-block;
+            }
+            .div-mobile-max-width {
+                width: 100%;
+            }
+            .map {
+                height: 80vh;
+            }
+            .leaflet-popup-content {
+                overflow: hidden;
+            }
+            .leaflet-popup-content p {
+                margin: 0 0;
+            }
+            .leaflet-popup-content a.leaflet-popup-close-button {
+                display: none;
+            }
+            .mobile-map-action-disable {
+                max-height: 25vh !important;
+            }
+            .leaflet-popup-content p {
+                font-size: 15px;
+            }
+            .bottom-mobile-div {
+                width: 100%;
+            }
+            .interactive-href-img {
+                display: none !important;
+            }
         }
     </style>
 
@@ -535,6 +554,7 @@
         </div>
     </section>
     <div class="loading style-2" id="loading-overlay"><div class="loading-wheel"></div></div>
+    <img src="" class="interactive-href-img interactive-href" id="interactive-href-img" style="display: none;"></img>
 </body>
 
 <script>
@@ -578,6 +598,34 @@
     if (language == null) {
         language = "zh"
     }
+
+    let interactiveHrefElement = null;
+    const handleInteractiveHrefMouseEnter = e => {
+        if (e.target.href != undefined) {
+            document.getElementById('interactive-href-img').src = e.target.href;
+        }
+        if (e.target.classList.contains("interactive-href-iframe")) {
+            let html = document.getElementById('interactive-href-img').outerHTML;
+            document.getElementById('interactive-href-img').outerHTML = html.replace("<img", "<iframe") + "</iframe>";
+        } else {
+            let html = document.getElementById('interactive-href-img').outerHTML;
+            document.getElementById('interactive-href-img').outerHTML = html.replace("<iframe", "<img").replace("</iframe>", "");
+        }
+        document.getElementById('interactive-href-img').style.display = "block";
+        interactiveHrefElement = e.target;
+    };
+    const handleInteractiveHrefMouseLeave = e => {
+        if (e.target == interactiveHrefElement) {
+            document.getElementById('interactive-href-img').style.display = "";
+        }
+    };
+
+    setInterval(() => {
+        document.querySelectorAll(".interactive-href").forEach(element => {
+            element.addEventListener("mouseenter", handleInteractiveHrefMouseEnter);
+            element.addEventListener("mouseleave", handleInteractiveHrefMouseLeave);
+        });
+    }, 500);
 
     setInterval(() => {
         if (getComputedStyle(document.getElementById("eta-table")).display != "none") {
@@ -1560,9 +1608,9 @@
             let mainName = bbiNameDataList[0];
             for (let i = 0; i < bbiNameDataList.length; i++) {
                 let bbiNameData = bbiNameDataList[i];
-                let url = kmbBbiMapUrl.replace("{id}", bbiId);
+                let url = kmbBbiMapUrl.replace("{id}", bbiId) + "?time=" + (Date.now() / 60000).toFixed(0);
                 let tooltip = language == "en" ? "Open " + mainName["en"] + " BBI location map" : "展示 " + mainName["zh"] + "轉車站 位置圖";
-                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
+                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href interactive-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
                 let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))(?! \\()", 'gi');
                 let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))(?! \\()", 'gi');
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
@@ -4203,7 +4251,7 @@
                                 let entry = entries[i];
                                 let title = entry[language == "en" ? "kpi_title" : "kpi_title_chi"];
                                 let resolvedAnnouncementPictureUrl = kmbAnnouncementPictureUrl + entry["kpi_noticeimageurl"];
-                                messages.push("<a class=\"special-annoucement-href\" href=\"" + resolvedAnnouncementPictureUrl + "\" target=\"_blank\">" + title + "</a>");
+                                messages.push("<a class=\"special-annoucement-href interactive-href interactive-href-iframe\" href=\"" + resolvedAnnouncementPictureUrl + "\" target=\"_blank\">" + title + "</a>");
                             }
                             if (messages.length > 0) {
                                 let html;
@@ -4408,7 +4456,7 @@
                     calculateTasks.push(task0Id);
                     getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
                         if (err == null) {
-                            let messages = ["<a class=\"special-annoucement-href\" href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
+                            let messages = ["<a class=\"special-annoucement-href interactive-href interactive-href-iframe\" href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
                             if (messages.length > 0) {
                                 let html;
                                 if (language == "en") {
@@ -4464,7 +4512,7 @@
                         if (err == null) {
                             let region = data["region"][0].toLowerCase();
                             let url = gmbInfoUrl.replace("{route}", route["route"].toLowerCase()).replace("{region}", region).replace("{lang}", language == "en" ? "eng" : "chi");
-                            let messages = ["<a class=\"special-annoucement-href\" href=\"" + url + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
+                            let messages = ["<a class=\"special-annoucement-href interactive-href interactive-href-iframe\" href=\"" + url + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
                             if (messages.length > 0) {
                                 let html;
                                 if (language == "en") {
@@ -4641,7 +4689,7 @@
                     calculateTasks.push(task0Id);
                     getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
                         if (err == null) {
-                            let messages = ["<a class=\"special-annoucement-href\" href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
+                            let messages = ["<a class=\"special-annoucement-href interactive-href interactive-href-iframe\" href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
                             if (messages.length > 0) {
                                 let html;
                                 if (language == "en") {
@@ -4818,7 +4866,7 @@
                     calculateTasks.push(task0Id);
                     getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
                         if (err == null) {
-                            let messages = ["<a class=\"special-annoucement-href\" href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
+                            let messages = ["<a class=\"special-annoucement-href interactive-href interactive-href-iframe\" href=\"" + resolvedSpecialUrl + "\" target=\"_blank\">" + (language == "en" ? "Click to view" : "點擊查看") + "</a>"];
                             if (messages.length > 0) {
                                 let html;
                                 if (language == "en") {
@@ -5741,12 +5789,8 @@
         }
         if (index <= 1) {
             document.getElementById('route-' + index + '-up').disabled = true;
-            document.getElementById('route-' + index + '-remove').disabled = true;
         } else {
             document.getElementById('route-' + (index - 1) + '-down').disabled = false;
-            for (let i = 1; i <= collection.length; i++) {
-                document.getElementById('route-' + i + '-remove').disabled = false;
-            }
         }
         document.getElementById('route-' + index + '-down').disabled = true;
 
@@ -5816,52 +5860,51 @@
     const routeRemove = (leg, bypassCheck = false) => {
         let collection = document.getElementsByClassName("route-input-element");
         if (collection.length == 1 && !bypassCheck) {
-            return;
-        }
-        let index;
-        let lastIndex = collection.length - 1;
-        if (leg == undefined) {
-            index = lastIndex;
+            collection[0].remove();
+            routeAdd();
         } else {
-            index = leg - 1;
-        }
-        if (index > lastIndex) {
-            return;
-        }
-        if (index == lastIndex) {
-            collection[index].remove();
-            if (index > 0) {
-                document.getElementById('route-' + index + '-down').disabled = true;
+            let index;
+            let lastIndex = collection.length - 1;
+            if (leg == undefined) {
+                index = lastIndex;
+            } else {
+                index = leg - 1;
+            }
+            if (index > lastIndex) {
+                return;
+            }
+            if (index == lastIndex) {
+                collection[index].remove();
+                if (index > 0) {
+                    document.getElementById('route-' + index + '-down').disabled = true;
+                    calculate();
+                }
+            } else {
+                collection[index].remove();
+                for (let i = index; i < collection.length; i++) {
+                    let newLeg = i + 1;
+                    let oldLeg = newLeg + 1;
+                    let routeNumber = document.getElementById("route-" + oldLeg).value;
+                    let routeKey = document.getElementById("route-" + oldLeg + "-type").value;
+                    let start = document.getElementById("route-" + oldLeg + "-start").value;
+                    let end = document.getElementById("route-" + oldLeg + "-end").value;
+                    let interchange = document.getElementById("route-" + oldLeg + "-interchange").checked;
+                    collection[i].outerHTML = collection[i].outerHTML.replaceAll("route-" + oldLeg, "route-" + newLeg).replaceAll("let index = " + oldLeg, "let index = " + newLeg);
+                    document.getElementById("route-" + newLeg + "-title").innerHTML = language == "en" ? ("Route " + oldLeg) : ("第" + toChineseNumber(newLeg) + "程路線");
+                    document.getElementById("route-" + newLeg).value = routeNumber;
+                    document.getElementById("route-" + newLeg + "-type").value = routeKey;
+                    document.getElementById("route-" + newLeg + "-start").value = start;
+                    document.getElementById("route-" + newLeg + "-end").value = end;
+                    document.getElementById("route-" + newLeg + "-interchange").checked = interchange;
+                    if (index == 0) {
+                        document.getElementById('route-' + newLeg + '-up').disabled = true;
+                    }
+                    if (index >= collection.length - 1) {
+                        document.getElementById('route-' + newLeg + '-down').disabled = true;
+                    }
+                }
                 calculate();
             }
-        } else {
-            collection[index].remove();
-            for (let i = index; i < collection.length; i++) {
-                let newLeg = i + 1;
-                let oldLeg = newLeg + 1;
-                let routeNumber = document.getElementById("route-" + oldLeg).value;
-                let routeKey = document.getElementById("route-" + oldLeg + "-type").value;
-                let start = document.getElementById("route-" + oldLeg + "-start").value;
-                let end = document.getElementById("route-" + oldLeg + "-end").value;
-                let interchange = document.getElementById("route-" + oldLeg + "-interchange").checked;
-                collection[i].outerHTML = collection[i].outerHTML.replaceAll("route-" + oldLeg, "route-" + newLeg).replaceAll("let index = " + oldLeg, "let index = " + newLeg);
-                document.getElementById("route-" + newLeg + "-title").innerHTML = language == "en" ? ("Route " + oldLeg) : ("第" + toChineseNumber(newLeg) + "程路線");
-                document.getElementById("route-" + newLeg).value = routeNumber;
-                document.getElementById("route-" + newLeg + "-type").value = routeKey;
-                document.getElementById("route-" + newLeg + "-start").value = start;
-                document.getElementById("route-" + newLeg + "-end").value = end;
-                document.getElementById("route-" + newLeg + "-interchange").checked = interchange;
-                if (index == 0) {
-                    document.getElementById('route-' + newLeg + '-up').disabled = true;
-                }
-                if (index >= collection.length - 1) {
-                    document.getElementById('route-' + newLeg + '-down').disabled = true;
-                }
-            }
-            calculate();
-        }
-        if (collection.length == 1) {
-            document.getElementById('route-1-remove').disabled = true;
         }
     };
     const routeClear = () => {
