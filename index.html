@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 
 <head>
     <meta charset="utf-8">
@@ -596,8 +596,9 @@
 
     let language = getUrlParameter("language");
     if (language == null) {
-        language = "zh"
+        language = "zh";
     }
+    document.documentElement.lang = language == "en" ? "en" : "zh-Hant";
 
     let interactiveHrefElement = null;
     const handleInteractiveHrefMouseEnter = e => {
