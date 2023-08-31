@@ -1725,7 +1725,7 @@
         }
         if (elementScheduledType > 0) {
             if (isAboveTyphoonSignalEight) {
-                return "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%; color: #253bad;\" title=\"" + altMessage + "\">storm</i>";
+                return "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%; color: #253bad; transform: rotate(45deg);\" title=\"" + altMessage + "\">storm</i>";
             } else {
                 return "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + altMessage + "\">schedule</i>";
             }
@@ -1923,7 +1923,7 @@
                         "<col span=\"1\" style=\"width: 62%;\">" +
                         "<col span=\"1\" style=\"width: 38%;\">" +
                     "</colgroup>" +
-                    "<tr style=\"background-color: #DBDBDB; position: sticky; top: 0;\">" +
+                    "<tr style=\"background-color: #DBDBDB; position: sticky; top: 0; z-index: 1;\">" +
                         "<th style=\"position: sticky; top: 0; font-size: 18px;\">" + (language == "en" ? "Route" : "路線") + "</th>" +
                         "<th style=\"position: sticky; top: 0; font-size: 18px; text-align: right;\">" + (language == "en" ? "ETA" : "預計到達時間") + "</th>" +
                     "</tr>";
