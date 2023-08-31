@@ -512,6 +512,9 @@
                                 <div class="leaflet-control-layers leaflet-control">
                                     <p style="color: black; padding: 1px 3px 1px 3px; text-align: left; vertical-align: middle;" id="map-clock"></p>
                                 </div>
+                                <div class="leaflet-control-layers leaflet-control" style="margin-top: 5px; width: 47px; height: 47px;" id="map-typhoon-img-container">
+                                    <img style="display: none; width: 100%; height: 100%; object-fit: contain;" id="map-typhoon-img">
+                                </div>
                             </div>
                             <div id="map-mobile-popup-container" style="display: none; max-height: 35%;">
                                 <div id="map-mobile-popup-leaflet-div" class="div-only-mobile" style="width: 100%; position: absolute; bottom: 0; left: 0; padding: 15px; z-index: 1100;">
@@ -1568,6 +1571,17 @@
                     document.getElementById("map-clock-container").style.display = "";
                     firstClockRun = false;
                 }
+
+                if (currentTyphoonSignalId == "") {
+                    document.getElementById("map-typhoon-img-container").style.display = "none";
+                    document.getElementById("map-typhoon-img").style.display = "none";
+                } else {
+                    let imgElement = document.getElementById("map-typhoon-img");
+                    imgElement.src = "https://www.hko.gov.hk/tc/textonly/img/warn/images/" + currentTyphoonSignalId + ".png";
+                    imgElement.title = typhoonWarningTitle;
+                    imgElement.style.display = "";
+                    document.getElementById("map-typhoon-img-container").style.display = "";
+                }
             }, 500);
 
             document.getElementById("toggle-gps").disabled = false;
@@ -1599,6 +1613,26 @@
         e.stopPropagation();
     });
 
+    document.getElementById("map-typhoon-img").addEventListener('mouseover', e => {
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+    });
+    document.getElementById("map-typhoon-img").addEventListener('touchstart', e => {
+        map.dragging.disable();
+        map.doubleClickZoom.disable();
+    });
+    document.getElementById("map-typhoon-img").addEventListener('mouseout', e => {
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
+    });
+    document.getElementById("map-typhoon-img").addEventListener('touchend', e => {
+        map.dragging.enable();
+        map.doubleClickZoom.enable();
+    });
+    document.getElementById("map-typhoon-img").addEventListener('click', e => {
+        e.stopPropagation();
+    });
+
     const kmbBbiMapUrl = "https://app.kmb.hk/app1933/BBI/map/{id}.jpg";
     const applyBbiStopHref = (stopName, co = "kmb", nowrap = true) => {
         if (co != "kmb") {
@@ -1615,7 +1649,6 @@
                 let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href interactive-href\"" + style + "><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
                 let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"].replaceAll("", "​?") + "(?:​?轉​?車​?站​?(?:[​ ]*-?[​ ]*[^(\\n<]+)?(?:[​ ]*\\([A-Z0-9​]+\\))?)|" + bbiNameData["zh"].replaceAll("", "​?") + "(?:[​ ]*\\([A-Z0-9​]+\\))?(?=[ \\n<]|$))(?! \\()", 'gi');
                 let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"].replaceAll("", "​?") + "(?:[​ ]*​?B​?B​?I​?)(?:[​ ]*-?[​ ]*[^(\\n<]+)?(?:[​ ]*\\([A-Z0-9​]+\\))?|" + bbiNameData["en"].replaceAll("", "​?") + "(?:[​ ]*\\([A-Z0-9​]+\\))?(?=[​ ]*[\\n<]|$))(?! \\()", 'gi');
-                console.log(patternZh);
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
             }
         }
@@ -1625,6 +1658,37 @@
         return stopName;
     };
     const eventStopPropagation = (event) => event.stopPropagation();
+
+    let hkoWarningSignalsUrl = "https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=" + (language == "en" ? "en" : "tc");
+    let isAboveTyphoonSignalEight = false;
+    let typhoonWarningTitle = "";
+    let currentTyphoonSignalId = "";
+    let updateTyphoonSignal = () => {
+        getJSON(hkoWarningSignalsUrl, (err, data) => {
+            if (err == null) {
+                if (data.hasOwnProperty("WTCSGNL")) {
+                    let match = /TC([0-9]+)(.*)/gi.exec(data["WTCSGNL"]["code"]);
+                    let signal = Number(match[1]);
+                    isAboveTyphoonSignalEight = signal && signal >= 8;
+                    if (language == "en") {
+                        typhoonWarningTitle = data["WTCSGNL"]["type"] + " is in force";
+                    } else {
+                        typhoonWarningTitle = data["WTCSGNL"]["type"] + " 現正生效";
+                    }
+                    currentTyphoonSignalId = "tc" + String(signal).padStart(2, '0') + (match[2] ? match[2] : "").toLowerCase();
+                    console.log(signal);
+                    return;
+                }
+                isAboveTyphoonSignalEight = false;
+                typhoonWarningTitle = "";
+                currentTyphoonSignalId = "";
+            } else {
+                printConnectionError("Unable to get response from " + hkoWarningSignalsUrl + ". (Is it down?)");
+            }
+        });
+    };
+    setInterval(updateTyphoonSignal, 30000);
+    updateTyphoonSignal();
 
     let kmbSpecialAnnouncementsUrl = "https://search.kmb.hk/KMBWebSite/Function/FunctionRequest.ashx?action=getAnnounce&route={route}&bound={bound}";
     let kmbAnnouncementPictureUrl = "https://search.kmb.hk/KMBWebSite/AnnouncementPicture.ashx?url=";
@@ -1648,6 +1712,28 @@
     let gmbStopEtaUrl = "https://data.etagmb.gov.hk/eta/stop/{stop}";
 
     let updatingRouteTasks = [];
+
+    const getNoScheduledDepartureMessage = (elementScheduledType, elementFontSize, altMessage = undefined) => {
+        if (!altMessage || altMessage == "") {
+            altMessage = language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次";
+        }
+        if (isAboveTyphoonSignalEight) {
+            altMessage += " (" + typhoonWarningTitle + ")";
+        }
+        if (elementScheduledType > 0) {
+            if (isAboveTyphoonSignalEight) {
+                return "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%; color: #253bad;\" title=\"" + altMessage + "\">storm</i>";
+            } else {
+                return "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + altMessage + "\">schedule</i>";
+            }
+        } else {
+            if (isAboveTyphoonSignalEight) {
+                return "<span style=\"font-size: " + elementFontSize + "px;\"></span><span style=\"color: #253bad;\">" + altMessage + "</span>";
+            } else {
+                return "<span style=\"font-size: " + elementFontSize + "px;\"></span>" + altMessage;
+            }
+        }
+    };
 
     const getRouteNumberDisplay = (co, routeNumber, options = {}) => {
         let emoji = options["emoji"] == true;
@@ -2401,11 +2487,7 @@
                         let elementFontSize = entry[5];
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
-                            if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                            } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                            }
+                            entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                         }
@@ -2471,11 +2553,7 @@
 
                                         if (message == "") {
                                             if (elementSeq == 1) {
-                                                if (language == "en") {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                                                } else {
-                                                    entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                                                }
+                                                entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                                             } else {
                                                 entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                             }
@@ -2507,11 +2585,7 @@
                         let elementFontSize = entry[5];
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
-                            if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                            } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                            }
+                            entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                         }
@@ -2591,11 +2665,7 @@
 
                                     if (message == "") {
                                         if (elementSeq == 1) {
-                                            if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                                            } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                                            }
+                                            entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                                         } else {
                                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                         }
@@ -2629,11 +2699,7 @@
                     let elementScheduledType = entry[6];
 
                     if (elementSeq == 1) {
-                        if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                        } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                        }
+                        entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                     } else {
                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                     }
@@ -2682,11 +2748,7 @@
 
                             if (message == "") {
                                 if (elementSeq == 1) {
-                                    if (language == "en") {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                                    } else {
-                                        entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                                    }
+                                    entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                                 } else {
                                     entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                 }
@@ -2717,11 +2779,7 @@
                     let elementScheduledType = entry[6];
 
                     if (elementSeq == 1) {
-                        if (language == "en") {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                        } else {
-                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                        }
+                        entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                     } else {
                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                     }
@@ -2773,11 +2831,7 @@
 
                                 if (message == "") {
                                     if (elementSeq == 1) {
-                                        if (language == "en") {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                                        } else {
-                                            entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                                        }
+                                        entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                                     } else {
                                         entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                     }
@@ -2808,11 +2862,7 @@
                         let elementFontSize = entry[5];
                         let elementScheduledType = entry[6];
                         if (elementSeq == 1) {
-                            if (language == "en") {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                            } else {
-                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                            }
+                            entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize);
                         } else {
                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                         }
@@ -2871,13 +2921,9 @@
                                         .replaceAll("最後班次", "尾班車")
                                         .replaceAll("尾班車已過", "尾班車已過本站");
 
-                                    if (message == "") {
+                                    if (message == "" || (isAboveTyphoonSignalEight && (message == "ETA service suspended" || message == "暫停預報"))) {
                                         if (elementSeq == 1) {
-                                            if (language == "en") {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>No scheduled departures at this moment";
-                                            } else {
-                                                entry[0].innerHTML = elementScheduledType > 0 ? "<i class=\"material-icons\" style=\"font-size: " + elementFontSize + "px; vertical-align: -12%;\" title=\"" + (language == "en" ? "No scheduled departures at this moment" : "暫時沒有預定班次") + "\">schedule</i>" : "<b style=\"font-size: " + elementFontSize + "px;\"></b>暫時沒有預定班次";
-                                            }
+                                            entry[0].innerHTML = getNoScheduledDepartureMessage(elementScheduledType, elementFontSize, message);
                                         } else {
                                             entry[0].innerHTML = "<b style=\"font-size: " + elementFontSize + "px;\"></b>-";
                                         }
