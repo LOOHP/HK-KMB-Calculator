@@ -1675,8 +1675,11 @@
                     } else {
                         typhoonWarningTitle = data["WTCSGNL"]["type"] + " 現正生效";
                     }
-                    currentTyphoonSignalId = "tc" + String(signal).padStart(2, '0') + (match[2] ? match[2] : "").toLowerCase();
-                    console.log(signal);
+                    if (signal < 8) {
+                        currentTyphoonSignalId = "tc" + signal + (match[2] ? match[2] : "").toLowerCase();
+                    } else {
+                        currentTyphoonSignalId = "tc" + String(signal).padStart(2, '0') + (match[2] ? match[2] : "").toLowerCase();
+                    }
                     return;
                 }
                 isAboveTyphoonSignalEight = false;
