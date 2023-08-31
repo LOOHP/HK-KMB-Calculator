@@ -229,7 +229,6 @@
         }
         .bbi-map-href {
             color: #C11E2F !important;
-            white-space: nowrap;
         }
         .bbi-map-href:hover {
             color: #FF001D !important;
@@ -1601,7 +1600,7 @@
     });
 
     const kmbBbiMapUrl = "https://app.kmb.hk/app1933/BBI/map/{id}.jpg";
-    const applyBbiStopHref = (stopName, co = "kmb") => {
+    const applyBbiStopHref = (stopName, co = "kmb", nowrap = true) => {
         if (co != "kmb") {
             return stopName;
         }
@@ -1612,9 +1611,11 @@
                 let bbiNameData = bbiNameDataList[i];
                 let url = kmbBbiMapUrl.replace("{id}", bbiId) + "?time=" + (Date.now() / 60000).toFixed(0);
                 let tooltip = language == "en" ? "Open " + mainName["en"] + " BBI location map" : "展示 " + mainName["zh"] + "轉車站 位置圖";
-                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href interactive-href\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
-                let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"] + "(?:轉車站(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?)|" + bbiNameData["zh"] + "(?: *\\([A-Z0-9]+\\))?(?=[ \\n<]|$))(?! \\()", 'gi');
-                let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"] + "(?: *BBI)(?: *-? *[^(\\n<]+)?(?: *\\([A-Z0-9]+\\))?|" + bbiNameData["en"] + "(?: *\\([A-Z0-9]+\\))?(?= *[\\n<]|$))(?! \\()", 'gi');
+                let style = nowrap ? "style=\"white-space: nowrap;\"" : "";
+                let hrefTag = "<a href=\"" + url + "\" target=\"_blank\" title=\"" + tooltip + "\" class=\"bbi-map-href interactive-href\"" + style + "><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">sync_alt</i> $1</a>";
+                let patternZh = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["zh"].replaceAll("", "​?") + "(?:​?轉​?車​?站​?(?:[​ ]*-?[​ ]*[^(\\n<]+)?(?:[​ ]*\\([A-Z0-9​]+\\))?)|" + bbiNameData["zh"].replaceAll("", "​?") + "(?:[​ ]*\\([A-Z0-9​]+\\))?(?=[ \\n<]|$))(?! \\()", 'gi');
+                let patternEn = new RegExp("(?<!,)(?:^|[> ;])(" + bbiNameData["en"].replaceAll("", "​?") + "(?:[​ ]*​?B​?B​?I​?)(?:[​ ]*-?[​ ]*[^(\\n<]+)?(?:[​ ]*\\([A-Z0-9​]+\\))?|" + bbiNameData["en"].replaceAll("", "​?") + "(?:[​ ]*\\([A-Z0-9​]+\\))?(?=[​ ]*[\\n<]|$))(?! \\()", 'gi');
+                console.log(patternZh);
                 stopName = stopName.replaceAll(patternZh, hrefTag).replaceAll(patternEn, hrefTag);
             }
         }
@@ -1932,6 +1933,7 @@
                     stopName = capitalize(stopName);
                     destName = capitalize(destName);
                 }
+                stopName = stopName.replaceAll("(", "​(").replace(/([^​]{5})/g,"$1​");
                 destName = destName.replaceAll("(", "​(").replace(/([^​]{5})/g,"$1​");
 
                 if (entry["co"] == "ctb") {
@@ -1975,14 +1977,14 @@
                     let params = "'" + co + "','" + routeNumber + "','" + bound + "','" + route["serviceType"] + "','" + stopId + "','" + allStops[allStops.length - 1] + "','true'";
 
                     let distance = Math.round(stop["distance"] * 1000).toFixed(0);
-                    let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
+                    let distanceStr = "<span style=\"white-space: nowrap;\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米") + "</span>";
                     let googleHref = "https://www.google.com/maps/search/?api=1&query=" + stop["data"]["location"]["lat"] + "," + stop["data"]["location"]["lng"];
                     let googleHrefTitle = language == "en" ? "Open " + stopName + " Bus Stop Location on Google Maps" : "在Google地圖上展示 " + stopName + " 巴士站位置";
                     let googleHrefTag = "<a href=\"" + googleHref + "\" target=\"_blank\" class=\"stop-google-href\" title=\"" + googleHrefTitle + "\">";
 
                     table += 
                         "<tr style=\"cursor: pointer;\" onclick=\"handleNearbyRouteClick(" + params + ");\">" +
-                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumberDisplay + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + googleHrefTag + applyBbiStopHref(stopName) + "</a>" + googleHrefTag + " " + distanceStr + "</a></span></th>" +
+                            "<th style=\"font-size: 20px;\"><span style=\"font-size: 30px;\">" + routeNumberDisplay + "</span> <br class=\"div-only-mobile\"><span style=\"font-size: 15px;\">" + (language == "en" ? "To " : "往") + "</span>​<span style=\"word-break: keep-all; white-space: break-spaces;\">" + destName + "</span><br><span style=\"font-size: 15px;\">" + googleHrefTag + applyBbiStopHref(stopName, co, false) + "</a>" + googleHrefTag + " " + distanceStr + "</a></span></th>" +
                             "<th style=\"text-align: right;\"><span style=\"font-size: 25px;\">​</span><span class=\"eta-update\" id=\"nearby_" + co + "," + stopId + "," + routeNumber + "," + bound + ",1,25,1\"></span></th>" +
                         "</tr>";
 
@@ -2062,7 +2064,7 @@
 
                 let distance = Math.round(findDistance(stop["location"], gpsLocation) * 1000).toFixed(0);
                 let title = language == "en" ? "Nearby " : "鄰近";
-                let distanceStr = "<i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米");
+                let distanceStr = "<span style=\"white-space: nowrap;\"><i class=\"material-icons\" style=\"font-size: inherit; vertical-align: -12%;\">directions_walk</i>" + distance + (language == "en" ? "m" : "米") + "</span>";
 
                 let stopCo = /^[0-9]{6}$/g.test(stopId) ? "ctb" : (/^[0-9]{1,4}$/g.test(stopId) ? "nlb" : (/^[A-Z]?[0-9]{1,3}[A-Z]?-[A-Z][0-9]{3}$/.test(stopId) ? "mtr-bus" : (/^[0-9]{8}$/.test(stopId) ? "gmb" : "kmb")));
                 let routesInfo = [];
