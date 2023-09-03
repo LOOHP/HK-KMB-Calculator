@@ -1,0 +1,34 @@
+{
+    "route": "406",
+    "region": "NT",
+    "gtfsId": "2006837",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:45",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "07:45",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "15:45",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "16:30",
+                            "frequency": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
