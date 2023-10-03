@@ -1,0 +1,84 @@
+{
+    "route": "46A",
+    "region": "NT",
+    "gtfsId": "2005749",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:50-09:05",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "09:05-16:05",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "16:05-20:50",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "20:50-22:45",
+                            "frequency": "20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "06:50-09:00",
+                            "frequency": "13"
+                        },
+                        {
+                            "period": "09:00-18:30",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "18:30-20:40",
+                            "frequency": "13"
+                        },
+                        {
+                            "period": "20:40-22:40",
+                            "frequency": "20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "07:00-10:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "10:00-12:00",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "12:00-18:30",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "18:30-20:30",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "20:30-22:30",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
