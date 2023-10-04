@@ -1267,7 +1267,7 @@
     }
 
     let dataSheet = null;
-    const dataSheetUrl = "https://raw.githubusercontent.com/LOOHP/hk-bus-crawling/gh-pages/routeFareList.json";
+    const dataSheetUrl = "https://raw.githubusercontent.com/LOOHP/hk-bus-crawling/gh-pages/routeFareList.min.json";
     getJSON(dataSheetUrl, (err, data) => {
         if (err == null) {
             dataSheet = data;
@@ -1317,6 +1317,7 @@
                 if (data["bound"].hasOwnProperty("kmb")) {
                     if (data["co"].indexOf("ctb") >= 0) {
                         kmbOps.add(data["route"]);
+                        data["kmbCtbJoint"] = true;
                     }
                     if (data["fares"] == null) {
                         for (let key0 in dataSheet["routeList"]) {
@@ -4247,9 +4248,9 @@
                         remark += " / ";
                     }
                     if (language == "en") {
-                        remark = "KMB/CTB Joint Operated Route - Fare discount might be inaccurate";
+                        remark = "KMB/CTB Joint Operated Route - <b>Fare discount might be inaccurate, ETA unable to show citybus schedule at the moment</b>";
                     } else {
-                        remark = "九巴城巴聯營路線 - 轉乘優惠未必準確";
+                        remark = "九巴城巴聯營路線 - <b>轉乘優惠未必準確 預計到達時間暫時無法顯示城巴班次</b>";
                     }
                 }
 
