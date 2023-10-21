@@ -1,0 +1,103 @@
+{
+    "route": "K52A",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "08:00 - 17:00",
+                            "frequency": "60"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "08:00 - 15:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "15:00 - 17:00",
+                            "frequency": "60"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "08:00 - 10:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "10:00 - 15:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "15:00 - 17:00",
+                            "frequency": "60"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "09:00 - 18:00",
+                            "frequency": "60"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "09:00 - 16:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "16:00 - 18:00",
+                            "frequency": "60"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "09:00 - 11:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "11:00 - 16:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "16:00 - 18:00",
+                            "frequency": "60"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
