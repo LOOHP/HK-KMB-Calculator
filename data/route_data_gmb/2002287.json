@@ -1,0 +1,73 @@
+{
+    "route": "16A",
+    "region": "HKI",
+    "gtfsId": "2002287",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "10:05",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "12:05",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "12:40",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "17:15",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "19:35",
+                            "frequency": ""
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "10:35",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "12:35",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "13:05",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "17:45",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "19:30",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "20:05",
+                            "frequency": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
