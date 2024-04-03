@@ -1,0 +1,13 @@
+{
+    "route": "18M",
+    "region": "HKI",
+    "gtfsId": "2002317",
+    "bound": {
+        "O": {
+            "timetable": []
+        },
+        "I": {
+            "timetable": []
+        }
+    }
+}
