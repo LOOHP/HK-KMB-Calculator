@@ -619,10 +619,10 @@ def write_nlb_timetable():
                 if re.search("(星期.*)</p>", match[1]):
                     weekday_str = re.search("(星期.*)</p>", match[1])[1]
                     school_holiday = "(學校假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str
-                    school_day_only = "(只於上課日服務)" in weekday_str
+                    school_day_only = "(只於上課日服務)" in weekday_str or "(上學日)" in weekday_str
                     no_school_day = "(上學日除外)" in weekday_str
                     public_holiday = "(公眾假期除外)" not in weekday_str and "(星期日及公眾假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str
-                    weekday_str = weekday_str.replace("(上學日除外)", "").replace("(學校假期除外)", "").replace("(只於上課日服務)", "").replace("(公眾假期除外)", "").replace("(星期日及公眾假期除外)", "").replace("(學校假期及公眾假期除外)", "").replace("星期", "").strip()
+                    weekday_str = weekday_str.replace("(上學日)", "").replace("(上學日除外)", "").replace("(學校假期除外)", "").replace("(只於上課日服務)", "").replace("(公眾假期除外)", "").replace("(星期日及公眾假期除外)", "").replace("(學校假期及公眾假期除外)", "").replace("星期", "").strip()
                     if weekday_str == "一至五":
                         weekday = "12345"
                     elif weekday_str == "一至六":
