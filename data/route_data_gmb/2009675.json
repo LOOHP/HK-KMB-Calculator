@@ -1,0 +1,57 @@
+{
+    "route": "506",
+    "region": "NT",
+    "gtfsId": "2009675",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:30-07:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "07:00-07:25",
+                            "frequency": "25"
+                        },
+                        {
+                            "period": "07:25-07:40",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "07:40-19:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "19:00-20:00",
+                            "frequency": "30"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "67",
+                    "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Saturday, Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "06:30-08:30",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "08:30-18:30",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "18:30-20:00",
+                            "frequency": "30"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
