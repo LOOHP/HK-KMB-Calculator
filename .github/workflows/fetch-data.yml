@@ -47,7 +47,7 @@ jobs:
           path: '.'
           destination_repo: 'LOOHP/HK-KMB-Calculator'
           destination_branch: 'data'
-          user_email: 'example@email.com'
+          user_email: 'jamesloohp@gmail.com'
           user_name: 'github-actions[bot]'
           commit_message: 'Clean resources'
       - name: Update resources
