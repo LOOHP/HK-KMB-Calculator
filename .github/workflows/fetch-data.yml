@@ -38,22 +38,10 @@ jobs:
           node main.js
       - name: Update MD5
         run: find data -type f -exec md5sum {} + | md5sum | cut -f1 -d ' ' > data/checksum.md5
-      - name: Clean old resources
-        uses: kafkasl/delete_from_another_repo@0.0.1
-        continue-on-error: true
-        env:
-          API_TOKEN_GITHUB: ${{github.token}}
-        with:
-          path: '.'
-          destination_repo: 'LOOHP/HK-KMB-Calculator'
-          destination_branch: 'data'
-          user_email: 'jamesloohp@gmail.com'
-          user_name: 'github-actions[bot]'
-          commit_message: 'Clean resources'
       - name: Update resources
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-            file_pattern: 'data/**'
-            commit_message: 'Update resources'
-            branch: 'data'
-            commit_options: '--no-verify'
+          branch: data
+          folder: data
+          target-folder: data
+          single-commit: true
