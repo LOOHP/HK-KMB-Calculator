@@ -745,7 +745,7 @@ if __name__ == '__main__':
     write_dict_to_file("data/bbi_b1.json", resolve_bbi_data(bbi_data_b1))
 
     print("Resolving KMB Regional Two Way Section Fare...")
-    a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html"))
+    a = resolve_regional_two_way_section_fare(get_text("https://www.kmb.hk/storage/scheme_shortdistance.html", False))
     write_dict_to_file("data/regional_two_way_section_fare.json", a)
 
     print("Resolving CTB BBI...")
