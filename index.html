@@ -1267,7 +1267,7 @@
     }
 
     let dataSheet = null;
-    const dataSheetUrl = "https://raw.githubusercontent.com/LOOHP/hk-bus-crawling/gh-pages/routeFareList.min.json";
+    const dataSheetUrl = "https://data.hkbus.app/routeFareList.min.json";
     getJSON(dataSheetUrl, (err, data) => {
         if (err == null) {
             dataSheet = data;
