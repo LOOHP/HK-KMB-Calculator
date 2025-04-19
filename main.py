@@ -258,13 +258,16 @@ def resolve_route_information(data, stops, start):
 def read_ctb_bbi():
     result = []
     for i in range(2, 95):
-        print(i)
-        tc_data = get_json(ctb_bbi_tc_url + str(i))
-        en_data = get_json(ctb_bbi_en_url + str(i))
-        for u in range(0, len(tc_data)):
-            entry = tc_data[u]
-            entry["remarkEn"] = en_data[u]["remark"]
-            result.append(entry)
+        try:
+            print(i)
+            tc_data = get_json(ctb_bbi_tc_url + str(i))
+            en_data = get_json(ctb_bbi_en_url + str(i))
+            for u in range(0, len(tc_data)):
+                entry = tc_data[u]
+                entry["remarkEn"] = en_data[u]["remark"]
+                result.append(entry)
+        except Exception as e:
+            print(e)
     write_dict_to_file("data/ctb_bbi_data.json", result)
 
 
