@@ -264,7 +264,10 @@ def read_ctb_bbi():
             en_data = get_json(ctb_bbi_en_url + str(i))
             for u in range(0, len(tc_data)):
                 entry = tc_data[u]
-                entry["remarkEn"] = en_data[u]["remark"]
+                if u < len(en_data):
+                    entry["remarkEn"] = en_data[u]["remark"]
+                else:
+                    entry["remarkEn"] = "-"
                 result.append(entry)
         except Exception as e:
             print(e)
