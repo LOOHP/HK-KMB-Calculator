@@ -1,0 +1,45 @@
+{
+    "route": "805S",
+    "region": "NT",
+    "gtfsId": "2010277",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "23:30-02:30",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "02:30-05:15",
+                            "frequency": "10-12"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "23:15-02:30",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "02:30-05:45",
+                            "frequency": "10"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "route": "75M",
+    "region": "KLN",
+    "gtfsId": "2009411",
+    "bound": {
+        "O": {
+            "timetable": []
+        },
+        "I": {
+            "timetable": []
+        }
+    }
+}

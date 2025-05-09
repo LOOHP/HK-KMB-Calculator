@@ -1,0 +1,53 @@
+{
+    "route": "10P",
+    "region": "HKI",
+    "gtfsId": "2006739",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "07:45",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "08:15",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "08:45",
+                            "frequency": ""
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "17:15",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "17:45",
+                            "frequency": ""
+                        },
+                        {
+                            "period": "18:15",
+                            "frequency": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

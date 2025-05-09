@@ -1,0 +1,759 @@
+{
+    "area": [
+        "\u5c6f\u9580",
+        "\u5143\u6717",
+        "\u5929\u6c34\u570d",
+        "\u5c07\u8ecd\u6fb3",
+        "\u897f\u8ca2\u5340",
+        "\u5317\u5340",
+        "\u7c89\u5dba",
+        "\u5927\u57d4",
+        "\u65fa\u89d2"
+    ],
+    "routes": [
+        {
+            "route_number": "52X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u4e09\u8056\u90a8",
+            "fare": 4.8
+        },
+        {
+            "route_number": "52X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u9ec3\u91d1\u6d77\u5cb8",
+            "fare": 5.8
+        },
+        {
+            "route_number": "57M",
+            "start": "\u5c6f\u9580\u5c71\u666f",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 4.8
+        },
+        {
+            "route_number": "58M",
+            "start": "\u5c6f\u9580\u826f\u666f",
+            "end": "\u83ef\u90fd\u82b1\u5712",
+            "fare": 4.8
+        },
+        {
+            "route_number": "58X",
+            "start": "\u5c6f\u9580\u826f\u666f",
+            "end": "\u83ef\u90fd\u82b1\u5712",
+            "fare": 4.8
+        },
+        {
+            "route_number": "59M",
+            "start": "\u5c6f\u9580\u78bc\u982d",
+            "end": "\u8f15\u9435\u9f8d\u9580\u7ad9",
+            "fare": 4.8
+        },
+        {
+            "route_number": "59X",
+            "start": "\u5c6f\u9580\u78bc\u982d",
+            "end": "\u8f15\u9435\u9f8d\u9580\u7ad9",
+            "fare": 4.8
+        },
+        {
+            "route_number": "60M",
+            "start": "\u5c6f\u9580\u7ad9",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 4.8
+        },
+        {
+            "route_number": "60X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 4.8
+        },
+        {
+            "route_number": "61M",
+            "start": "\u53cb\u611b\u5357",
+            "end": "\u4e09\u8056\u90a8",
+            "fare": 4.8
+        },
+        {
+            "route_number": "61M",
+            "start": "\u53cb\u611b\u5357",
+            "end": "\u9ec3\u91d1\u6d77\u5cb8",
+            "fare": 5.8
+        },
+        {
+            "route_number": "61X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 4.8
+        },
+        {
+            "route_number": "66M",
+            "start": "\u5c6f\u9580\u5927\u8208",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 4.8
+        },
+        {
+            "route_number": "66X",
+            "start": "\u5c6f\u9580\u5927\u8208",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 4.8
+        },
+        {
+            "route_number": "67M",
+            "start": "\u5c6f\u9580\u5146\u5eb7",
+            "end": "\u5c6f\u9580\u5b98\u7acb\u4e2d\u5b78",
+            "fare": 4.8
+        },
+        {
+            "route_number": "67X",
+            "start": "\u5c6f\u9580\u5146\u5eb7",
+            "end": "\u5c6f\u9580\u5b98\u7acb\u4e2d\u5b78",
+            "fare": 4.8
+        },
+        {
+            "route_number": "258D",
+            "start": "\u5c6f\u9580\u5bf6\u7530",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 4.8
+        },
+        {
+            "route_number": "260X",
+            "start": "\u5c6f\u9580\u5bf6\u7530",
+            "end": "\u83ef\u90fd\u82b1\u5712",
+            "fare": 4.8
+        },
+        {
+            "route_number": "263",
+            "start": "\u5c6f\u9580\u7ad9",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 4.8
+        },
+        {
+            "route_number": "52X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u4e09\u8056\u90a8",
+            "fare": 5.1
+        },
+        {
+            "route_number": "52X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u9ec3\u91d1\u6d77\u5cb8",
+            "fare": 6.0
+        },
+        {
+            "route_number": "57M",
+            "start": "\u5c6f\u9580\u5c71\u666f",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 5.1
+        },
+        {
+            "route_number": "58M",
+            "start": "\u5c6f\u9580\u826f\u666f",
+            "end": "\u83ef\u90fd\u82b1\u5712",
+            "fare": 5.1
+        },
+        {
+            "route_number": "58X",
+            "start": "\u5c6f\u9580\u826f\u666f",
+            "end": "\u83ef\u90fd\u82b1\u5712",
+            "fare": 5.1
+        },
+        {
+            "route_number": "59M",
+            "start": "\u5c6f\u9580\u78bc\u982d",
+            "end": "\u8f15\u9435\u9f8d\u9580\u7ad9",
+            "fare": 5.1
+        },
+        {
+            "route_number": "59X",
+            "start": "\u5c6f\u9580\u78bc\u982d",
+            "end": "\u8f15\u9435\u9f8d\u9580\u7ad9",
+            "fare": 5.1
+        },
+        {
+            "route_number": "60M",
+            "start": "\u5c6f\u9580\u7ad9",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 5.1
+        },
+        {
+            "route_number": "60X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 5.1
+        },
+        {
+            "route_number": "61M",
+            "start": "\u53cb\u611b\u5357",
+            "end": "\u4e09\u8056\u90a8",
+            "fare": 5.1
+        },
+        {
+            "route_number": "61M",
+            "start": "\u53cb\u611b\u5357",
+            "end": "\u9ec3\u91d1\u6d77\u5cb8",
+            "fare": 6.0
+        },
+        {
+            "route_number": "61X",
+            "start": "\u5c6f\u9580\u5e02\u4e2d\u5fc3",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 5.1
+        },
+        {
+            "route_number": "66M",
+            "start": "\u5c6f\u9580\u5927\u8208",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 5.1
+        },
+        {
+            "route_number": "66X",
+            "start": "\u5c6f\u9580\u5927\u8208",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 5.1
+        },
+        {
+            "route_number": "67M",
+            "start": "\u5c6f\u9580\u5146\u5eb7",
+            "end": "\u5c6f\u9580\u5b98\u7acb\u4e2d\u5b78",
+            "fare": 5.1
+        },
+        {
+            "route_number": "67X",
+            "start": "\u5c6f\u9580\u5146\u5eb7",
+            "end": "\u5c6f\u9580\u5b98\u7acb\u4e2d\u5b78",
+            "fare": 5.1
+        },
+        {
+            "route_number": "258D",
+            "start": "\u5c6f\u9580\u5bf6\u7530",
+            "end": "\u8f15\u9435\u9752\u96f2\u7ad9",
+            "fare": 5.1
+        },
+        {
+            "route_number": "260X",
+            "start": "\u5c6f\u9580\u5bf6\u7530",
+            "end": "\u83ef\u90fd\u82b1\u5712",
+            "fare": 5.1
+        },
+        {
+            "route_number": "263",
+            "start": "\u5c6f\u9580\u7ad9",
+            "end": "\u8c50\u666f\u5712",
+            "fare": 5.1
+        },
+        {
+            "route_number": "63X",
+            "start": "\u5143\u6717\u6d2a\u6c34\u6a4b",
+            "end": "\u5c6f\u9580\u83ef\u90fd\u82b1\u5712",
+            "fare": 5.5
+        },
+        {
+            "route_number": "68A",
+            "start": "\u5143\u6717\u6717\u5c4f\u90a8",
+            "end": "\u5c6f\u9580\u83ef\u90fd\u82b1\u5712",
+            "fare": 6.9
+        },
+        {
+            "route_number": "68A",
+            "start": "\u6d2a\u5929\u8def\u6d2a\u798f\u90a8",
+            "end": "\u5c6f\u9580\u83ef\u90fd\u82b1\u5712",
+            "fare": 5.5
+        },
+        {
+            "route_number": "68X",
+            "start": "\u5143\u6717\u6d2a\u6c34\u6a4b",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 4.8
+        },
+        {
+            "route_number": "69",
+            "start": "\u5143\u6717\u5fb7\u696d\u8857",
+            "end": "\u5143\u6717(\u897f)",
+            "fare": 4.8
+        },
+        {
+            "route_number": "268X",
+            "start": "\u5143\u6717\u6d2a\u6c34\u6a4b",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 4.8
+        },
+        {
+            "route_number": "268B",
+            "start": "\u5143\u6717\u6717\u5c4f\u7ad9",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 4.8
+        },
+        {
+            "route_number": "268C",
+            "start": "\u5143\u6717\u6717\u5c4f\u7ad9",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 4.8
+        },
+        {
+            "route_number": "63X",
+            "start": "\u5143\u6717\u6d2a\u6c34\u6a4b",
+            "end": "\u5c6f\u9580\u83ef\u90fd\u82b1\u5712",
+            "fare": 5.7
+        },
+        {
+            "route_number": "68A",
+            "start": "\u5143\u6717\u6717\u5c4f\u90a8",
+            "end": "\u5c6f\u9580\u83ef\u90fd\u82b1\u5712",
+            "fare": 7.2
+        },
+        {
+            "route_number": "68A",
+            "start": "\u6d2a\u5929\u8def\u6d2a\u798f\u90a8",
+            "end": "\u5c6f\u9580\u83ef\u90fd\u82b1\u5712",
+            "fare": 5.7
+        },
+        {
+            "route_number": "68X",
+            "start": "\u5143\u6717\u6d2a\u6c34\u6a4b",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 5.1
+        },
+        {
+            "route_number": "69",
+            "start": "\u5143\u6717\u5fb7\u696d\u8857",
+            "end": "\u5143\u6717(\u897f)",
+            "fare": 5.1
+        },
+        {
+            "route_number": "268X",
+            "start": "\u5143\u6717\u6d2a\u6c34\u6a4b",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 5.1
+        },
+        {
+            "route_number": "268B",
+            "start": "\u5143\u6717\u6717\u5c4f\u7ad9",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 5.1
+        },
+        {
+            "route_number": "268C",
+            "start": "\u5143\u6717\u6717\u5c4f\u7ad9",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 5.1
+        },
+        {
+            "route_number": "69M",
+            "start": "\u5929\u6c34\u570d\u5e02\u4e2d\u5fc3",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 4.8
+        },
+        {
+            "route_number": "69X",
+            "start": "\u5929\u6c34\u570d\u5929\u745e",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 4.8
+        },
+        {
+            "route_number": "265B",
+            "start": "\u5929\u6c34\u570d\u5929\u6046",
+            "end": "\u5929\u6148",
+            "fare": 4.8
+        },
+        {
+            "route_number": "269B",
+            "start": "\u5929\u6c34\u570d\u5e02\u4e2d\u5fc3",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 4.8
+        },
+        {
+            "route_number": "269C",
+            "start": "\u5929\u6c34\u570d\u5e02\u4e2d\u5fc3",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 4.8
+        },
+        {
+            "route_number": "269D",
+            "start": "\u5929\u6c34\u570d\u5929\u5bcc",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 4.8
+        },
+        {
+            "route_number": "269M",
+            "start": "\u5929\u6c34\u570d\u5929\u6069",
+            "end": "\u5929\u6148",
+            "fare": 4.8
+        },
+        {
+            "route_number": "276",
+            "start": "\u5929\u6c34\u570d\u5929\u6148",
+            "end": "\u5143\u6717\u535a\u611b\u91ab\u9662",
+            "fare": 4.8
+        },
+        {
+            "route_number": "276A",
+            "start": "\u5929\u6c34\u570d\u5929\u6046",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 4.8
+        },
+        {
+            "route_number": "276B",
+            "start": "\u5929\u6c34\u570d\u5929\u5bcc",
+            "end": "\u5929\u6148",
+            "fare": 4.8
+        },
+        {
+            "route_number": "276P",
+            "start": "\u5929\u6c34\u570d\u7ad9",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 4.8
+        },
+        {
+            "route_number": "69M",
+            "start": "\u5929\u6c34\u570d\u5e02\u4e2d\u5fc3",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 5.1
+        },
+        {
+            "route_number": "69X",
+            "start": "\u5929\u6c34\u570d\u5929\u745e",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 5.1
+        },
+        {
+            "route_number": "265B",
+            "start": "\u5929\u6c34\u570d\u5929\u6046",
+            "end": "\u5929\u6148",
+            "fare": 5.1
+        },
+        {
+            "route_number": "269B",
+            "start": "\u5929\u6c34\u570d\u5e02\u4e2d\u5fc3",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 5.1
+        },
+        {
+            "route_number": "269C",
+            "start": "\u5929\u6c34\u570d\u5e02\u4e2d\u5fc3",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 5.1
+        },
+        {
+            "route_number": "269D",
+            "start": "\u5929\u6c34\u570d\u5929\u5bcc",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 5.1
+        },
+        {
+            "route_number": "269M",
+            "start": "\u5929\u6c34\u570d\u5929\u6069",
+            "end": "\u5929\u6148",
+            "fare": 5.1
+        },
+        {
+            "route_number": "276",
+            "start": "\u5929\u6c34\u570d\u5929\u6148",
+            "end": "\u5143\u6717\u535a\u611b\u91ab\u9662",
+            "fare": 5.1
+        },
+        {
+            "route_number": "276A",
+            "start": "\u5929\u6c34\u570d\u5929\u6046",
+            "end": "\u5929\u6c34\u570d\u5929\u7950\u82d1",
+            "fare": 5.1
+        },
+        {
+            "route_number": "276B",
+            "start": "\u5929\u6c34\u570d\u5929\u5bcc",
+            "end": "\u5929\u6148",
+            "fare": 5.1
+        },
+        {
+            "route_number": "276P",
+            "start": "\u5929\u6c34\u570d\u7ad9",
+            "end": "\u5143\u6717\u5f62\u9ede",
+            "fare": 5.1
+        },
+        {
+            "route_number": "93K",
+            "start": "\u5bf6\u6797",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "93P",
+            "start": "\u5bf6\u6797",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "94",
+            "start": "\u897f\u8ca2\u5e02\u4e2d\u5fc3",
+            "end": "\u9ea5\u908a",
+            "fare": 6.2
+        },
+        {
+            "route_number": "95",
+            "start": "\u7fe0\u6797",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98",
+            "start": "\u5c07\u8ecd\u6fb3\u5de5\u696d\u90a8",
+            "end": "\u6e05\u6c34\u7063\u534a\u5cf6",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98A",
+            "start": "\u5751\u53e3",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98B",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98C",
+            "start": "\u5751\u53e3",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98D",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.4
+        },
+        {
+            "route_number": "98D",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98D",
+            "start": "\u5eb7\u57ce\u7ad9",
+            "end": "\u980c\u660e\u82d1",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98P",
+            "start": "\u5eb7\u76db\u82b1\u5712",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.6
+        },
+        {
+            "route_number": "98S",
+            "start": "\u5eb7\u57ce\u7ad9",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.6
+        },
+        {
+            "route_number": "290",
+            "start": "\u5751\u53e3",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "290A",
+            "start": "\u5f69\u660e",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "290X",
+            "start": "\u5eb7\u57ce\u7ad9",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.6
+        },
+        {
+            "route_number": "297",
+            "start": "\u5bf6\u6797",
+            "end": "\u980c\u660e\u82d1",
+            "fare": 5.6
+        },
+        {
+            "route_number": "297P",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.6
+        },
+        {
+            "route_number": "93K",
+            "start": "\u5bf6\u6797",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "93P",
+            "start": "\u5bf6\u6797",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "94",
+            "start": "\u897f\u8ca2\u5e02\u4e2d\u5fc3",
+            "end": "\u9ea5\u908a",
+            "fare": 6.5
+        },
+        {
+            "route_number": "95",
+            "start": "\u7fe0\u6797",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98",
+            "start": "\u5c07\u8ecd\u6fb3\u5de5\u696d\u90a8",
+            "end": "\u6e05\u6c34\u7063\u534a\u5cf6",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98A",
+            "start": "\u5751\u53e3",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98B",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98C",
+            "start": "\u5751\u53e3",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98D",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.4
+        },
+        {
+            "route_number": "98D",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98D",
+            "start": "\u5eb7\u57ce\u7ad9",
+            "end": "\u980c\u660e\u82d1",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98P",
+            "start": "\u5eb7\u76db\u82b1\u5712",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.8
+        },
+        {
+            "route_number": "98S",
+            "start": "\u5eb7\u57ce\u7ad9",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.8
+        },
+        {
+            "route_number": "290",
+            "start": "\u5751\u53e3",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "290A",
+            "start": "\u5f69\u660e",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "290X",
+            "start": "\u5eb7\u57ce\u7ad9",
+            "end": "\u99ac\u6e38\u5858\u6751",
+            "fare": 5.8
+        },
+        {
+            "route_number": "297",
+            "start": "\u5bf6\u6797",
+            "end": "\u980c\u660e\u82d1",
+            "fare": 5.8
+        },
+        {
+            "route_number": "297P",
+            "start": "\u5751\u53e3",
+            "end": "\u5bf6\u5eb7\u516c\u5712",
+            "fare": 5.8
+        },
+        {
+            "route_number": "261",
+            "start": "\u7c89\u5dba\u7965\u83ef\u7e3d\u7ad9",
+            "end": "\u4e0a\u6c34\u7ad9",
+            "fare": 5.2
+        },
+        {
+            "route_number": "270A",
+            "start": "\u4e0a\u6c34\u7e3d\u7ad9",
+            "end": "\u727d\u6674\u9593",
+            "fare": 5.2
+        },
+        {
+            "route_number": "270B",
+            "start": "\u4e0a\u6c34\u7e3d\u7ad9",
+            "end": "\u727d\u6674\u9593",
+            "fare": 5.2
+        },
+        {
+            "route_number": "277E",
+            "start": "\u4e0a\u6c34\u5929\u5e73\u90a8\u7e3d\u7ad9",
+            "end": "\u4e0a\u6c34\u7ad9",
+            "fare": 4.0
+        },
+        {
+            "route_number": "277E",
+            "start": "\u4e0a\u6c34\u5929\u5e73\u90a8\u7e3d\u7ad9",
+            "end": "\u6e05\u6cb3\u90a8\u7e3d\u7ad9",
+            "fare": 5.2
+        },
+        {
+            "route_number": "278X",
+            "start": "\u4e0a\u6c34\u7e3d\u7ad9",
+            "end": "\u727d\u6674\u9593",
+            "fare": 5.2
+        },
+        {
+            "route_number": "261",
+            "start": "\u7c89\u5dba\u7965\u83ef\u7e3d\u7ad9",
+            "end": "\u4e0a\u6c34\u7ad9",
+            "fare": 5.4
+        },
+        {
+            "route_number": "270A",
+            "start": "\u4e0a\u6c34\u7e3d\u7ad9",
+            "end": "\u727d\u6674\u9593",
+            "fare": 5.4
+        },
+        {
+            "route_number": "270B",
+            "start": "\u4e0a\u6c34\u7e3d\u7ad9",
+            "end": "\u727d\u6674\u9593",
+            "fare": 5.4
+        },
+        {
+            "route_number": "277E",
+            "start": "\u4e0a\u6c34\u5929\u5e73\u90a8\u7e3d\u7ad9",
+            "end": "\u4e0a\u6c34\u7ad9",
+            "fare": 4.3
+        },
+        {
+            "route_number": "277E",
+            "start": "\u4e0a\u6c34\u5929\u5e73\u90a8\u7e3d\u7ad9",
+            "end": "\u6e05\u6cb3\u90a8\u7e3d\u7ad9",
+            "fare": 5.4
+        },
+        {
+            "route_number": "278X",
+            "start": "\u4e0a\u6c34\u7e3d\u7ad9",
+            "end": "\u727d\u6674\u9593",
+            "fare": 5.4
+        }
+    ]
+}

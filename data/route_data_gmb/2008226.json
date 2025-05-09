@@ -1,0 +1,53 @@
+{
+    "route": "63S",
+    "region": "NT",
+    "gtfsId": "2008226",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "22:50-01:20",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "01:20-03:20",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "03:20-05:00",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "23:15-01:25",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "01:25-03:25",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "03:25-05:45",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

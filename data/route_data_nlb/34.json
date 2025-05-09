@@ -1,0 +1,115 @@
+{
+    "id": "34",
+    "route": "B2P",
+    "timetable": [
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u53ea\u65bc\u4e0a\u8ab2\u65e5\u670d\u52d9)",
+            "weekday_en": "Monday to Friday (School Days Only)",
+            "times": [
+                {
+                    "period": "06:50 - 07:30",
+                    "frequency": "10",
+                    "school_holiday": true,
+                    "school_day_only": true,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "07:30 - 22:30",
+                    "frequency": "15",
+                    "school_holiday": true,
+                    "school_day_only": true,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "22:30 - 23:30",
+                    "frequency": "20",
+                    "school_holiday": true,
+                    "school_day_only": true,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "23:30 - 00:20",
+                    "frequency": "25",
+                    "school_holiday": true,
+                    "school_day_only": true,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        },
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u516c\u773e\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Friday (Except Public Holidays)",
+            "times": [
+                {
+                    "period": "06:50 - 07:00",
+                    "frequency": "10",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": true
+                },
+                {
+                    "period": "07:00 - 22:30",
+                    "frequency": "15",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": true
+                },
+                {
+                    "period": "22:30 - 23:30",
+                    "frequency": "20",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": true
+                },
+                {
+                    "period": "23:30 - 00:20",
+                    "frequency": "25",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": true
+                }
+            ]
+        },
+        {
+            "weekday": "67",
+            "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+            "weekday_en": "Saturday, Sunday & Public Holidays",
+            "times": [
+                {
+                    "period": "06:50 - 22:50",
+                    "frequency": "15",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "22:50 - 23:30",
+                    "frequency": "20",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "23:30 - 00:20",
+                    "frequency": "25",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}
