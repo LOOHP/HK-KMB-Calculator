@@ -574,7 +574,7 @@ def write_mtr_bus_timetable():
         route_number = route_entry[0]
         print(route_number)
         result = {"route": route_number, "bound": {}}
-        data = json.loads(re.search("populateSearchDetailResult_chi\((.*)\);", get_text(mtr_bus_info_url.replace("{route}", route_number), False))[1])[0]
+        data = json.loads(re.search("populateSearchDetailResult_chi\((.*?)(?:,\[(?:\"[A-Z0-9]+\",?)*\])?\);", get_text(mtr_bus_info_url.replace("{route}", route_number), False))[1])[0]
         for each in ["busServiceTime", "busServiceTimeSecond"]:
             if each in data and data[each] is not None:
                 for service_time in data[each]:
