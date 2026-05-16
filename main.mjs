@@ -1,5 +1,5 @@
-const puppeteer = await require('puppeteer');
-const fs = require('fs');
+import puppeteer from 'puppeteer';
+import fs from 'fs';
 
 function delay(millis) {
   return new Promise((resolve, reject) => setTimeout(a => resolve(), millis));
