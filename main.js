@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = await require('puppeteer');
 const fs = require('fs');
 
 function delay(millis) {
