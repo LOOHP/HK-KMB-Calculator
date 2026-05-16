@@ -35,7 +35,7 @@ jobs:
           npm i puppeteer
       - name: Crawling resources (NodeJS)
         run: |
-          node main.js
+          node main.mjs
       - name: Update MD5
         run: find data -type f -exec md5sum {} + | md5sum | cut -f1 -d ' ' > data/checksum.md5
       - name: Update resources
