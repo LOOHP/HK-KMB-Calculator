@@ -27,9 +27,9 @@ jobs:
         run: |
           python main.py
       - name: Setup NodeJS environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16.17.0'
+          node-version: '22.12.0'
       - name: Install NodeJS dependencies
         run: |
           npm i puppeteer
