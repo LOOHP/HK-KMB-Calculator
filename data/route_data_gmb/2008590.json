@@ -1,0 +1,26 @@
+{
+    "route": "90A",
+    "region": "KLN",
+    "gtfsId": "2008590",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "07:00-09:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "17:00-19:00",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

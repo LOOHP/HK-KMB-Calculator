@@ -1,0 +1,37 @@
+{
+    "route": "618A",
+    "region": "NT",
+    "gtfsId": "2009906",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:20-10:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "16:00-19:00",
+                            "frequency": "20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "67",
+                    "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Saturday, Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "06:00-22:20",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

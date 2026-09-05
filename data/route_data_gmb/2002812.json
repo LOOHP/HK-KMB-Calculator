@@ -1,0 +1,61 @@
+{
+    "route": "51A",
+    "region": "HKI",
+    "gtfsId": "2002812",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "05:00-06:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "06:00-09:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "09:00-11:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "11:00-12:00",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "12:00-14:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "14:00-17:00",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "17:00-19:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "19:00-21:00",
+                            "frequency": "20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "67",
+                    "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Saturday, Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "05:00-21:00",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

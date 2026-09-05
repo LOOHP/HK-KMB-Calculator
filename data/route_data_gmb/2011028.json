@@ -1,0 +1,22 @@
+{
+    "route": "54A",
+    "region": "NT",
+    "gtfsId": "2011028",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "08:30",
+                            "frequency": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

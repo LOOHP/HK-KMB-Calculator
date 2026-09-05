@@ -1,0 +1,171 @@
+{
+    "route": "46",
+    "region": "KLN",
+    "gtfsId": "2007233",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "05:55-06:45",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "06:45-07:40",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "07:40-07:55",
+                            "frequency": "3"
+                        },
+                        {
+                            "period": "07:55-09:03",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "09:03-10:45",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "10:45-17:00",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "17:00-18:00",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "18:00-18:15",
+                            "frequency": "3"
+                        },
+                        {
+                            "period": "18:15-20:03",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "20:03-23:21",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "23:21-23:30",
+                            "frequency": "9"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "05:55-06:40",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "06:40-07:00",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "07:00-10:30",
+                            "frequency": "7"
+                        },
+                        {
+                            "period": "10:30-21:30",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "21:30-23:30",
+                            "frequency": "8"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "06:20-07:20",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "07:20-07:50",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "07:50-08:05",
+                            "frequency": "3"
+                        },
+                        {
+                            "period": "08:05-09:53",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "09:53-12:05",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "12:05-17:30",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "17:30-18:30",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "18:30-18:45",
+                            "frequency": "3"
+                        },
+                        {
+                            "period": "18:45-20:33",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "20:33-23:51",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "23:51-00:00",
+                            "frequency": "9"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "06:20-07:20",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "07:20-07:50",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "07:50-10:52",
+                            "frequency": "7"
+                        },
+                        {
+                            "period": "10:52-21:52",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "21:52-00:00",
+                            "frequency": "8"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
