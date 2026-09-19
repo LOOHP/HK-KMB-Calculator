@@ -1,0 +1,22 @@
+{
+    "route": "46",
+    "region": "KLN",
+    "gtfsId": "2007234",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "08:00-08:45",
+                            "frequency": "15"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "id": "15",
+    "route": "11A",
+    "timetable": [
+        {
+            "weekday": "67",
+            "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+            "weekday_en": "Saturday, Sunday & Public Holidays",
+            "times": [
+                {
+                    "period": "09:40, 10:25, 11:05, 11:40, 12:25, 13:05, 13:40, 14:20, 14:55, 15:25, 16:05, 16:40, 17:15, 17:50",
+                    "frequency": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}
