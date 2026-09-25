@@ -1,0 +1,38 @@
+{
+    "route": "810",
+    "region": "NT",
+    "gtfsId": "2010279",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:00-12:00",
+                            "frequency": "6-8"
+                        },
+                        {
+                            "period": "12:00-15:00",
+                            "frequency": "8-10"
+                        },
+                        {
+                            "period": "15:00-21:00",
+                            "frequency": "6-8"
+                        },
+                        {
+                            "period": "21:00-23:10",
+                            "frequency": "8-10"
+                        },
+                        {
+                            "period": "23:10-23:40",
+                            "frequency": "15"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

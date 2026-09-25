@@ -1,0 +1,37 @@
+{
+    "route": "83A",
+    "region": "NT",
+    "gtfsId": "2008587",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:00-23:00",
+                            "frequency": "25-30"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:30-23:00",
+                            "frequency": "25-30"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

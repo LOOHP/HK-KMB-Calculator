@@ -1,0 +1,26 @@
+{
+    "route": "65X",
+    "region": "NT",
+    "gtfsId": "2011160",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "07:00-09:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "09:00-19:00",
+                            "frequency": "15"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

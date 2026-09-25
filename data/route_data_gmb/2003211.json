@@ -1,0 +1,107 @@
+{
+    "route": "481A",
+    "region": "NT",
+    "gtfsId": "2003211",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "10:00-18:30",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "18:30-19:15",
+                            "frequency": "20-25"
+                        },
+                        {
+                            "period": "19:15-23:15",
+                            "frequency": "30"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "07:00-11:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "11:00-14:20",
+                            "frequency": "20-30"
+                        },
+                        {
+                            "period": "14:20-18:50",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "18:50-19:45",
+                            "frequency": "25-30"
+                        },
+                        {
+                            "period": "19:45-23:15",
+                            "frequency": "30"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "10:00-19:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "19:00-19:25",
+                            "frequency": "25"
+                        },
+                        {
+                            "period": "19:25-23:25",
+                            "frequency": "30"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "07:00-11:00",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "11:00-14:20",
+                            "frequency": "20-30"
+                        },
+                        {
+                            "period": "14:20-18:20",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "18:20-19:50",
+                            "frequency": "20-25"
+                        },
+                        {
+                            "period": "19:50-23:20",
+                            "frequency": "30"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
