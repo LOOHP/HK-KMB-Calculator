@@ -1,0 +1,37 @@
+{
+    "route": "508X",
+    "region": "NT",
+    "gtfsId": "2011820",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "06:00-10:00",
+                            "frequency": "10-15"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "16:00-20:00",
+                            "frequency": "10-15"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

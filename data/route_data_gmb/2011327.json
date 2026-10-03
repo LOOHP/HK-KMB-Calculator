@@ -1,0 +1,129 @@
+{
+    "route": "45M",
+    "region": "KLN",
+    "gtfsId": "2011327",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:00-23:00",
+                            "frequency": "15"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "06:00-10:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "10:00-12:00",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "12:00-15:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "15:00-17:00",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "17:00-21:20",
+                            "frequency": "20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "06:00-21:20",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "05:55-07:25",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "07:25-08:45",
+                            "frequency": "10"
+                        },
+                        {
+                            "period": "08:45-22:45",
+                            "frequency": "15"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "06:00-10:20",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "10:20-12:20",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "12:20-15:20",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "15:20-17:20",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "17:20-21:00",
+                            "frequency": "20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "06:00-15:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "15:00-16:00",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "16:00-21:00",
+                            "frequency": "20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
