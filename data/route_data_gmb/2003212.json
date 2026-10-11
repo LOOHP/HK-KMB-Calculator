@@ -1,0 +1,67 @@
+{
+    "route": "481X",
+    "region": "NT",
+    "gtfsId": "2003212",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "07:00-09:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "17:30-19:00",
+                            "frequency": "20-25"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "07:00-09:00",
+                            "frequency": "15-20"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:30-08:30",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "17:00-18:30",
+                            "frequency": "20-25"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "06:30-08:30",
+                            "frequency": "15-20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

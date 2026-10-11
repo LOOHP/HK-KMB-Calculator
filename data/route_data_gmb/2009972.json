@@ -1,0 +1,22 @@
+{
+    "route": "88D",
+    "region": "NT",
+    "gtfsId": "2009972",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "07:00-09:30",
+                            "frequency": "15"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

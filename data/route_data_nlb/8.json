@@ -1,0 +1,21 @@
+{
+    "id": "8",
+    "route": "3M",
+    "timetable": [
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u5b78\u6821\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Friday (Except School Holidays)",
+            "times": [
+                {
+                    "period": "06:50, 07:20, 08:20",
+                    "frequency": "",
+                    "school_holiday": false,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

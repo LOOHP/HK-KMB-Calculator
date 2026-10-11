@@ -1,0 +1,21 @@
+{
+    "id": "111",
+    "route": "B6S",
+    "timetable": [
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u516c\u773e\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Friday (Except Public Holidays)",
+            "times": [
+                {
+                    "period": "07:00 - 08:30",
+                    "frequency": "15",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}
