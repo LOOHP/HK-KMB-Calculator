@@ -1,0 +1,69 @@
+{
+    "route": "808",
+    "region": "NT",
+    "gtfsId": "2004758",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "05:40-07:00",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "07:00-09:00",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "09:00-17:00",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "17:00-18:54",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "18:54-23:10",
+                            "frequency": "8"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:00-07:04",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "07:04-09:04",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "09:04-17:04",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "17:04-18:58",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "18:58-23:30",
+                            "frequency": "8"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
