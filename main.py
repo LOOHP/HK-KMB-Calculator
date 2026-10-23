@@ -10,6 +10,7 @@ import zlib
 from urllib.request import urlopen, Request
 import json
 import re
+import html
 import chardet
 import urllib.parse
 
@@ -616,22 +617,33 @@ def write_mtr_bus_timetable():
 
 def write_nlb_timetable():
     for route_entry in nlb_route_list:
-        route_id = route_entry["routeId"]
+        route_id = str(route_entry["routeId"])
         print(route_id)
         result = {"id": route_id, "route": route_entry["routeNo"], "timetable": []}
         html_text = "".join(get_text(nlb_info_url.replace("{id}", route_id), False).splitlines())
-        if "本路線只於指定日子提供服務" in html_text:
-            pass
-        elif re.search("(星期.*?)</tbody></table>", html_text):
-            for match in re.finditer("(星期.*?)</tbody></table>", html_text):
-                if re.search("(星期.*)</p>", match[1]):
-                    weekday_str = re.search("(星期.*)</p>", match[1])[1]
+        timetable_section_match = re.search(
+            r'<section[^>]*aria-labelledby="route-timetable-heading"[^>]*>(.*?)</section>',
+            html_text,
+            re.DOTALL | re.IGNORECASE)
+        if timetable_section_match and "本路線只於指定日子提供服務" not in timetable_section_match[1]:
+            current_entry = None
+            for match in re.finditer(
+                    r'<p\b[^>]*>(.*?)</p>|(<table\b.*?</table>)',
+                    timetable_section_match[1],
+                    re.DOTALL | re.IGNORECASE):
+                if match[1] is not None:
+                    weekday_str = html.unescape(re.sub(r'<[^>]+>', ' ', match[1]))
+                    weekday_str = re.sub(r'\s+', ' ', weekday_str.replace('\xa0', ' ')).strip()
+                    if weekday_str != "每日" and not weekday_str.startswith("星期"):
+                        continue
                     school_holiday = "(學校假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str
                     school_day_only = "(只於上課日服務)" in weekday_str or "(上學日)" in weekday_str
                     no_school_day = "(上學日除外)" in weekday_str or "(上學日及公眾假期除外)" in weekday_str
                     public_holiday = "(公眾假期除外)" not in weekday_str and "(星期日及公眾假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str and "(上學日及公眾假期除外)" not in weekday_str
                     weekday_str = weekday_str.replace("(上學日)", "").replace("(上學日除外)", "").replace("(學校假期除外)", "").replace("(只於上課日服務)", "").replace("(上學日及公眾假期除外)", "").replace("(公眾假期除外)", "").replace("(星期日及公眾假期除外)", "").replace("(學校假期及公眾假期除外)", "").replace("星期", "").strip()
-                    if weekday_str == "一至五":
+                    if weekday_str == "每日":
+                        weekday = "1234567"
+                    elif weekday_str == "一至五":
                         weekday = "12345"
                     elif weekday_str == "一至六":
                         weekday = "123456"
@@ -643,30 +655,6 @@ def write_nlb_timetable():
                         weekday = "7"
                     else:
                         raise Exception("What is weekday " + weekday_str)
-                    periods = []
-                    frequencies = []
-                    for period_match in re.finditer("([0-9]{2}:[0-9]{2} ?- ?[0-9]{2}:[0-9]{2}).*?</td>.*?<td>([0-9]+(?: ?- ?[0-9]+)?)</td>", match[1]):
-                        periods.append(period_match[1])
-                        frequencies.append(period_match[2])
-                    if len(periods) <= 0:
-                        single = []
-                        matches = re.findall("([0-9]{2}:[0-9]{2})", match[1])
-                        if len(matches) < 3:
-                            for i in range(0, len(matches)):
-                                single.append(matches[i])
-                        else:
-                            h1, m1 = (int(x) for x in matches[1].split(":"))
-                            h2, m2 = (int(x) for x in matches[2].split(":"))
-                            if h1 > h2 or (h1 == h2 and m1 > m2):
-                                for i in range(0, len(matches), 2):
-                                    single.append(matches[i])
-                                for i in range(1, len(matches), 2):
-                                    single.append(matches[i])
-                            else:
-                                for i in range(0, len(matches)):
-                                    single.append(matches[i])
-                        periods.append(", ".join(single))
-                        frequencies.append("")
                     ranges = convert_weekday_ranges(weekday)
                     if ranges == "1-7":
                         zh = "每天"
@@ -693,10 +681,39 @@ def write_nlb_timetable():
                     elif no_school_day:
                         zh += " (上學日除外)"
                         en += " (Except School Days)"
-                    times = []
-                    for i in range(0, len(periods)):
-                        times.append({"period": periods[i], "frequency": frequencies[i], "school_holiday": school_holiday, "school_day_only": school_day_only, "public_holiday": public_holiday, "no_school_day": no_school_day})
-                    result["timetable"].append({"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": times})
+                    current_entry = {"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": []}
+                    result["timetable"].append(current_entry)
+                    continue
+
+                if current_entry is None:
+                    continue
+                table_html = match[2]
+                periods = []
+                frequencies = []
+                for period_match in re.finditer("([0-9]{2}:[0-9]{2} ?- ?[0-9]{2}:[0-9]{2}).*?</td>.*?<td>([0-9]+(?: ?- ?[0-9]+)?)</td>", table_html):
+                    periods.append(period_match[1])
+                    frequencies.append(period_match[2])
+                if len(periods) <= 0:
+                    single = []
+                    matches = re.findall("([0-9]{2}:[0-9]{2})", table_html)
+                    if len(matches) < 3:
+                        for i in range(0, len(matches)):
+                            single.append(matches[i])
+                    else:
+                        h1, m1 = (int(x) for x in matches[1].split(":"))
+                        h2, m2 = (int(x) for x in matches[2].split(":"))
+                        if h1 > h2 or (h1 == h2 and m1 > m2):
+                            for i in range(0, len(matches), 2):
+                                single.append(matches[i])
+                            for i in range(1, len(matches), 2):
+                                single.append(matches[i])
+                        else:
+                            for i in range(0, len(matches)):
+                                single.append(matches[i])
+                    periods.append(", ".join(single))
+                    frequencies.append("")
+                for i in range(0, len(periods)):
+                    current_entry["times"].append({"period": periods[i], "frequency": frequencies[i], "school_holiday": school_holiday, "school_day_only": school_day_only, "public_holiday": public_holiday, "no_school_day": no_school_day})
         write_dict_to_file("data/route_data_nlb/" + route_id + ".json", result)
 
 
