@@ -1,0 +1,85 @@
+{
+    "route": "33M",
+    "region": "HKI",
+    "gtfsId": "2005684",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:45-07:15",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "07:15-07:30",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "07:30-09:30",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "09:30-15:30",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "15:30-17:58",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "17:58-18:00",
+                            "frequency": "2"
+                        },
+                        {
+                            "period": "18:00-21:00",
+                            "frequency": "3"
+                        },
+                        {
+                            "period": "21:00-22:00",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "22:00-00:00",
+                            "frequency": "8"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "67",
+                    "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Saturday, Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "07:00-10:00",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "10:00-12:30",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "12:30-15:30",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "15:30-20:58",
+                            "frequency": "4"
+                        },
+                        {
+                            "period": "20:58-23:04",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "23:04-00:00",
+                            "frequency": "8"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

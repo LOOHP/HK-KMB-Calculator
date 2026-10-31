@@ -1,0 +1,21 @@
+{
+    "id": "44",
+    "route": "N38",
+    "timetable": [
+        {
+            "weekday": "1234567",
+            "weekday_zh": "\u6bcf\u5929",
+            "weekday_en": "Daily",
+            "times": [
+                {
+                    "period": "00:30, 00:45, 01:00, 01:30, 02:00, 02:30, 03:00, 03:30, 04:00, 04:30, 05:00",
+                    "frequency": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}
