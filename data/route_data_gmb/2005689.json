@@ -1,0 +1,69 @@
+{
+    "route": "32",
+    "region": "HKI",
+    "gtfsId": "2005689",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:20-07:20",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "07:20-10:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "10:00-17:00",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "17:00-20:30",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "20:30-23:00",
+                            "frequency": "25"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:35-07:35",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "07:35-09:50",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "09:50-17:10",
+                            "frequency": "20"
+                        },
+                        {
+                            "period": "17:10-20:40",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "20:40-23:10",
+                            "frequency": "25"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

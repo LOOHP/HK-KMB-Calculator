@@ -1,0 +1,37 @@
+{
+    "route": "61",
+    "region": "HKI",
+    "gtfsId": "2004084",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "23:30-04:30",
+                            "frequency": "60"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "00:30-05:30",
+                            "frequency": "60"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

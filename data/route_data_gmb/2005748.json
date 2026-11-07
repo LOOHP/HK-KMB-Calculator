@@ -1,0 +1,42 @@
+{
+    "route": "46X",
+    "region": "NT",
+    "gtfsId": "2005748",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "05:00-06:30",
+                            "frequency": "30"
+                        },
+                        {
+                            "period": "06:30-10:00",
+                            "frequency": "5-6"
+                        },
+                        {
+                            "period": "10:00-17:00",
+                            "frequency": "10-12"
+                        },
+                        {
+                            "period": "17:00-21:30",
+                            "frequency": "5-6"
+                        },
+                        {
+                            "period": "21:30-23:00",
+                            "frequency": "10-12"
+                        },
+                        {
+                            "period": "23:00-00:30",
+                            "frequency": "20-30"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
