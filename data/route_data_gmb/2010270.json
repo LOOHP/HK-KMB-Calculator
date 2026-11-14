@@ -1,0 +1,69 @@
+{
+    "route": "803",
+    "region": "NT",
+    "gtfsId": "2010270",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "07:30-08:00",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "08:06-09:00",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "15:00-15:40",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "15:46-16:10",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "16:15-16:30",
+                            "frequency": "5"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "07:30-08:00",
+                            "frequency": "5"
+                        },
+                        {
+                            "period": "08:06-09:00",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "15:00-15:40",
+                            "frequency": "8"
+                        },
+                        {
+                            "period": "15:46-16:10",
+                            "frequency": "6"
+                        },
+                        {
+                            "period": "16:15-16:30",
+                            "frequency": "5"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

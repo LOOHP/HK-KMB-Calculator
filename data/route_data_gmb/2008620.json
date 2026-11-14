@@ -1,0 +1,22 @@
+{
+    "route": "611S",
+    "region": "NT",
+    "gtfsId": "2008620",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:30-09:00",
+                            "frequency": "15"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

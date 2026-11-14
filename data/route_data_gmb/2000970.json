@@ -1,0 +1,34 @@
+{
+    "route": "14M",
+    "region": "HKI",
+    "gtfsId": "2000970",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:15-09:30",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "09:30-17:30",
+                            "frequency": "24"
+                        },
+                        {
+                            "period": "17:30-21:00",
+                            "frequency": "14"
+                        },
+                        {
+                            "period": "21:00-23:59",
+                            "frequency": "28"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

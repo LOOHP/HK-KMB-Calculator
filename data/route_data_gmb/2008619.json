@@ -1,0 +1,91 @@
+{
+    "route": "88F",
+    "region": "NT",
+    "gtfsId": "2008619",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:30-07:45",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "07:45-08:45",
+                            "frequency": "5-6"
+                        },
+                        {
+                            "period": "08:45-09:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "18:00-20:00",
+                            "frequency": "7-8"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "06:30-09:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "18:00-20:00",
+                            "frequency": "8-9"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:30-07:45",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "07:45-08:45",
+                            "frequency": "5-6"
+                        },
+                        {
+                            "period": "08:45-09:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "18:00-20:00",
+                            "frequency": "7-8"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "6",
+                    "weekday_zh": "\u661f\u671f\u516d",
+                    "weekday_en": "Saturday",
+                    "times": [
+                        {
+                            "period": "06:30-09:00",
+                            "frequency": "7-8"
+                        },
+                        {
+                            "period": "18:00-20:00",
+                            "frequency": "8-9"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
