@@ -1718,7 +1718,7 @@
     let ctbStopEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/{stop}/{route}";
     let ctbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/citybus/route-stop/CTB/{route}/{bound}";
 
-    let nlbInfoUrl = "https://www.nlb.com.hk/route/detail/{id}";
+    let nlbInfoUrl = "https://www.nlb.com.hk/{lang}/route/{id}";
     let nlbStopRouteEtaUrl = "https://rt.data.gov.hk/v2/transport/nlb/stop.php?action=estimatedArrivals&routeId={route}&stopId={stop}&language={lang}";
 
     let mtrBusInfoUrl = "https://www.mtr.com.hk/{lang}/customer/services/searchBusRouteDetails.php?routeID={route}";
@@ -4769,7 +4769,7 @@
                         calculateTasks.splice(calculateTasks.indexOf(task1Id), 1);
                     }]);
                 } else if (co == "nlb") {
-                    let resolvedSpecialUrl = nlbInfoUrl.replace("{id}", route["nlbId"]);
+                    let resolvedSpecialUrl = nlbInfoUrl.replace("{id}", route["nlbId"]).replace("{lang}", language == "en" ? "en" : "tc");
                     let task0Id = makeId(10);
                     calculateTasks.push(task0Id);
                     getJSONTasksQueue.push(["./dummy.txt", (err, data) => {
@@ -4801,6 +4801,8 @@
                     getJSONTasksQueue.push([resolvedTimeTableUrl, (err, data) => {
                         if (err == null) {
                             let timeTableData = data["timetable"];
+                            // NLB supplies free-text notes and context in Traditional Chinese.
+                            const escapeNlbText = value => String(value).replace(/[&<>"']/g, char => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[char]));
                             let times = {};
                             for (let k = 0; k < timeTableData.length; k++) {
                                 let timeEntry = timeTableData[k];
@@ -4815,7 +4817,11 @@
                                         frequency = "-";
                                     }
 
-                                    let daysOfWeek = dayType.split("").map(Number);
+                                    let daysOfWeek = dayType ? dayType.split("").map(Number) : [];
+                                    let heading = escapeNlbText(dayTypeName);
+                                    if (periodEntry["context"]) {
+                                        heading += "<br><small>" + escapeNlbText(periodEntry["context"]) + "</small>";
+                                    }
 
                                     let now = new Date();
                                     let nowHour = (now.getUTCHours() + 8) % 24;
@@ -4873,10 +4879,14 @@
                                         }
                                     }
 
-                                    if (!times.hasOwnProperty(dayTypeName)) {
-                                        times[dayTypeName] = [];
+                                    if (!times.hasOwnProperty(heading)) {
+                                        times[heading] = [];
                                     }
-                                    times[dayTypeName].push([time, frequency, daysOfWeek, isNow]);
+                                    let displayTime = escapeNlbText(time);
+                                    if (periodEntry["remark"]) {
+                                        displayTime += " <sup>" + escapeNlbText(periodEntry["remark"]) + "</sup>";
+                                    }
+                                    times[heading].push([displayTime, escapeNlbText(frequency), daysOfWeek, isNow]);
                                 }
                             }
 
@@ -4886,33 +4896,23 @@
                                 let rows = [];
                                 for (let u = 0; u < entries.length; u++) {
                                     let entry = entries[u];
-                                    let daysOfWeek = entry[2];
                                     let isNow = entry[3];
 
                                     let fontWeight = isNow ? "bold" : "normal";
-                                    if (daysOfWeek.length == 0) {
-                                        rows.push(
-                                            "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">-</th>" +
-                                            "</tr>"
-                                        );
-                                    } else {
-                                        rows.push(
-                                            "<tr>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
-                                                "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">" + entry[1] + "</th>" +
-                                            "</tr>"
-                                        );
-                                    }
+                                    rows.push(
+                                        "<tr>" +
+                                            "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap;\">" + entry[0] + "</th>" +
+                                            "<th style=\"font-weight: " + fontWeight + "; white-space: nowrap; text-align: right;\">" + entry[1] + "</th>" +
+                                        "</tr>"
+                                    );
                                 }
                                 let table = 
                                     "<table class=\"table\" style=\"word-break: keep-all;\">" +
                                         "<tbody>" +
                                             "<tr>" +
                                                 "<th>" + dayTypeName + "</th>" +
-                                                "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
-                                            "</tr>" + 
+                                            "<th style=\"text-align: right;\">" + (language == "en" ? "Frequency (Min.)" : "班次(分鐘)") + "</th>" +
+                                        "</tr>" +
                                             rows.join("") +
                                         "</tbody>" +
                                     "</table>";
@@ -4921,7 +4921,16 @@
                             }
 
                             if (tables.length == 0) {
-                                tables.push(language == "en" ? "On specific day only" : "於指定日期服務");
+                                let status = data["status"];
+                                tables.push(status == "suspended"
+                                    ? (language == "en" ? "Service temporarily suspended" : "暫停服務")
+                                    : status == "specific_days"
+                                        ? (language == "en" ? "On specific days only" : "只於指定日期服務")
+                                        : (language == "en" ? "Timetable unavailable" : "暫無時間表資料"));
+                            }
+
+                            if (data["notes"] && data["notes"].length > 0) {
+                                tables.push("<p>" + (language == "en" ? "NLB notes (Traditional Chinese):" : "嶼巴備註：") + "<br>" + data["notes"].map(escapeNlbText).join("<br>") + "</p>");
                             }
 
                             let tableTableTitle = language == "en" ? ("Route " + routeNumberDisplay + " Timetable (NLB)") : ("路線" + routeNumberDisplay + "時間表(嶼巴)");

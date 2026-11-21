@@ -615,105 +615,123 @@ def write_mtr_bus_timetable():
         write_dict_to_file("data/route_data_mtr_bus/" + route_number + ".json", result)
 
 
+def nlb_text(markup):
+    text = html.unescape(re.sub(r'<[^>]+>', ' ', markup))
+    return re.sub(r'\s+', ' ', text.replace('\xa0', ' ')).strip()
+
+
+def parse_nlb_timetable(html_text, route_id, route_number):
+    result = {"id": str(route_id), "route": route_number, "status": "scheduled", "notes": [], "timetable": []}
+    section = re.search(r'<section\b[^>]*aria-labelledby=[\"\']route-timetable-heading[\"\'][^>]*>(.*?)</section>', html_text, re.S | re.I)
+    if section is None:
+        raise ValueError("NLB route " + str(route_id) + ": timetable section missing")
+    content = section[1]
+    text = nlb_text(content)
+    if "暫停服務" in text:
+        result["status"] = "suspended"
+        result["notes"].append(re.sub(r"^時間表\s*", "", text))
+        return result
+    if "本路線只於指定日子提供服務" in text:
+        result["status"] = "specific_days"
+        result["notes"].append(re.sub(r"^時間表\s*", "", text))
+        return result
+
+    current_entry = None
+    context = ""
+    for match in re.finditer(r'<p\b[^>]*>(.*?)</p>|(<table\b.*?</table>)', content, re.S | re.I):
+        if match[1] is not None:
+            heading = nlb_text(match[1])
+            if not heading:
+                continue
+            is_date = bool(re.match(r'\d{4}年\d{1,2}月\d{1,2}日', heading))
+            if heading != "每日" and not heading.startswith("星期") and not is_date:
+                result["notes"].append(heading)
+                if "特別班次" in heading and heading.endswith((":", "：")):
+                    context = heading
+                continue
+            school_holiday = not any(s in heading for s in ["(學校假期除外)", "(學校假期及公眾假期除外)"])
+            school_day_only = any(s in heading for s in ["(只於上課日服務)", "(上學日)"])
+            no_school_day = any(s in heading for s in ["(上學日除外)", "(上學日及公眾假期除外)"])
+            public_holiday = not any(s in heading for s in ["(公眾假期除外)", "(星期日及公眾假期除外)", "(學校假期及公眾假期除外)", "(上學日及公眾假期除外)"])
+            if is_date:
+                weekday = ""
+                zh = en = heading
+                result["status"] = "dated"
+            else:
+                day = re.sub(r'\([^)]*\)', '', heading).replace("星期", "").strip()
+                days = {"每日": "1234567", "一至五": "12345", "一至六": "123456", "六": "6", "六、日及公眾假期": "67", "日及公眾假期": "7"}
+                if day not in days:
+                    raise ValueError("NLB route " + str(route_id) + ": unknown weekday " + heading)
+                weekday = days[day]
+                ranges = convert_weekday_ranges(weekday)
+                if ranges == "1-7":
+                    zh, en = "每天", "Daily"
+                else:
+                    zh = "星期" + ranges.replace(",", "、").replace("-", "至")
+                    en = ranges.replace(",", ", ").replace("-", " to ")
+                    for key, value in weekday_map_zh.items():
+                        zh = zh.replace(key, value)
+                    for key, value in weekday_map_en.items():
+                        en = en.replace(key, value)
+                # School-day restrictions and public-holiday exclusions can coexist.
+                for applies, zh_note, en_note in [
+                        (not school_holiday, "學校假期除外", "Except School Holidays"),
+                        (not public_holiday, "公眾假期除外", "Except Public Holidays"),
+                        (school_day_only, "只於上課日服務", "School Days Only"),
+                        (no_school_day, "上學日除外", "Except School Days")]:
+                    if applies:
+                        zh += " (" + zh_note + ")"
+                        en += " (" + en_note + ")"
+            current_entry = {"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": []}
+            result["timetable"].append(current_entry)
+            continue
+
+        if current_entry is None:
+            raise ValueError("NLB route " + str(route_id) + ": table without service-day heading")
+        origin = ""
+        table_rows = [[nlb_text(c) for c in re.findall(r'<t[dh]\b[^>]*>(.*?)</t[dh]>', row, re.S | re.I)]
+                      for row in re.findall(r'<tr\b[^>]*>(.*?)</tr>', match[2], re.S | re.I)]
+        frequency_table = any("班次" in cell for row in table_rows for cell in row)
+        departures = []
+        for row_index, cells in enumerate(table_rows):
+            time_columns = [i for i, cell in enumerate(cells) if re.search(r'\d{2}:\d{2}', cell)]
+            if not time_columns:
+                if cells and "開出" in cells[0]:
+                    origin = cells[0]
+                elif any(cells) and not frequency_table:
+                    result["notes"].append(" ".join(c for c in cells if c))
+                continue
+            marker_first = time_columns[0] > 0
+            for column in time_columns:
+                period = cells[column]
+                adjacent = column - 1 if marker_first else column + 1
+                remark = cells[adjacent] if 0 <= adjacent < len(cells) else ""
+                frequency = ""
+                if frequency_table and re.fullmatch(r'\d+(?:\s*-\s*\d+)?', remark):
+                    frequency, remark = remark, ""
+                if remark == "-":
+                    remark = ""
+                entry = {
+                    "period": period, "frequency": frequency, "remark": remark,
+                    "context": " · ".join(s for s in [context, origin] if s),
+                    "school_holiday": school_holiday, "school_day_only": school_day_only,
+                    "public_holiday": public_holiday, "no_school_day": no_school_day}
+                departures.append((column, row_index, entry))
+        # Some legacy tables place the second half of the day beside the first.
+        if not frequency_table:
+            departures.sort(key=lambda item: (item[0], item[1]))
+        current_entry["times"].extend(entry for _, _, entry in departures)
+    if not result["timetable"] or any(not g["times"] for g in result["timetable"]):
+        raise ValueError("NLB route " + str(route_id) + ": unrecognized or empty timetable")
+    return result
+
+
 def write_nlb_timetable():
     for route_entry in nlb_route_list:
         route_id = str(route_entry["routeId"])
         print(route_id)
-        result = {"id": route_id, "route": route_entry["routeNo"], "timetable": []}
-        html_text = "".join(get_text(nlb_info_url.replace("{id}", route_id), False).splitlines())
-        timetable_section_match = re.search(
-            r'<section[^>]*aria-labelledby="route-timetable-heading"[^>]*>(.*?)</section>',
-            html_text,
-            re.DOTALL | re.IGNORECASE)
-        if timetable_section_match and "本路線只於指定日子提供服務" not in timetable_section_match[1]:
-            current_entry = None
-            for match in re.finditer(
-                    r'<p\b[^>]*>(.*?)</p>|(<table\b.*?</table>)',
-                    timetable_section_match[1],
-                    re.DOTALL | re.IGNORECASE):
-                if match[1] is not None:
-                    weekday_str = html.unescape(re.sub(r'<[^>]+>', ' ', match[1]))
-                    weekday_str = re.sub(r'\s+', ' ', weekday_str.replace('\xa0', ' ')).strip()
-                    if weekday_str != "每日" and not weekday_str.startswith("星期"):
-                        continue
-                    school_holiday = "(學校假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str
-                    school_day_only = "(只於上課日服務)" in weekday_str or "(上學日)" in weekday_str
-                    no_school_day = "(上學日除外)" in weekday_str or "(上學日及公眾假期除外)" in weekday_str
-                    public_holiday = "(公眾假期除外)" not in weekday_str and "(星期日及公眾假期除外)" not in weekday_str and "(學校假期及公眾假期除外)" not in weekday_str and "(上學日及公眾假期除外)" not in weekday_str
-                    weekday_str = weekday_str.replace("(上學日)", "").replace("(上學日除外)", "").replace("(學校假期除外)", "").replace("(只於上課日服務)", "").replace("(上學日及公眾假期除外)", "").replace("(公眾假期除外)", "").replace("(星期日及公眾假期除外)", "").replace("(學校假期及公眾假期除外)", "").replace("星期", "").strip()
-                    if weekday_str == "每日":
-                        weekday = "1234567"
-                    elif weekday_str == "一至五":
-                        weekday = "12345"
-                    elif weekday_str == "一至六":
-                        weekday = "123456"
-                    elif weekday_str == "六":
-                        weekday = "6"
-                    elif weekday_str == "六、日及公眾假期":
-                        weekday = "67"
-                    elif weekday_str == "日及公眾假期":
-                        weekday = "7"
-                    else:
-                        raise Exception("What is weekday " + weekday_str)
-                    ranges = convert_weekday_ranges(weekday)
-                    if ranges == "1-7":
-                        zh = "每天"
-                        en = "Daily"
-                    else:
-                        zh = "星期" + ranges.replace(",", "、").replace("-", "至")
-                        for key, value in weekday_map_zh.items():
-                            zh = zh.replace(key, value)
-                        en = ranges.replace(",", ", ").replace("-", " to ")
-                        for key, value in weekday_map_en.items():
-                            en = en.replace(key, value)
-                    if not public_holiday and not school_holiday:
-                        zh += " (學校假期及公眾假期除外)"
-                        en += " (Except School & Public Holidays)"
-                    elif not public_holiday:
-                        zh += " (公眾假期除外)"
-                        en += " (Except Public Holidays)"
-                    elif not school_holiday:
-                        zh += " (學校假期除外)"
-                        en += " (Except School Holidays)"
-                    elif school_day_only:
-                        zh += " (只於上課日服務)"
-                        en += " (School Days Only)"
-                    elif no_school_day:
-                        zh += " (上學日除外)"
-                        en += " (Except School Days)"
-                    current_entry = {"weekday": weekday, "weekday_zh": zh, "weekday_en": en, "times": []}
-                    result["timetable"].append(current_entry)
-                    continue
-
-                if current_entry is None:
-                    continue
-                table_html = match[2]
-                periods = []
-                frequencies = []
-                for period_match in re.finditer("([0-9]{2}:[0-9]{2} ?- ?[0-9]{2}:[0-9]{2}).*?</td>.*?<td>([0-9]+(?: ?- ?[0-9]+)?)</td>", table_html):
-                    periods.append(period_match[1])
-                    frequencies.append(period_match[2])
-                if len(periods) <= 0:
-                    single = []
-                    matches = re.findall("([0-9]{2}:[0-9]{2})", table_html)
-                    if len(matches) < 3:
-                        for i in range(0, len(matches)):
-                            single.append(matches[i])
-                    else:
-                        h1, m1 = (int(x) for x in matches[1].split(":"))
-                        h2, m2 = (int(x) for x in matches[2].split(":"))
-                        if h1 > h2 or (h1 == h2 and m1 > m2):
-                            for i in range(0, len(matches), 2):
-                                single.append(matches[i])
-                            for i in range(1, len(matches), 2):
-                                single.append(matches[i])
-                        else:
-                            for i in range(0, len(matches)):
-                                single.append(matches[i])
-                    periods.append(", ".join(single))
-                    frequencies.append("")
-                for i in range(0, len(periods)):
-                    current_entry["times"].append({"period": periods[i], "frequency": frequencies[i], "school_holiday": school_holiday, "school_day_only": school_day_only, "public_holiday": public_holiday, "no_school_day": no_school_day})
+        html_text = get_text(nlb_info_url.replace("{id}", route_id), False)
+        result = parse_nlb_timetable(html_text, route_id, route_entry["routeNo"])
         write_dict_to_file("data/route_data_nlb/" + route_id + ".json", result)
 
 
@@ -743,7 +761,7 @@ if __name__ == '__main__':
     gmb_route_list = get_json("https://data.etagmb.gov.hk/route/")["data"]["routes"]
     gmb_route_data_url = "https://data.etagmb.gov.hk/route/{region}/{route}"
     nlb_route_list = get_json("https://rt.data.gov.hk/v2/transport/nlb/route.php?action=list")["routes"]
-    nlb_info_url = "https://www.nlb.com.hk/route/detail/{id}"
+    nlb_info_url = "https://www.nlb.com.hk/tc/route/{id}"
 
     print("Writing Static Data...")
     for root, dirs, files in os.walk("data_static"):
