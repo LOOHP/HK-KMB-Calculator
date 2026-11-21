@@ -1,0 +1,37 @@
+{
+    "route": "83A",
+    "region": "KLN",
+    "gtfsId": "2008818",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:30-00:15",
+                            "frequency": "10-12"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "1234567",
+                    "weekday_zh": "\u6bcf\u5929",
+                    "weekday_en": "Daily",
+                    "times": [
+                        {
+                            "period": "06:30-00:15",
+                            "frequency": "10-12"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
