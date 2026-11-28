@@ -1,0 +1,208 @@
+{
+    "id": "95",
+    "route": "39M",
+    "status": "scheduled",
+    "notes": [
+        "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:"
+    ],
+    "timetable": [
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+            "weekday_en": "Monday to Friday",
+            "times": [
+                {
+                    "period": "06:10 - 08:10",
+                    "frequency": "7-8",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "08:10 - 08:50",
+                    "frequency": "10",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "08:50 - 14:50",
+                    "frequency": "15",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "14:50 - 16:50",
+                    "frequency": "12",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "16:50 - 19:20",
+                    "frequency": "10",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "19:20 - 00:20",
+                    "frequency": "15",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        },
+        {
+            "weekday": "67",
+            "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+            "weekday_en": "Saturday, Sunday & Public Holidays",
+            "times": [
+                {
+                    "period": "06:10 - 08:20",
+                    "frequency": "10",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "08:20 - 00:20",
+                    "frequency": "15",
+                    "remark": "",
+                    "context": "\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        },
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+            "weekday_en": "Monday to Friday",
+            "times": [
+                {
+                    "period": "05:40",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "05:55",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "06:10",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "06:26",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "06:41",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "06:55",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        },
+        {
+            "weekday": "67",
+            "weekday_zh": "\u661f\u671f\u516d\u3001\u65e5\u53ca\u516c\u773e\u5047\u671f",
+            "weekday_en": "Saturday, Sunday & Public Holidays",
+            "times": [
+                {
+                    "period": "05:40",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "05:55",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "06:10",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u7531\u6eff\u6771\u90a8\u958b\u5f80\u6771\u6d8c\u7ad9\u5df4\u58eb\u7e3d\u7ad9\u7684\u7279\u5225\u73ed\u6b21:",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

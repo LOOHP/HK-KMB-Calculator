@@ -1,0 +1,67 @@
+{
+    "id": "91",
+    "route": "A35",
+    "status": "scheduled",
+    "notes": [
+        "T \u7d93\u6885\u7aa9\u820a\u865b"
+    ],
+    "timetable": [
+        {
+            "weekday": "1234567",
+            "weekday_zh": "\u6bcf\u5929",
+            "weekday_en": "Daily",
+            "times": [
+                {
+                    "period": "06:15",
+                    "frequency": "",
+                    "remark": "T",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "06:40",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "08:30",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "18:15",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "23:30",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

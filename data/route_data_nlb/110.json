@@ -1,0 +1,48 @@
+{
+    "id": "110",
+    "route": "NB2",
+    "status": "dated",
+    "notes": [
+        "*\u7279\u5225\u73ed\u6b21\u7531\u5929\u76db\u82d1\u958b\u51fa",
+        "#\u4ee5\u5143\u6717\u7ad9\u70ba\u7d42\u9ede\u7ad9\u4e4b\u73ed\u6b21"
+    ],
+    "timetable": [
+        {
+            "weekday": "",
+            "weekday_zh": "2026\u5e7410\u670831\u65e5\u53ca11\u67081\u65e5",
+            "weekday_en": "2026\u5e7410\u670831\u65e5\u53ca11\u67081\u65e5",
+            "times": [
+                {
+                    "period": "00:00",
+                    "frequency": "",
+                    "remark": "*",
+                    "context": "\u6df1\u5733\u7063\u53e3\u5cb8\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "00:30 - 01:00",
+                    "frequency": "30",
+                    "remark": "",
+                    "context": "\u6df1\u5733\u7063\u53e3\u5cb8\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "01:30, 02:15",
+                    "frequency": "",
+                    "remark": "#",
+                    "context": "\u6df1\u5733\u7063\u53e3\u5cb8\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

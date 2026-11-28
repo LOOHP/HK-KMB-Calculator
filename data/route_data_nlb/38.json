@@ -1,0 +1,45 @@
+{
+    "id": "38",
+    "route": "B2",
+    "status": "scheduled",
+    "notes": [],
+    "timetable": [
+        {
+            "weekday": "1234567",
+            "weekday_zh": "\u6bcf\u5929",
+            "weekday_en": "Daily",
+            "times": [
+                {
+                    "period": "06:45 - 07:10",
+                    "frequency": "25",
+                    "remark": "",
+                    "context": "\u6df1\u5733\u7063\u53e3\u5cb8\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "07:10 - 22:50",
+                    "frequency": "20",
+                    "remark": "",
+                    "context": "\u6df1\u5733\u7063\u53e3\u5cb8\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "22:50 - 00:20",
+                    "frequency": "30",
+                    "remark": "",
+                    "context": "\u6df1\u5733\u7063\u53e3\u5cb8\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "id": "111",
+    "route": "B6S",
+    "status": "scheduled",
+    "notes": [
+        "\u65bc\u8def\u7dda B6S \u670d\u52d9\u6642\u9593\u4ee5\u5916\uff0c\u8acb\u9078\u4e58\u8def\u7dda B6 \u524d\u5f80\u5927\u6a4b\u9999\u6e2f\u53e3\u5cb8"
+    ],
+    "timetable": [
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u516c\u773e\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Friday (Except Public Holidays)",
+            "times": [
+                {
+                    "period": "07:00 - 08:30",
+                    "frequency": "15",
+                    "remark": "",
+                    "context": "\u6eff\u6771\u90a8\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

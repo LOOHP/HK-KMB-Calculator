@@ -1,0 +1,65 @@
+{
+    "id": "78",
+    "route": "37",
+    "status": "scheduled",
+    "notes": [],
+    "timetable": [
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u5b78\u6821\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Friday (Except School Holidays)",
+            "times": [
+                {
+                    "period": "07:42",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u9038\u6771\u958b\u51fa(\u4e0d\u7d93\u6eff\u6771,\u6771\u6d8c\u5e02\u4e2d\u5fc3)",
+                    "school_holiday": false,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "07:52",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u9038\u6771\u958b\u51fa(\u4e0d\u7d93\u6eff\u6771,\u6771\u6d8c\u5e02\u4e2d\u5fc3)",
+                    "school_holiday": false,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "08:02",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u9038\u6771\u958b\u51fa(\u4e0d\u7d93\u6eff\u6771,\u6771\u6d8c\u5e02\u4e2d\u5fc3)",
+                    "school_holiday": false,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "16:05",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u9038\u6771\u958b\u51fa",
+                    "school_holiday": false,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "16:15",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "\u9038\u6771\u958b\u51fa",
+                    "school_holiday": false,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

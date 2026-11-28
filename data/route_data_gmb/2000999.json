@@ -1,0 +1,41 @@
+{
+    "route": "22S",
+    "region": "HKI",
+    "gtfsId": "2000999",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "09:00-09:15",
+                            "frequency": "25"
+                        }
+                    ]
+                }
+            ]
+        },
+        "I": {
+            "timetable": [
+                {
+                    "weekday": "12345",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94",
+                    "weekday_en": "Monday to Friday",
+                    "times": [
+                        {
+                            "period": "06:45-08:30",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "08:31-09:15",
+                            "frequency": "25"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

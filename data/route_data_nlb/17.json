@@ -1,0 +1,96 @@
+{
+    "id": "17",
+    "route": "11",
+    "status": "scheduled",
+    "notes": [
+        "a \u7d93\u6c99\u5480\u61f2\u6559\u6240",
+        "b \u7d93\u5858\u798f\u61f2\u6559\u6240",
+        "# \u7d93\u5317\u5927\u5dbc\u5c71\u91ab\u9662"
+    ],
+    "timetable": [
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u5b78\u6821\u5047\u671f\u9664\u5916) (\u516c\u773e\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Friday (Except School Holidays) (Except Public Holidays)",
+            "times": [
+                {
+                    "period": "07:10",
+                    "frequency": "",
+                    "remark": "",
+                    "context": "",
+                    "school_holiday": false,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                }
+            ]
+        },
+        {
+            "weekday": "12345",
+            "weekday_zh": "\u661f\u671f\u4e00\u81f3\u4e94 (\u516c\u773e\u5047\u671f\u9664\u5916)",
+            "weekday_en": "Monday to Friday (Except Public Holidays)",
+            "times": [
+                {
+                    "period": "14:05",
+                    "frequency": "",
+                    "remark": "b",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                },
+                {
+                    "period": "15:00",
+                    "frequency": "",
+                    "remark": "b",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                },
+                {
+                    "period": "15:45",
+                    "frequency": "",
+                    "remark": "b",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                },
+                {
+                    "period": "16:15",
+                    "frequency": "",
+                    "remark": "b",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                },
+                {
+                    "period": "17:00",
+                    "frequency": "",
+                    "remark": "b",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                },
+                {
+                    "period": "17:25",
+                    "frequency": "",
+                    "remark": "b",
+                    "context": "",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": false,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

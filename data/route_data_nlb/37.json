@@ -1,0 +1,35 @@
+{
+    "id": "37",
+    "route": "B2",
+    "status": "scheduled",
+    "notes": [],
+    "timetable": [
+        {
+            "weekday": "1234567",
+            "weekday_zh": "\u6bcf\u5929",
+            "weekday_en": "Daily",
+            "times": [
+                {
+                    "period": "06:00 - 22:00",
+                    "frequency": "20",
+                    "remark": "",
+                    "context": "\u5143\u6717\u6e2f\u9435\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                },
+                {
+                    "period": "22:00 - 22:30",
+                    "frequency": "30",
+                    "remark": "",
+                    "context": "\u5143\u6717\u6e2f\u9435\u7ad9\u958b\u51fa",
+                    "school_holiday": true,
+                    "school_day_only": false,
+                    "public_holiday": true,
+                    "no_school_day": false
+                }
+            ]
+        }
+    ]
+}

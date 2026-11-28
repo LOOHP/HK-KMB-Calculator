@@ -1,0 +1,53 @@
+{
+    "route": "5M",
+    "region": "KLN",
+    "gtfsId": "2003537",
+    "bound": {
+        "O": {
+            "timetable": [
+                {
+                    "weekday": "123456",
+                    "weekday_zh": "\u661f\u671f\u4e00\u81f3\u516d",
+                    "weekday_en": "Monday to Saturday",
+                    "times": [
+                        {
+                            "period": "06:30-07:00",
+                            "frequency": "15"
+                        },
+                        {
+                            "period": "09:30-10:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "16:00-17:10",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "17:10-19:10",
+                            "frequency": "12-15"
+                        },
+                        {
+                            "period": "19:10-22:55",
+                            "frequency": "15-20"
+                        }
+                    ]
+                },
+                {
+                    "weekday": "7",
+                    "weekday_zh": "\u661f\u671f\u65e5\u53ca\u516c\u773e\u5047\u671f",
+                    "weekday_en": "Sunday & Public Holidays",
+                    "times": [
+                        {
+                            "period": "07:00-10:00",
+                            "frequency": "15-20"
+                        },
+                        {
+                            "period": "16:00-23:00",
+                            "frequency": "15-20"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
